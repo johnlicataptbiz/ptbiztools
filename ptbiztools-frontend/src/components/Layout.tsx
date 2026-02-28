@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { BarChart3, ClipboardList, Calculator, Film, BookOpenText, ScrollText, LogOut, Menu, X } from 'lucide-react'
+import { BarChart3, ClipboardList, Calculator, Film, BookOpenText, ScrollText, LogOut, Menu, PhoneCall, X } from 'lucide-react'
 import type { User } from '../services/api'
 import { SITE_LOGO_URL } from '../constants/branding'
-import { getRoleLabel } from '../utils/roles'
+import { getEffectiveRole, getRoleLabel } from '../utils/roles'
 import './Layout.css'
 
 interface LayoutProps {
@@ -14,6 +14,8 @@ interface LayoutProps {
 
 export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const role = getEffectiveRole(user)
+  const isAdvisor = role === 'advisor'
 
   const navItems = useMemo(() => {
     if (isAdmin) {
@@ -21,9 +23,21 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         { to: '/', label: 'Dashboard', icon: BarChart3 },
         { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
         { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
+        { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
         { to: '/analyses', label: 'Analyses', icon: ScrollText },
         { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
         { to: '/media', label: 'Media', icon: Film },
+      ]
+    }
+
+    if (isAdvisor) {
+      return [
+        { to: '/', label: 'Dashboard', icon: BarChart3 },
+        { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
+        { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
+        { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
+        { to: '/analyses', label: 'My Analyses', icon: ScrollText },
+        { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
       ]
     }
 
@@ -34,7 +48,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
       { to: '/analyses', label: 'My Analyses', icon: ScrollText },
       { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
     ]
-  }, [isAdmin])
+  }, [isAdmin, isAdvisor])
 
   const initials = user.name
     .split(' ')

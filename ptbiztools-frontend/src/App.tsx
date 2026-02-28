@@ -5,12 +5,13 @@ import IntroVideo, { IntroContext, type RevealedTools } from './components/Intro
 import Home from './pages/Home'
 import DiscoveryCallGrader from './pages/DiscoveryCallGrader'
 import PLCalculator from './pages/PLCalculator'
+import SalesDiscoveryGrader from './pages/SalesDiscoveryGrader'
 import Login from './pages/Login'
 import AnalysisHistory from './pages/AnalysisHistory'
 import KnowledgeCenter from './pages/KnowledgeCenter'
 import MediaManager from './pages/MediaManager'
 import { getMe, logout, type User } from './services/api'
-import { isAdminUser } from './utils/roles'
+import { getEffectiveRole, isAdminUser } from './utils/roles'
 import { SITE_LOGO_URL } from './constants/branding'
 import './index.css'
 import './components/IntroVideo.css'
@@ -29,7 +30,9 @@ function App() {
   const [showIntro, setShowIntro] = useState(false)
   const [revealed, setRevealed] = useState<RevealedTools>(lockedRevealed)
 
+  const role = useMemo(() => getEffectiveRole(user), [user])
   const isAdmin = useMemo(() => isAdminUser(user), [user])
+  const canAccessSalesDiscovery = role === 'admin' || role === 'advisor'
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -129,6 +132,10 @@ function App() {
             <Route index element={<Home user={user} isAdmin={isAdmin} />} />
             <Route path="discovery-call-grader" element={<DiscoveryCallGrader />} />
             <Route path="pl-calculator" element={<PLCalculator />} />
+            <Route
+              path="sales-discovery-grader"
+              element={canAccessSalesDiscovery ? <SalesDiscoveryGrader /> : <Navigate to="/" replace />}
+            />
             <Route path="analyses" element={<AnalysisHistory isAdmin={isAdmin} />} />
             <Route path="knowledge" element={<KnowledgeCenter isAdmin={isAdmin} />} />
             <Route
