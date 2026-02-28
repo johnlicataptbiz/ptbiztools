@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ActionLog {
+  id          String   @id @default(uuid())
+  actionType  String
+  description String
+  metadata    Json?
+  userId      String?
+  sessionId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model KnowledgeDoc {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  category  String
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
