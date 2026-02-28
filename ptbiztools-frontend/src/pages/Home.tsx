@@ -1,20 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Activity,
   BarChart3,
   Calculator,
+  CheckCircle2,
   ClipboardList,
   Clock,
   FileText,
   Lock,
+  Phone,
+  Sparkles,
   TrendingUp,
   Users,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { API_BASE, getActionStats, getAdminUsageSummary, type ActionStatsSummary, type AdminUsageSummary } from '../services/api'
-import { useIntro } from '../components/IntroVideo'
+import { useIntro, type RevealedTools } from '../components/IntroVideo'
 import type { User } from '../services/api'
 import './Home.css'
 
@@ -74,7 +77,7 @@ const tools: ToolItem[] = [
   {
     title: 'Discovery Call Grader',
     description: 'Grade and analyze discovery call transcripts with immediate coaching feedback.',
-    icon: ClipboardList,
+    icon: Phone,
     path: '/discovery-call-grader',
     color: 'var(--color-accent)',
     revealKey: 'discovery',
@@ -83,7 +86,7 @@ const tools: ToolItem[] = [
   {
     title: 'P&L Calculator',
     description: 'Analyze clinic financial performance with benchmarks and action steps.',
-    icon: Calculator,
+    icon: TrendingUp,
     path: '/pl-calculator',
     color: 'var(--color-success)',
     revealKey: 'pl',
@@ -104,6 +107,11 @@ const trackedPdfActions = new Set(['pdf_generated', 'PDF_GENERATED', 'pl_pdf_gen
 export default function Home({ user, isAdmin }: HomeProps) {
   const navigate = useNavigate()
   const { revealed } = useIntro()
+  const previousRevealedRef = useRef<RevealedTools>(revealed)
+  const [recentUnlocks, setRecentUnlocks] = useState<Record<keyof RevealedTools, boolean>>({
+    discovery: false,
+    pl: false,
+  })
 
   const [stats, setStats] = useState<Stats>({
     totalTranscripts: 0,
@@ -176,6 +184,35 @@ export default function Home({ user, isAdmin }: HomeProps) {
 
     fetchAdminUsage()
   }, [isAdmin])
+
+  useEffect(() => {
+    if (isAdmin) {
+      previousRevealedRef.current = revealed
+      return
+    }
+
+    const newlyUnlocked = {
+      discovery: revealed.discovery && !previousRevealedRef.current.discovery,
+      pl: revealed.pl && !previousRevealedRef.current.pl,
+    }
+    previousRevealedRef.current = revealed
+
+    if (!newlyUnlocked.discovery && !newlyUnlocked.pl) return
+
+    setRecentUnlocks((prev) => ({
+      discovery: prev.discovery || newlyUnlocked.discovery,
+      pl: prev.pl || newlyUnlocked.pl,
+    }))
+
+    const timeout = setTimeout(() => {
+      setRecentUnlocks((prev) => ({
+        discovery: newlyUnlocked.discovery ? false : prev.discovery,
+        pl: newlyUnlocked.pl ? false : prev.pl,
+      }))
+    }, 2200)
+
+    return () => clearTimeout(timeout)
+  }, [isAdmin, revealed])
 
   const greeting = useMemo(() => {
     if (isAdmin) return `Welcome back, ${user.name.split(' ')[0]}`
@@ -442,14 +479,25 @@ export default function Home({ user, isAdmin }: HomeProps) {
                 <motion.button
                   key={tool.path}
                   onClick={() => unlocked && navigate(tool.path)}
-                  className={`tool-card ${unlocked ? '' : 'tool-card-locked'}`}
+                  className={`tool-card ${
+                    unlocked ? 'tool-card-live' : 'tool-card-locked'
+                  } ${recentUnlocks[tool.revealKey] ? 'tool-card-just-unlocked' : ''}`}
                   whileHover={unlocked ? { scale: 1.02, y: -4 } : {}}
                   whileTap={unlocked ? { scale: 0.98 } : {}}
                 >
                   {!unlocked && !isAdmin && (
                     <div className="tool-locked-overlay">
-                      <Lock size={15} />
-                      <span>Unlocks at {tool.unlockTime}</span>
+                      <div className="tool-locked-chip">
+                        <Lock size={15} />
+                        <span>Unlocks at {tool.unlockTime}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {recentUnlocks[tool.revealKey] && (
+                    <div className="tool-unlocked-overlay">
+                      <Sparkles size={14} />
+                      <span>Unlocked</span>
                     </div>
                   )}
 
@@ -460,6 +508,12 @@ export default function Home({ user, isAdmin }: HomeProps) {
                     <h3>{tool.title}</h3>
                     <p>{tool.description}</p>
                   </div>
+                  {unlocked && !isAdmin && (
+                    <div className="tool-ready-chip">
+                      <CheckCircle2 size={13} />
+                      <span>Ready</span>
+                    </div>
+                  )}
                 </motion.button>
               )
             })}

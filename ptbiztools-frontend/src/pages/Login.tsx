@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
 import {
@@ -11,7 +10,7 @@ import {
   type User,
 } from '../services/api'
 import { CorexButton, CorexInput } from '../components/corex/CorexComponents'
-import { SITE_LOGO_URL } from '../constants/branding'
+import { LOGIN_LOGO_URL } from '../constants/branding'
 import './Login.css'
 
 interface LoginProps {
@@ -19,7 +18,6 @@ interface LoginProps {
 }
 
 const rememberedUserKey = 'ptbiz_selected_user_id'
-const logoMaskStyle = { '--logo-mask-url': `url(${SITE_LOGO_URL})` } as CSSProperties
 
 function getInitials(name: string) {
   return name
@@ -209,10 +207,10 @@ export default function Login({ onAuthenticated }: LoginProps) {
         transition={{ duration: 0.25 }}
       >
         <header className="login-header">
-          <div className="login-logo-hero" style={logoMaskStyle} role="img" aria-label="BizCoach Suite logo">
-            <span className="login-logo-mask" aria-hidden="true" />
-            <img src={SITE_LOGO_URL} alt="" className="login-logo-image" aria-hidden="true" />
+          <div className="login-logo-hero">
+            <img src={LOGIN_LOGO_URL} alt="BizCoach Suite" className="login-logo-image" />
           </div>
+          <span className="login-header-kicker">Private Platform Access</span>
           <h1>PT Biz Team Login</h1>
           <p>Select your profile, then sign in with your password.</p>
         </header>

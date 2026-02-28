@@ -18,6 +18,11 @@ import './components/IntroVideo.css'
 
 const defaultRevealed: RevealedTools = { discovery: true, pl: true }
 const lockedRevealed: RevealedTools = { discovery: false, pl: false }
+const onboardingSteps = [
+  'Building your coaching suite...',
+  'Adding tools to your workspace...',
+  'Verifying your access level...',
+]
 
 function introSeenKey(userId: string) {
   return `ptbiz_intro_seen:${userId}`
@@ -29,6 +34,8 @@ function App() {
   const [introReady, setIntroReady] = useState(false)
   const [showIntro, setShowIntro] = useState(false)
   const [revealed, setRevealed] = useState<RevealedTools>(lockedRevealed)
+  const [showOnboardingPrep, setShowOnboardingPrep] = useState(false)
+  const [onboardingStepIndex, setOnboardingStepIndex] = useState(0)
 
   const role = useMemo(() => getEffectiveRole(user), [user])
   const isAdmin = useMemo(() => isAdminUser(user), [user])
@@ -47,7 +54,11 @@ function App() {
   useEffect(() => {
     if (!user) return
 
+    let stepTimer: ReturnType<typeof setInterval> | undefined
+    let completeTimer: ReturnType<typeof setTimeout> | undefined
+
     if (isAdminUser(user)) {
+      setShowOnboardingPrep(false)
       setShowIntro(false)
       setRevealed(defaultRevealed)
       setIntroReady(true)
@@ -56,18 +67,38 @@ function App() {
 
     const hasSeenIntro = localStorage.getItem(introSeenKey(user.id))
     if (hasSeenIntro) {
+      setShowOnboardingPrep(false)
       setShowIntro(false)
       setRevealed(defaultRevealed)
       setIntroReady(true)
       return
     }
 
-    setShowIntro(true)
+    setShowOnboardingPrep(true)
+    setOnboardingStepIndex(0)
+    setShowIntro(false)
     setRevealed(lockedRevealed)
-    setIntroReady(true)
+    setIntroReady(false)
+
+    stepTimer = setInterval(() => {
+      setOnboardingStepIndex((prev) => Math.min(prev + 1, onboardingSteps.length - 1))
+    }, 780)
+
+    completeTimer = setTimeout(() => {
+      setShowOnboardingPrep(false)
+      setShowIntro(true)
+      setIntroReady(true)
+    }, 2350)
+
+    return () => {
+      if (stepTimer) clearInterval(stepTimer)
+      if (completeTimer) clearTimeout(completeTimer)
+    }
   }, [user])
 
   const handleAuthenticated = (nextUser: User) => {
+    setShowOnboardingPrep(false)
+    setOnboardingStepIndex(0)
     setIntroReady(false)
     setUser(nextUser)
   }
@@ -76,6 +107,8 @@ function App() {
     await logout()
     setUser(null)
     setIntroReady(false)
+    setShowOnboardingPrep(false)
+    setOnboardingStepIndex(0)
     setShowIntro(false)
     setRevealed(lockedRevealed)
   }
@@ -106,6 +139,33 @@ function App() {
   }
 
   if (!introReady) {
+    if (showOnboardingPrep && !isAdmin) {
+      const progress = ((onboardingStepIndex + 1) / onboardingSteps.length) * 100
+
+      return (
+        <div className="app-loader-screen app-loader-screen-staging">
+          <img src={SITE_LOGO_URL} alt="PT Biz" className="app-loader-logo" />
+          <div className="app-loader-copy">
+            <h2>Preparing your onboarding</h2>
+            <p>Lining up video, audio, and tool access so your walkthrough plays cleanly.</p>
+          </div>
+          <div className="app-loader-step-list" aria-live="polite">
+            {onboardingSteps.map((step, index) => {
+              const state = index < onboardingStepIndex ? 'done' : index === onboardingStepIndex ? 'active' : 'pending'
+              return (
+                <div key={step} className={`app-loader-step app-loader-step-${state}`}>
+                  <span>{step}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="app-loader-progress-track" aria-hidden="true">
+            <span className="app-loader-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="app-loader-screen">
         <img src={SITE_LOGO_URL} alt="PT Biz" className="app-loader-logo" />

@@ -1,8 +1,8 @@
 .intro-modal-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(233, 69, 96, 0.15), rgba(0, 0, 0, 0.88) 45%);
-  backdrop-filter: blur(10px);
+  background: radial-gradient(circle at top, rgba(72, 102, 155, 0.26), rgba(4, 6, 13, 0.68) 55%);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,6 +37,37 @@
   margin: 4px 0 0;
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+.intro-tool-timeline {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.intro-tool-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(13, 17, 29, 0.65);
+  color: #c8d5ef;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.intro-tool-chip em {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+.intro-tool-chip.unlocked {
+  border-color: rgba(96, 214, 164, 0.42);
+  background: rgba(27, 114, 76, 0.35);
+  color: #d9fbe8;
 }
 
 .intro-player-frame {
@@ -84,6 +115,13 @@
 .intro-play-btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-button-hover);
+}
+
+.intro-play-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
 }
 
 .intro-start-card p {
@@ -138,12 +176,89 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  gap: 10px;
+  gap: 12px;
+  padding: 18px;
+  text-align: center;
+  background:
+    radial-gradient(62% 70% at 8% -12%, rgba(35, 108, 214, 0.2), transparent 70%),
+    radial-gradient(56% 62% at 96% 112%, rgba(211, 52, 96, 0.16), transparent 72%),
+    #04050c;
 }
 
 .app-loader-logo {
-  width: 180px;
+  width: min(320px, 72vw);
   opacity: 0.95;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.5));
+}
+
+.app-loader-screen p {
+  color: #c2cde2;
+  margin: 0;
+}
+
+.app-loader-screen-staging {
+  gap: 16px;
+}
+
+.app-loader-copy {
+  max-width: 620px;
+  display: grid;
+  gap: 6px;
+}
+
+.app-loader-copy h2 {
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 42px);
+  letter-spacing: -0.02em;
+}
+
+.app-loader-copy p {
+  margin: 0;
+  color: #a9b8d8;
+}
+
+.app-loader-step-list {
+  width: min(620px, 94vw);
+  display: grid;
+  gap: 8px;
+}
+
+.app-loader-step {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  color: #9eacc8;
+  font-size: 13px;
+  padding: 9px 11px;
+  text-align: left;
+}
+
+.app-loader-step-active {
+  border-color: rgba(126, 169, 241, 0.5);
+  background: rgba(42, 78, 142, 0.32);
+  color: #e1ecff;
+}
+
+.app-loader-step-done {
+  border-color: rgba(83, 165, 125, 0.45);
+  background: rgba(24, 88, 59, 0.28);
+  color: #d8f7e8;
+}
+
+.app-loader-progress-track {
+  width: min(620px, 94vw);
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.app-loader-progress-fill {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3a89f6, #68b0ff);
+  transition: width 0.3s ease;
 }
 
 @media (max-width: 768px) {

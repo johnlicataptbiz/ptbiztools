@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Calculator, CheckCircle2, ClipboardList, Lock } from 'lucide-react'
 import { SITE_LOGO_URL } from '../constants/branding'
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api'
@@ -29,6 +30,8 @@ type IntroStage = 'idle' | 'logo' | 'audio' | 'danny' | 'done'
 export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoProps) {
   const [stage, setStage] = useState<IntroStage>('idle')
   const [progress, setProgress] = useState(0)
+  const [mediaReady, setMediaReady] = useState(false)
+  const [revealedTools, setRevealedTools] = useState<RevealedTools>({ discovery: false, pl: false })
   const [videoUrls, setVideoUrls] = useState({
     logo: '/intro-logo.mp4',
     nameAudio: '/danny-intro.mp3',
@@ -87,8 +90,10 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
           if (prev.danny.startsWith('blob:')) URL.revokeObjectURL(prev.danny)
           return nextUrls
         })
+        setMediaReady(true)
       } catch {
         // Keep local fallback media
+        setMediaReady(true)
       }
 
       return () => {
@@ -130,8 +135,10 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   }, [stage])
 
   const handleStart = () => {
+    if (!mediaReady) return
     hasRevealedDiscoveryRef.current = false
     hasRevealedPLRef.current = false
+    setRevealedTools({ discovery: false, pl: false })
     onRevealChange?.({ discovery: false, pl: false })
     setStage('logo')
   }
@@ -152,16 +159,19 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
 
     if (video.currentTime >= 10 && !hasRevealedDiscoveryRef.current) {
       hasRevealedDiscoveryRef.current = true
+      setRevealedTools((prev) => ({ ...prev, discovery: true }))
       onRevealChange?.({ discovery: true })
     }
 
     if (video.currentTime >= 14 && !hasRevealedPLRef.current) {
       hasRevealedPLRef.current = true
+      setRevealedTools((prev) => ({ ...prev, pl: true }))
       onRevealChange?.({ pl: true })
     }
   }
 
   const finishIntro = () => {
+    setRevealedTools({ discovery: true, pl: true })
     onRevealChange?.({ discovery: true, pl: true })
     setProgress(100)
     setStage('done')
@@ -169,11 +179,28 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   }
 
   const subtitle = useMemo(() => {
-    if (stage === 'logo') return 'Booting PT Biz Tools'
-    if (stage === 'audio') return 'Intro from Danny'
-    if (stage === 'danny') return 'Coach onboarding'
-    return 'Press play to begin your walkthrough'
+    if (stage === 'logo') return 'Queueing logo sequence'
+    if (stage === 'audio') return 'Danny intro audio'
+    if (stage === 'danny') return 'Coach onboarding in progress'
+    return mediaReady ? 'Press play to begin your walkthrough' : 'Syncing onboarding media'
   }, [stage])
+
+  const timeline = [
+    {
+      key: 'discovery',
+      label: 'Discovery Call Grader',
+      time: '10s',
+      icon: ClipboardList,
+      unlocked: revealedTools.discovery,
+    },
+    {
+      key: 'pl',
+      label: 'P&L Calculator',
+      time: '14s',
+      icon: Calculator,
+      unlocked: revealedTools.pl,
+    },
+  ] as const
 
   return (
     <AnimatePresence>
@@ -195,6 +222,22 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
               <div>
                 <h2>PT Biz Team Welcome</h2>
                 <p>{subtitle}</p>
+                <div className="intro-tool-timeline" aria-live="polite">
+                  {timeline.map((item) => {
+                    const ItemIcon = item.icon
+                    return (
+                      <div
+                        key={item.key}
+                        className={`intro-tool-chip ${item.unlocked ? 'unlocked' : ''}`}
+                      >
+                        <ItemIcon size={14} />
+                        <span>{item.label}</span>
+                        <em>{item.time}</em>
+                        {item.unlocked ? <CheckCircle2 size={13} /> : <Lock size={13} />}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
               {isPlaying && (
                 <button className="intro-skip" onClick={finishIntro}>
@@ -207,10 +250,10 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
               {stage === 'idle' && (
                 <div className="intro-start-card">
                   <img src={SITE_LOGO_URL} alt="PT Biz" />
-                  <button className="intro-play-btn" onClick={handleStart}>
-                    Play Intro
+                  <button className="intro-play-btn" onClick={handleStart} disabled={!mediaReady}>
+                    {mediaReady ? 'Play Intro' : 'Syncing Media...'}
                   </button>
-                  <p>Audio starts only after you click play.</p>
+                  <p>{mediaReady ? 'Audio starts only after you click play.' : 'Pulling logo, audio, and Danny video now.'}</p>
                 </div>
               )}
 
@@ -221,6 +264,7 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
                   onEnded={handleLogoEnd}
                   playsInline
                   muted
+                  preload="auto"
                 >
                   <source src={videoUrls.logo} type="video/mp4" />
                 </video>
@@ -229,7 +273,7 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
               {stage === 'audio' && (
                 <div className="intro-audio-stage">
                   <span>“Danny Matta here…”</span>
-                  <audio ref={nameAudioRef} onEnded={handleNameAudioEnd}>
+                  <audio ref={nameAudioRef} onEnded={handleNameAudioEnd} preload="auto">
                     <source src={videoUrls.nameAudio} type="audio/mpeg" />
                   </audio>
                 </div>
@@ -242,6 +286,7 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
                   onTimeUpdate={handleDannyTimeUpdate}
                   onEnded={finishIntro}
                   playsInline
+                  preload="auto"
                 >
                   <source src={videoUrls.danny} type="video/mp4" />
                 </video>
