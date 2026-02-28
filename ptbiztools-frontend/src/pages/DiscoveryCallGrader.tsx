@@ -4,7 +4,7 @@ import { ClipboardList, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { gradeTranscript, type GradeResult } from '../utils/grader'
 import { generatePDF } from '../utils/pdfGenerator'
-import { logAction, ActionTypes } from '../services/api'
+import { logAction, ActionTypes, saveCoachingAnalysis, savePdfExport } from '../services/api'
 import { GradePreview } from '../components/grader/GradePreview'
 import { GradeModal } from '../components/grader/GradeModal'
 import './DiscoveryCallGrader.css'
@@ -17,6 +17,7 @@ export default function DiscoveryCallGrader() {
   const [coachName, setCoachName] = useState('')
   const [clientName, setClientName] = useState('')
   const [callDate, setCallDate] = useState('')
+  const [analysisId, setAnalysisId] = useState<string | undefined>(undefined)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
   // Use crypto.randomUUID() instead of Math.random() for secure session IDs
@@ -61,6 +62,27 @@ export default function DiscoveryCallGrader() {
         metadata: { score: result.score, outcome: result.outcome },
         sessionId,
       })
+
+      const saved = await saveCoachingAnalysis({
+        sessionId,
+        coachName,
+        clientName,
+        callDate,
+        grade: {
+          score: result.score,
+          outcome: result.outcome,
+          summary: result.summary,
+          phaseScores: result.phaseScores,
+          strengths: result.strengths,
+          improvements: result.improvements,
+          redFlags: result.redFlags,
+          deidentifiedTranscript: result.deidentifiedTranscript,
+        },
+      })
+
+      if (saved.analysisId) {
+        setAnalysisId(saved.analysisId)
+      }
     } catch (error) {
       toast.error('Failed to grade transcript', { id: 'grading' })
       console.error(error)
@@ -84,6 +106,20 @@ export default function DiscoveryCallGrader() {
         metadata: { score: grade.score, clientName: clientName || 'Client' },
         sessionId,
       })
+
+      await savePdfExport({
+        sessionId,
+        coachingAnalysisId: analysisId,
+        coachName,
+        clientName: clientName || 'Client',
+        callDate: callDate || new Date().toLocaleDateString(),
+        score: grade.score,
+        metadata: {
+          tool: 'discovery_call_grader',
+          outcome: grade.outcome,
+          summary: grade.summary,
+        },
+      })
     } catch (error) {
       toast.error('Failed to generate PDF', { id: 'pdf' })
       console.error('Failed to generate PDF:', error)
@@ -96,6 +132,7 @@ export default function DiscoveryCallGrader() {
     setCoachName('')
     setClientName('')
     setCallDate('')
+    setAnalysisId(undefined)
     if (textareaRef.current) {
       textareaRef.current.focus()
     }

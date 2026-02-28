@@ -1,274 +1,261 @@
-import { useState, useEffect, useRef, createContext, useContext } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { SITE_LOGO_URL } from '../constants/branding'
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api'
 
-interface IntroContextType {
-  revealed: {
-    discovery: boolean
-    pl: boolean
-  }
+export interface RevealedTools {
+  discovery: boolean
+  pl: boolean
 }
 
-export const IntroContext = createContext<IntroContextType>({ revealed: { discovery: false, pl: false } })
+interface IntroContextType {
+  revealed: RevealedTools
+}
+
+export const IntroContext = createContext<IntroContextType>({
+  revealed: { discovery: true, pl: true },
+})
 
 export const useIntro = () => useContext(IntroContext)
 
 interface IntroVideoProps {
   onComplete: () => void
+  onRevealChange?: (next: Partial<RevealedTools>) => void
 }
 
-export default function IntroVideo({ onComplete }: IntroVideoProps) {
-  const [stage, setStage] = useState<'start' | 'black' | 'logo' | 'logo-fade' | 'audio' | 'danny' | 'done'>('start')
+type IntroStage = 'idle' | 'logo' | 'audio' | 'danny' | 'done'
+
+export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoProps) {
+  const [stage, setStage] = useState<IntroStage>('idle')
   const [progress, setProgress] = useState(0)
-  const logoRef = useRef<HTMLVideoElement>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const dannyRef = useRef<HTMLVideoElement>(null)
-  
-  const [videoUrls, setVideoUrls] = useState<{ logo: string; danny: string }>({
+  const [videoUrls, setVideoUrls] = useState({
     logo: '/intro-logo.mp4',
-    danny: '/intro-danny.mp4'
+    nameAudio: '/danny-intro.mp3',
+    danny: '/intro-danny.mp4',
   })
-  
-  const [revealed, setRevealed] = useState({
-    discovery: false,
-    pl: false
-  })
+
+  const logoRef = useRef<HTMLVideoElement>(null)
+  const nameAudioRef = useRef<HTMLAudioElement>(null)
+  const dannyRef = useRef<HTMLVideoElement>(null)
+  const hasRevealedDiscoveryRef = useRef(false)
+  const hasRevealedPLRef = useRef(false)
+
+  const isPlaying = stage !== 'idle' && stage !== 'done'
 
   useEffect(() => {
     const fetchVideos = async () => {
+      const objectUrls: string[] = []
+
       try {
-        const response = await fetch(`${API_URL}/videos/intro-logo`)
-        if (response.ok) {
-          const logoBlob = await response.blob()
-          const logoUrl = URL.createObjectURL(logoBlob)
-          
-          const dannyResponse = await fetch(`${API_URL}/videos/intro-danny`)
-          if (dannyResponse.ok) {
-            const dannyBlob = await dannyResponse.blob()
-            const dannyUrl = URL.createObjectURL(dannyBlob)
-            setVideoUrls({ logo: logoUrl, danny: dannyUrl })
-          }
+        const [logoResponse, nameAudioResponse, dannyResponse] = await Promise.all([
+          fetch(`${API_URL}/videos/intro-logo`),
+          fetch(`${API_URL}/videos/intro-danny-name`),
+          fetch(`${API_URL}/videos/intro-danny`),
+        ])
+
+        const nextUrls = {
+          logo: '/intro-logo.mp4',
+          nameAudio: '/danny-intro.mp3',
+          danny: '/intro-danny.mp4',
         }
-      } catch (e) {
-        console.log('Using local videos')
+
+        if (logoResponse.ok) {
+          const logoBlob = await logoResponse.blob()
+          const logoObjectUrl = URL.createObjectURL(logoBlob)
+          objectUrls.push(logoObjectUrl)
+          nextUrls.logo = logoObjectUrl
+        }
+
+        if (nameAudioResponse.ok) {
+          const audioBlob = await nameAudioResponse.blob()
+          const audioObjectUrl = URL.createObjectURL(audioBlob)
+          objectUrls.push(audioObjectUrl)
+          nextUrls.nameAudio = audioObjectUrl
+        }
+
+        if (dannyResponse.ok) {
+          const dannyBlob = await dannyResponse.blob()
+          const dannyObjectUrl = URL.createObjectURL(dannyBlob)
+          objectUrls.push(dannyObjectUrl)
+          nextUrls.danny = dannyObjectUrl
+        }
+
+        setVideoUrls((prev) => {
+          if (prev.logo.startsWith('blob:')) URL.revokeObjectURL(prev.logo)
+          if (prev.nameAudio.startsWith('blob:')) URL.revokeObjectURL(prev.nameAudio)
+          if (prev.danny.startsWith('blob:')) URL.revokeObjectURL(prev.danny)
+          return nextUrls
+        })
+      } catch {
+        // Keep local fallback media
+      }
+
+      return () => {
+        for (const url of objectUrls) {
+          URL.revokeObjectURL(url)
+        }
       }
     }
-    fetchVideos()
+
+    let cleanup: (() => void) | undefined
+    fetchVideos().then((fn) => {
+      cleanup = fn
+    }).catch(() => {})
+
+    return () => {
+      cleanup?.()
+    }
   }, [])
 
   useEffect(() => {
-    const hasSeenIntro = localStorage.getItem('ptbiz_intro_seen')
-    if (hasSeenIntro) {
-      onComplete()
-      return
-    }
-  }, [onComplete])
-
-  const startIntro = () => {
-    setStage('black')
-    setTimeout(() => {
-      setStage('logo')
-    }, 800)
-  }
-
-  useEffect(() => {
     if (stage === 'logo' && logoRef.current) {
-      logoRef.current.play()
+      setProgress(0)
+      void logoRef.current.play()
     }
-    if (stage === 'audio' && audioRef.current) {
-      audioRef.current.play()
+
+    if (stage === 'audio' && nameAudioRef.current) {
+      nameAudioRef.current.currentTime = 0
+      void nameAudioRef.current.play().catch(() => {
+        setTimeout(() => {
+          setStage('danny')
+        }, 900)
+      })
     }
-    if (stage === 'audio' && audioRef.current) {
-      audioRef.current.play()
-    }
+
     if (stage === 'danny' && dannyRef.current) {
-      dannyRef.current.play()
+      setProgress(0)
+      void dannyRef.current.play()
     }
   }, [stage])
 
-  useEffect(() => {
-    if (stage !== 'danny' || !dannyRef.current) return
-    const video = dannyRef.current
-    const updateProgress = () => {
-      if (video.duration) {
-        setProgress((video.currentTime / video.duration) * 100)
-      }
-    }
-    
-    video.addEventListener('timeupdate', updateProgress)
-    return () => video.removeEventListener('timeupdate', updateProgress)
-  }, [stage])
+  const handleStart = () => {
+    hasRevealedDiscoveryRef.current = false
+    hasRevealedPLRef.current = false
+    onRevealChange?.({ discovery: false, pl: false })
+    setStage('logo')
+  }
 
   const handleLogoEnd = () => {
-    setStage('logo-fade')
-    setTimeout(() => {
-      setStage('audio')
-    }, 600)
+    setStage('audio')
   }
 
-  const handleAudioEnd = () => {
+  const handleNameAudioEnd = () => {
     setStage('danny')
   }
-  const handleTimeUpdate = () => {
-    if (!dannyRef.current) return
-    const currentTime = dannyRef.current.currentTime
-    
-    if (currentTime > 10 && currentTime < 11 && !revealed.discovery) {
-      setRevealed(prev => ({ ...prev, discovery: true }))
+
+  const handleDannyTimeUpdate = () => {
+    const video = dannyRef.current
+    if (!video || !video.duration) return
+
+    setProgress((video.currentTime / video.duration) * 100)
+
+    if (video.currentTime >= 10 && !hasRevealedDiscoveryRef.current) {
+      hasRevealedDiscoveryRef.current = true
+      onRevealChange?.({ discovery: true })
     }
-    
-    if (currentTime > 14 && currentTime < 15 && !revealed.pl) {
-      setRevealed(prev => ({ ...prev, pl: true }))
+
+    if (video.currentTime >= 14 && !hasRevealedPLRef.current) {
+      hasRevealedPLRef.current = true
+      onRevealChange?.({ pl: true })
     }
   }
 
-  const handleEnded = () => {
-    localStorage.setItem('ptbiz_intro_seen', 'true')
+  const finishIntro = () => {
+    onRevealChange?.({ discovery: true, pl: true })
+    setProgress(100)
     setStage('done')
-    setTimeout(onComplete, 500)
+    setTimeout(onComplete, 200)
   }
 
-  const skipIntro = () => {
-    localStorage.setItem('ptbiz_intro_seen', 'true')
-    setStage('done')
-    onComplete()
-  }
+  const subtitle = useMemo(() => {
+    if (stage === 'logo') return 'Booting PT Biz Tools'
+    if (stage === 'audio') return 'Intro from Danny'
+    if (stage === 'danny') return 'Coach onboarding'
+    return 'Press play to begin your walkthrough'
+  }, [stage])
 
   return (
-    <IntroContext.Provider value={{ revealed }}>
-      <AnimatePresence>
-        {stage !== 'done' && stage !== 'start' && (
+    <AnimatePresence>
+      {stage !== 'done' && (
+        <motion.div
+          className="intro-modal-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <motion.div
-            className="intro-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.4 } }}
+            className="intro-modal"
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.24 }}
           >
-            <button className="intro-skip" onClick={skipIntro}>
-              Skip <span className="skip-arrow">→</span>
-            </button>
+            <div className="intro-modal-header">
+              <div>
+                <h2>PT Biz Team Welcome</h2>
+                <p>{subtitle}</p>
+              </div>
+              {isPlaying && (
+                <button className="intro-skip" onClick={finishIntro}>
+                  Skip
+                </button>
+              )}
+            </div>
 
-            {stage === 'danny' && (
+            <div className="intro-player-frame">
+              {stage === 'idle' && (
+                <div className="intro-start-card">
+                  <img src={SITE_LOGO_URL} alt="PT Biz" />
+                  <button className="intro-play-btn" onClick={handleStart}>
+                    Play Intro
+                  </button>
+                  <p>Audio starts only after you click play.</p>
+                </div>
+              )}
+
+              {stage === 'logo' && (
+                <video
+                  ref={logoRef}
+                  className="intro-video active"
+                  onEnded={handleLogoEnd}
+                  playsInline
+                  muted
+                >
+                  <source src={videoUrls.logo} type="video/mp4" />
+                </video>
+              )}
+
+              {stage === 'audio' && (
+                <div className="intro-audio-stage">
+                  <span>“Danny Matta here…”</span>
+                  <audio ref={nameAudioRef} onEnded={handleNameAudioEnd}>
+                    <source src={videoUrls.nameAudio} type="audio/mpeg" />
+                  </audio>
+                </div>
+              )}
+
+              {stage === 'danny' && (
+                <video
+                  ref={dannyRef}
+                  className="intro-video active"
+                  onTimeUpdate={handleDannyTimeUpdate}
+                  onEnded={finishIntro}
+                  playsInline
+                >
+                  <source src={videoUrls.danny} type="video/mp4" />
+                </video>
+              )}
+            </div>
+
+            {isPlaying && (
               <div className="intro-progress">
-                <motion.div 
-                  className="intro-progress-bar"
-                  style={{ width: `${progress}%` }}
-                />
+                <motion.div className="intro-progress-bar" style={{ width: `${progress}%` }} />
               </div>
             )}
-
-            <div className={`intro-video-container ${stage === 'logo-fade' ? 'fade-out' : ''}`}>
-              <video
-                ref={logoRef}
-                className={`intro-video ${stage === 'logo' ? 'active' : ''}`}
-                onEnded={handleLogoEnd}
-                playsInline
-                autoPlay
-                muted
-              >
-                <source src={videoUrls.logo} type="video/mp4" />
-              </video>
-              <audio ref={audioRef} onEnded={handleAudioEnd}>
-                <source src="/danny-intro.mp3" type="audio/mpeg" />
-              </audio>
-
-
-
-              <video
-                ref={dannyRef}
-                className={`intro-video ${stage === 'danny' ? 'active' : ''}`}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleEnded}
-                playsInline
-              >
-                <source src={videoUrls.danny} type="video/mp4" />
-              </video>
-
-            <div className={`intro-reveal discovery-reveal ${revealed.discovery ? 'revealed' : ''}`}>
-            </div>
-              <div className="reveal-card">
-                <span className="reveal-label">Discovery Call Grader</span>
-                <span className="reveal-status">Unlocked</span>
-              </div>
-            </div>
-            <div className={`intro-reveal pl-reveal ${revealed.pl ? 'revealed' : ''}`}>
-              <div className="reveal-card">
-                <span className="reveal-label">P&L Calculator</span>
-                <span className="reveal-status">Unlocked</span>
-              </div>
-            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {stage === 'start' && (
-          <motion.div
-            className="intro-start-screen"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999
-            }}
-          >
-            <motion.img 
-              src="/ptbiz-logo-blue.png"
-              alt="PT Biz"
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              style={{ width: 200, marginBottom: 40 }}
-            />
-            <motion.button
-              onClick={startIntro}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{
-                background: '#e94560',
-                border: 'none',
-                padding: '16px 48px',
-                fontSize: 18,
-                fontWeight: 600,
-                color: 'white',
-                borderRadius: 8,
-                cursor: 'pointer',
-                boxShadow: '0 4px 20px rgba(233, 69, 96, 0.4)'
-              }}
-            >
-              ▶ Play Intro
-            </motion.button>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
-              transition={{ delay: 0.6 }}
-              style={{ color: 'white', marginTop: 20, fontSize: 14 }}
-            >
-              Sound on for best experience
-            </motion.p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {stage === 'black' && (
-          <motion.div
-            className="intro-black"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.5 } }}
-          />
-        )}
-      </AnimatePresence>
-    </IntroContext.Provider>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

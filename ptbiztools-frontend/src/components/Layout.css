@@ -153,6 +153,15 @@
   box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
 }
 
+.user-avatar-fallback {
+  letter-spacing: 0.03em;
+}
+
+.user-avatar-image {
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
@@ -167,6 +176,27 @@
 .user-role {
   font-size: 12px;
   color: var(--color-text-muted);
+}
+
+.logout-btn {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  background: rgba(233, 69, 96, 0.12);
+  border-color: rgba(233, 69, 96, 0.4);
 }
 
 /* Main Wrapper */

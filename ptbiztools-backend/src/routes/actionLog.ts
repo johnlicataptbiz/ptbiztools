@@ -1,4 +1,4 @@
-import { Prisma, ActionLog } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Router } from 'express';
 import { prisma } from '../services/prisma.js';
 
@@ -21,12 +21,14 @@ actionLogRouter.post('/', async (req, res) => {
       return;
     }
 
+    const cookieUserId = req.cookies?.ptbiz_user as string | undefined;
+
     const log = await prisma.actionLog.create({
       data: {
         actionType,
         description,
         metadata: metadata as Prisma.InputJsonValue || undefined,
-        userId: userId || null,
+        userId: userId || cookieUserId || null,
         sessionId: sessionId || null,
       },
     });

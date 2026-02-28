@@ -1,9 +1,100 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import type { CookieOptions } from 'express';
+import { prisma } from '../services/prisma.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const isProd = process.env.NODE_ENV === 'production';
+let teamProfilesSynchronized = false;
+let teamProfileSyncPromise: Promise<void> | null = null;
+
+function getCookieOptions(maxAge?: number): CookieOptions {
+  return {
+    httpOnly: true,
+    maxAge,
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
+  };
+}
+
+function getRoleForMember(member: { teamSection?: string | null; title?: string | null; name: string }) {
+  const title = member.title?.toLowerCase() || '';
+  if (
+    member.name === 'John Licata' ||
+    member.teamSection === 'Partners' ||
+    member.teamSection === 'Advisors' ||
+    member.teamSection === 'Board' ||
+    title.includes('ceo') ||
+    title.includes('cfo') ||
+    title.includes('advisor')
+  ) {
+    return 'admin';
+  }
+  return 'coach';
+}
+
+async function ensureTeamMembersSeeded() {
+  if (teamProfilesSynchronized) return;
+
+  if (!teamProfileSyncPromise) {
+    teamProfileSyncPromise = (async () => {
+      for (const member of TEAM_MEMBERS) {
+        await upsertTeamMember(member);
+      }
+      teamProfilesSynchronized = true;
+    })()
+      .finally(() => {
+        teamProfileSyncPromise = null;
+      });
+  }
+
+  await teamProfileSyncPromise;
+}
+
+async function upsertTeamMember(member: (typeof TEAM_MEMBERS)[number]) {
+  const data = { ...member, role: getRoleForMember(member) };
+  const existing = await prisma.user.findFirst({ where: { name: member.name } });
+
+  if (existing) {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data,
+    });
+    return;
+  }
+
+  await prisma.user.create({ data });
+}
+
+function getClientIp(req: express.Request) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (Array.isArray(forwarded) && forwarded.length > 0) return forwarded[0];
+  if (typeof forwarded === 'string' && forwarded.length > 0) return forwarded.split(',')[0].trim();
+  return req.ip || null;
+}
+
+async function recordLoginEvent(input: {
+  req: express.Request;
+  userId?: string | null;
+  rememberMe?: boolean | null;
+  sessionId?: string | null;
+  success: boolean;
+}) {
+  try {
+    await prisma.loginEvent.create({
+      data: {
+        userId: input.userId || null,
+        success: input.success,
+        rememberMe: input.rememberMe ?? null,
+        sessionId: input.sessionId || null,
+        ipAddress: getClientIp(input.req),
+        userAgent: input.req.headers['user-agent'] || null,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to record login event:', error);
+  }
+}
 
 const TEAM_MEMBERS = [
   // Partners
@@ -46,11 +137,7 @@ const TEAM_MEMBERS = [
 router.post('/seed', async (req, res) => {
   try {
     for (const member of TEAM_MEMBERS) {
-      await prisma.user.upsert({
-        where: { name: member.name },
-        update: member,
-        create: member,
-      });
+      await upsertTeamMember(member);
     }
     res.json({ message: 'Team members seeded successfully', count: TEAM_MEMBERS.length });
   } catch (error) {
@@ -62,6 +149,8 @@ router.post('/seed', async (req, res) => {
 // Get all team members (for login selection)
 router.get('/team', async (req, res) => {
   try {
+    await ensureTeamMembersSeeded();
+
     const users = await prisma.user.findMany({
       where: { isActive: true },
       select: {
@@ -70,6 +159,7 @@ router.get('/team', async (req, res) => {
         title: true,
         teamSection: true,
         imageUrl: true,
+        role: true,
         passwordHash: true,
       },
       orderBy: [
@@ -77,7 +167,15 @@ router.get('/team', async (req, res) => {
         { name: 'asc' },
       ],
     });
-    res.json(users);
+    res.json(users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      title: user.title,
+      teamSection: user.teamSection,
+      imageUrl: user.imageUrl,
+      role: user.role,
+      hasPassword: Boolean(user.passwordHash),
+    })));
   } catch (error) {
     console.error('Get team error:', error);
     res.status(500).json({ error: 'Failed to get team' });
@@ -87,6 +185,8 @@ router.get('/team', async (req, res) => {
 // Setup password (first time or reset)
 router.post('/setup-password', async (req, res) => {
   try {
+    await ensureTeamMembersSeeded();
+
     const { userId, password } = req.body;
     if (!userId || !password) {
       return res.status(400).json({ error: 'User ID and password required' });
@@ -104,7 +204,14 @@ router.post('/setup-password', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     res.json({ 
       message: 'Password set successfully',
-      user: { id: user?.id, name: user?.name, title: user?.title, teamSection: user?.teamSection, imageUrl: user?.imageUrl }
+      user: {
+        id: user?.id,
+        name: user?.name,
+        title: user?.title,
+        teamSection: user?.teamSection,
+        imageUrl: user?.imageUrl,
+        role: user?.role,
+      }
     });
   } catch (error) {
     console.error('Setup password error:', error);
@@ -115,28 +222,36 @@ router.post('/setup-password', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { userId, password, rememberMe } = req.body;
+    await ensureTeamMembersSeeded();
+
+    const { userId, password, rememberMe, sessionId } = req.body;
     if (!userId || !password) {
+      await recordLoginEvent({ req, userId: userId || null, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: false });
       return res.status(400).json({ error: 'User ID and password required' });
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
+      await recordLoginEvent({ req, userId: null, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: false });
       return res.status(401).json({ error: 'User not found' });
     }
 
     if (!user.passwordHash) {
+      await recordLoginEvent({ req, userId: user.id, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: false });
       return res.status(401).json({ error: 'Password not set', needsSetup: true });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
+      await recordLoginEvent({ req, userId: user.id, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: false });
       return res.status(401).json({ error: 'Invalid password' });
     }
 
     // Set cookie
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // 30 days or 1 day
-    res.cookie('ptbiz_user', user.id, { httpOnly: true, maxAge, sameSite: 'lax' });
+    res.cookie('ptbiz_user', user.id, getCookieOptions(maxAge));
+
+    await recordLoginEvent({ req, userId: user.id, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: true });
 
     res.json({
       user: {
@@ -145,6 +260,7 @@ router.post('/login', async (req, res) => {
         title: user.title,
         teamSection: user.teamSection,
         imageUrl: user.imageUrl,
+        role: user.role,
       }
     });
   } catch (error) {
@@ -155,13 +271,15 @@ router.post('/login', async (req, res) => {
 
 // Logout
 router.post('/logout', (req, res) => {
-  res.clearCookie('ptbiz_user');
+  res.clearCookie('ptbiz_user', getCookieOptions());
   res.json({ message: 'Logged out successfully' });
 });
 
 // Get current user
 router.get('/me', async (req, res) => {
   try {
+    await ensureTeamMembersSeeded();
+
     const userId = req.cookies?.ptbiz_user;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
@@ -179,6 +297,7 @@ router.get('/me', async (req, res) => {
         title: user.title,
         teamSection: user.teamSection,
         imageUrl: user.imageUrl,
+        role: user.role,
       }
     });
   } catch (error) {

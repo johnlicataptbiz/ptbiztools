@@ -5,6 +5,7 @@ import { actionLogRouter } from './routes/actionLog.js';
 import { knowledgeDocRouter } from './routes/knowledgeDoc.js';
 import videoRouter from './routes/video.js';
 import authRouter from './routes/auth.js';
+import { analyticsRouter } from './routes/analytics.js';
 import { prisma } from './services/prisma.js';
 
 const app = express();
@@ -14,12 +15,13 @@ const PORT = process.env.PORT || 3000;
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({ origin: frontendUrl, credentials: true }));
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '100mb' }));
 
 app.use('/api/actions', actionLogRouter);
 app.use('/api/knowledge', knowledgeDocRouter);
 app.use('/api/videos', videoRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/analytics', analyticsRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -1,3 +1,331 @@
-export default function LoginPage() {
-  return <div>Login</div>;
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
+import {
+  getTeamMembers,
+  login,
+  setupPassword,
+  type TeamMember,
+  type User,
+} from '../services/api'
+import { SITE_LOGO_URL } from '../constants/branding'
+import './Login.css'
+
+interface LoginProps {
+  onAuthenticated: (user: User) => void
+}
+
+const rememberedUserKey = 'ptbiz_selected_user_id'
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0] || '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function TeamAvatar({
+  name,
+  imageUrl,
+  className,
+  fallbackClassName,
+}: {
+  name: string
+  imageUrl?: string | null
+  className: string
+  fallbackClassName: string
+}) {
+  const [didError, setDidError] = useState(false)
+
+  if (imageUrl && !didError) {
+    return (
+      <img
+        src={imageUrl}
+        alt={name}
+        className={className}
+        loading="lazy"
+        onError={() => setDidError(true)}
+      />
+    )
+  }
+
+  return (
+    <div className={`${className} ${fallbackClassName}`} aria-label={name}>
+      {getInitials(name)}
+    </div>
+  )
+}
+
+export default function Login({ onAuthenticated }: LoginProps) {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
+  const [identityConfirmed, setIdentityConfirmed] = useState(false)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      const members = await getTeamMembers()
+      setTeamMembers(members)
+
+      const remembered = localStorage.getItem(rememberedUserKey)
+      if (remembered && members.some((member) => member.id === remembered)) {
+        setSelectedUserId(remembered)
+      }
+
+      setLoading(false)
+    }
+
+    bootstrap()
+  }, [])
+
+  const selectedUser = useMemo(
+    () => teamMembers.find((member) => member.id === selectedUserId) || null,
+    [selectedUserId, teamMembers],
+  )
+
+  const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false
+
+  const resetInputs = () => {
+    setPassword('')
+    setConfirmPassword('')
+    setIdentityConfirmed(false)
+    setMessage('')
+  }
+
+  const handleUserSelect = (userId: string) => {
+    setSelectedUserId(userId)
+    localStorage.setItem(rememberedUserKey, userId)
+    resetInputs()
+  }
+
+  const handleBackToSelection = () => {
+    setSelectedUserId(null)
+    localStorage.removeItem(rememberedUserKey)
+    resetInputs()
+  }
+
+  const handleSetupPassword = async (event: FormEvent) => {
+    event.preventDefault()
+
+    if (!selectedUser) return
+
+    if (!identityConfirmed) {
+      setMessage('Please confirm you are this person before creating a password.')
+      return
+    }
+
+    if (password.length < 4) {
+      setMessage('Password must be at least 4 characters.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setMessage('Passwords do not match.')
+      return
+    }
+
+    setSubmitting(true)
+    setMessage('')
+
+    const result = await setupPassword(selectedUser.id, password)
+
+    if (result.error) {
+      setMessage(result.error)
+      setSubmitting(false)
+      return
+    }
+
+    setTeamMembers((prev) => prev.map((member) => (
+      member.id === selectedUser.id ? { ...member, hasPassword: true } : member
+    )))
+
+    setPassword('')
+    setConfirmPassword('')
+    setIdentityConfirmed(false)
+    setMessage('Password saved. Sign in below to continue.')
+    setSubmitting(false)
+  }
+
+  const handleLogin = async (event: FormEvent) => {
+    event.preventDefault()
+
+    if (!selectedUser) return
+    if (!password) {
+      setMessage('Enter your password to sign in.')
+      return
+    }
+
+    setSubmitting(true)
+    setMessage('')
+
+    const result = await login(selectedUser.id, password, rememberMe)
+
+    if (result.error || !result.user) {
+      setMessage(result.error || 'Unable to sign in.')
+      setSubmitting(false)
+      return
+    }
+
+    localStorage.setItem(rememberedUserKey, selectedUser.id)
+    setPassword('')
+    onAuthenticated(result.user)
+    setSubmitting(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="login-shell">
+        <div className="login-card">
+          <p>Loading team members...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="login-shell">
+      <div className="login-card">
+        <header className="login-header">
+          <img src={SITE_LOGO_URL} alt="PT Biz" className="login-logo" />
+          <h1>PT Biz Team Login</h1>
+          <p>Select your profile, then sign in with your password.</p>
+        </header>
+
+        {!selectedUser && (
+          <section className="member-picker">
+            <h2>Choose your profile</h2>
+            <div className="member-grid">
+              {teamMembers.map((member) => (
+                <button
+                  key={member.id}
+                  className="member-card"
+                  onClick={() => handleUserSelect(member.id)}
+                >
+                  <TeamAvatar
+                    name={member.name}
+                    imageUrl={member.imageUrl}
+                    className="member-photo"
+                    fallbackClassName="member-photo-fallback"
+                  />
+                  <div className="member-meta">
+                    <strong>{member.name}</strong>
+                    <span>{member.title}</span>
+                    <em>{member.teamSection}</em>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {selectedUser && (
+          <section className="selected-user-section">
+            <button className="change-user-btn" onClick={handleBackToSelection}>
+              <ArrowLeft size={14} />
+              Choose a different person
+            </button>
+
+            <div className="selected-user-card">
+              <TeamAvatar
+                name={selectedUser.name}
+                imageUrl={selectedUser.imageUrl}
+                className="selected-user-photo"
+                fallbackClassName="selected-user-photo-fallback"
+              />
+              <div>
+                <h2>{selectedUser.name}</h2>
+                <p>{selectedUser.title}</p>
+                <span>{selectedUser.teamSection}</span>
+              </div>
+            </div>
+
+            {needsFirstTimeSetup ? (
+              <form className="auth-form" onSubmit={handleSetupPassword}>
+                <h3>First-time setup</h3>
+                <p>Create your password once, then you&apos;ll use your normal sign-in form daily.</p>
+
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={identityConfirmed}
+                    onChange={(event) => setIdentityConfirmed(event.target.checked)}
+                  />
+                  <span>I confirm I am {selectedUser.name}</span>
+                </label>
+
+                <label>
+                  New password
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                  />
+                </label>
+
+                <label>
+                  Confirm password
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                  />
+                </label>
+
+                <button type="submit" className="login-primary-btn" disabled={submitting}>
+                  <CheckCircle2 size={16} />
+                  {submitting ? 'Saving...' : 'Set Password'}
+                </button>
+              </form>
+            ) : (
+              <form className="auth-form" onSubmit={handleLogin}>
+                <h3>Sign in</h3>
+                <p>Use your saved profile and enter your password.</p>
+
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                  />
+                </label>
+
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                  />
+                  <span>Keep me logged in</span>
+                </label>
+
+                <button type="submit" className="login-primary-btn" disabled={submitting}>
+                  <LockKeyhole size={16} />
+                  {submitting ? 'Signing in...' : 'Sign In'}
+                </button>
+              </form>
+            )}
+          </section>
+        )}
+
+        {message && (
+          <div className="login-message">
+            <UserRound size={14} />
+            <span>{message}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

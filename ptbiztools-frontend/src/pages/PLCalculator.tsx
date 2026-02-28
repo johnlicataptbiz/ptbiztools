@@ -12,6 +12,7 @@ import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { CorexDialog, CorexButton } from '../components/corex/CorexComponents'
+import { logAction, savePdfExport } from '../services/api'
 import './PLCalculator.css'
 
 // Sound effects hook
@@ -183,6 +184,12 @@ function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`skeleton ${className}`} />
 }
 
+function calculatePLScore(greenCount: number, yellowCount: number, redCount: number) {
+  const total = greenCount + yellowCount + redCount
+  if (total === 0) return 0
+  return Math.round(((greenCount * 100) + (yellowCount * 70) + (redCount * 40)) / total)
+}
+
 export default function PLCalculator() {
   const [input, setInput] = useState<PLInput>(initialInput)
   const [currentStep, setCurrentStep] = useState(1)
@@ -197,10 +204,23 @@ export default function PLCalculator() {
   const [isLoading, setIsLoading] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const reportRef = useRef<HTMLDivElement>(null)
+  const hasLoggedResultRef = useRef(false)
+  const [sessionId] = useState(() => crypto.randomUUID())
   const { query } = useKBar()
   const { playEliteSound, playCriticalSound } = useSoundEffects(soundEnabled)
+  const toggleCommandPalette = useCallback(() => {
+    query?.toggle?.()
+  }, [query])
 
   const result = usePLGrader(showResults ? input : null)
+
+  useEffect(() => {
+    void logAction({
+      actionType: 'pl_session_started',
+      description: 'User started a P&L grading session',
+      sessionId,
+    })
+  }, [sessionId])
 
   useEffect(() => {
     if (result && showResults) {
@@ -216,15 +236,38 @@ export default function PLCalculator() {
   }, [result, showResults, playEliteSound, playCriticalSound])
 
   useEffect(() => {
+    if (!result || !showResults || currentStep !== 3 || hasLoggedResultRef.current) return
+
+    const greenCount = result.metrics.filter((metric) => metric.grade === 'green').length
+    const yellowCount = result.metrics.filter((metric) => metric.grade === 'yellow').length
+    const redCount = result.metrics.filter((metric) => metric.grade === 'red').length
+    const score = calculatePLScore(greenCount, yellowCount, redCount)
+
+    hasLoggedResultRef.current = true
+    void logAction({
+      actionType: 'pl_report_generated',
+      description: `P&L report generated (${result.overallGrade})`,
+      sessionId,
+      metadata: {
+        score,
+        overallGrade: result.overallGrade,
+        coachName: coachName || null,
+        clientName: clientName || null,
+        metricCount: result.metrics.length,
+      },
+    })
+  }, [coachName, clientName, currentStep, result, sessionId, showResults])
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
-        query.toggle()
+        toggleCommandPalette()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [query])
+  }, [toggleCommandPalette])
 
   const handleInputChange = (field: keyof PLInput, value: string | number) => {
     setInput(prev => ({ ...prev, [field]: value }))
@@ -234,6 +277,7 @@ export default function PLCalculator() {
     if (currentStep < 3) {
       setCurrentStep(prev => prev + 1)
       if (currentStep === 2) {
+        hasLoggedResultRef.current = false
         setIsLoading(true)
         setTimeout(() => {
           setShowResults(true)
@@ -246,12 +290,15 @@ export default function PLCalculator() {
   const handlePrev = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1)
-      if (currentStep === 3) setShowResults(false)
+      if (currentStep === 3) {
+        setShowResults(false)
+        hasLoggedResultRef.current = false
+      }
     }
   }
 
   const handleExportPDF = async () => {
-    if (!reportRef.current) return
+    if (!reportRef.current || !result) return
     setIsExporting(true)
 
     const html2canvas = (await import('html2canvas')).default
@@ -270,6 +317,44 @@ export default function PLCalculator() {
 
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
     pdf.save(`PT-Biz-PL-Report-${clientName || 'Client'}.pdf`)
+
+    const greenCount = result.metrics.filter((metric) => metric.grade === 'green').length
+    const yellowCount = result.metrics.filter((metric) => metric.grade === 'yellow').length
+    const redCount = result.metrics.filter((metric) => metric.grade === 'red').length
+    const score = calculatePLScore(greenCount, yellowCount, redCount)
+
+    await Promise.all([
+      logAction({
+        actionType: 'pl_pdf_generated',
+        description: `P&L PDF generated for ${clientName || 'Client'}`,
+        sessionId,
+        metadata: {
+          score,
+          overallGrade: result.overallGrade,
+          coachName: coachName || null,
+          clientName: clientName || null,
+        },
+      }),
+      savePdfExport({
+        sessionId,
+        coachName,
+        clientName: clientName || 'Client',
+        callDate: new Date().toLocaleDateString(),
+        score,
+        metadata: {
+          tool: 'pl_calculator',
+          overallGrade: result.overallGrade,
+          odi: result.odi,
+          enterpriseValueLow: result.enterpriseValueLow,
+          enterpriseValueHigh: result.enterpriseValueHigh,
+          cashFlowSummary: result.cashFlowSummary,
+          metrics: result.metrics,
+          actionPlan: actionItems,
+          input,
+        },
+      }),
+    ])
+
     setIsExporting(false)
     setShowExportModal(false)
   }
@@ -334,7 +419,7 @@ export default function PLCalculator() {
           <button className="theme-toggle" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <button className="cmd-k-btn" onClick={query.toggle}>
+          <button className="cmd-k-btn" onClick={toggleCommandPalette}>
             ⌘K
           </button>
         </div>

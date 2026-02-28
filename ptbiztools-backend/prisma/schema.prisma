@@ -58,8 +58,73 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  actionLogs ActionLog[]
+  actionLogs         ActionLog[]
+  loginEvents        LoginEvent[]
+  coachingAnalyses   CoachingAnalysis[]
+  pdfExports         PdfExport[]
 
   @@index([email])
   @@index([role])
+}
+
+model LoginEvent {
+  id         String   @id @default(uuid())
+  userId     String?
+  success    Boolean  @default(true)
+  rememberMe Boolean?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([success])
+}
+
+model CoachingAnalysis {
+  id                    String   @id @default(uuid())
+  userId                String?
+  sessionId             String?
+  coachName             String?
+  clientName            String?
+  callDate              String?
+  score                 Int
+  outcome               String
+  summary               String
+  phaseScores           Json
+  strengths             Json
+  improvements          Json
+  redFlags              Json
+  deidentifiedTranscript String  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  pdfExports PdfExport[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PdfExport {
+  id                String   @id @default(uuid())
+  userId            String?
+  coachingAnalysisId String?
+  sessionId         String?
+  coachName         String?
+  clientName        String?
+  callDate          String?
+  score             Int?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  user             User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coachingAnalysis CoachingAnalysis? @relation(fields: [coachingAnalysisId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([coachingAnalysisId])
+  @@index([createdAt])
 }

@@ -1,8 +1,32 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express, { NextFunction, Request, Response } from 'express';
+import { prisma } from '../services/prisma.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+
+async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.cookies?.ptbiz_user as string | undefined;
+    if (!userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== 'admin') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error('Video admin check failed:', error);
+    res.status(500).json({ error: 'Auth check failed' });
+  }
+}
 
 router.get('/:name', async (req, res) => {
   const { name } = req.params;
@@ -25,9 +49,9 @@ router.get('/:name', async (req, res) => {
   }
 });
 
-router.post('/upload', async (req, res) => {
+router.post('/upload', requireAdmin, async (req, res) => {
   try {
-    if (!req.body || !req.body.name) {
+    if (!req.body || !req.body.name || !req.body.data) {
       return res.status(400).json({ error: 'Missing name or data' });
     }
     
@@ -40,7 +64,7 @@ router.post('/upload', async (req, res) => {
       create: { id: name, name, data, mimeType, size: data.length }
     });
     
-    res.json({ success: true, message: `Video ${name} uploaded` });
+    res.json({ success: true, message: `Media ${name} uploaded` });
   } catch (error) {
     console.error('Error uploading video:', error);
     res.status(500).json({ error: 'Failed to upload video' });
