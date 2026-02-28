@@ -107,7 +107,6 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
   const handleAudioEnd = () => {
     setStage('danny')
   }
-    setStage('logo-fade')
   const handleTimeUpdate = () => {
     if (!dannyRef.current) return
     const currentTime = dannyRef.current.currentTime
@@ -182,14 +181,9 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
               >
                 <source src={videoUrls.danny} type="video/mp4" />
               </video>
-              <audio ref={audioRef} onEnded={handleAudioEnd}>
-                <source src="/danny-intro.mp3" type="audio/mpeg" />
-              </audio>
-
-
-            </div>
 
             <div className={`intro-reveal discovery-reveal ${revealed.discovery ? 'revealed' : ''}`}>
+            </div>
               <div className="reveal-card">
                 <span className="reveal-label">Discovery Call Grader</span>
                 <span className="reveal-status">Unlocked</span>
