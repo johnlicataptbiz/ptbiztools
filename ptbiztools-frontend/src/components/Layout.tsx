@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { BarChart3, ClipboardList, Calculator, Film, BookOpenText, ScrollText, LogOut, Menu, X } from 'lucide-react'
 import type { User } from '../services/api'
 import { SITE_LOGO_URL } from '../constants/branding'
+import { getRoleLabel } from '../utils/roles'
 import './Layout.css'
 
 interface LayoutProps {
@@ -18,6 +19,8 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
     if (isAdmin) {
       return [
         { to: '/', label: 'Dashboard', icon: BarChart3 },
+        { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
+        { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
         { to: '/analyses', label: 'Analyses', icon: ScrollText },
         { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
         { to: '/media', label: 'Media', icon: Film },
@@ -93,7 +96,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
             </div>
             <div className="user-info">
               <span className="user-name">{user.name}</span>
-              <span className="user-role">{isAdmin ? 'Admin / Owner' : user.title || 'Coach'}</span>
+              <span className="user-role">{getRoleLabel(user)}</span>
             </div>
           </div>
 

@@ -101,6 +101,31 @@ export interface CoachingAnalysisRecord {
   user?: UsageUserLite | null;
 }
 
+export interface PdfExportRecord {
+  id: string;
+  userId: string | null;
+  coachingAnalysisId: string | null;
+  sessionId: string | null;
+  coachName: string | null;
+  clientName: string | null;
+  callDate: string | null;
+  score: number | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: UsageUserLite | null;
+}
+
+export interface PLAuditRecord {
+  id: string;
+  userId: string | null;
+  sessionId: string | null;
+  actionType: string;
+  description: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: UsageUserLite | null;
+}
+
 export interface GradeStoragePayload {
   score: number;
   outcome: string;
@@ -331,6 +356,34 @@ export async function getCoachingAnalyses(limit = 100): Promise<{ analyses?: Coa
     return { analyses: data.analyses || [] };
   } catch (error) {
     console.error('Failed to fetch coaching analyses:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function getPdfExports(limit = 100): Promise<{ pdfExports?: PdfExportRecord[]; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/analytics/pdf-exports?limit=${limit}`, {
+      credentials: 'include',
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to fetch PDF exports' };
+    return { pdfExports: data.pdfExports || [] };
+  } catch (error) {
+    console.error('Failed to fetch PDF exports:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function getPLAudits(limit = 100): Promise<{ audits?: PLAuditRecord[]; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/analytics/pl-audits?limit=${limit}`, {
+      credentials: 'include',
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to fetch P&L audits' };
+    return { audits: data.audits || [] };
+  } catch (error) {
+    console.error('Failed to fetch P&L audits:', error);
     return { error: 'Network error' };
   }
 }

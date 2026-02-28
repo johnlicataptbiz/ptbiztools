@@ -1,6 +1,6 @@
 .analysis-history {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .analysis-history-header {
@@ -71,6 +71,19 @@
 
 .analysis-summary-card strong {
   font-size: 22px;
+}
+
+.history-section {
+  display: grid;
+  gap: 10px;
+}
+
+.history-section-header h2 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
 }
 
 .analysis-empty {

@@ -18,18 +18,27 @@ function getCookieOptions(maxAge?: number): CookieOptions {
 }
 
 function getRoleForMember(member: { teamSection?: string | null; title?: string | null; name: string }) {
+  const section = member.teamSection || '';
   const title = member.title?.toLowerCase() || '';
+
   if (
-    member.name === 'John Licata' ||
-    member.teamSection === 'Partners' ||
-    member.teamSection === 'Advisors' ||
-    member.teamSection === 'Board' ||
+    section === 'Partners' ||
+    section === 'Acquisitions' ||
+    section === 'Client Success' ||
     title.includes('ceo') ||
-    title.includes('cfo') ||
-    title.includes('advisor')
+    title.includes('cfo')
   ) {
     return 'admin';
   }
+
+  if (
+    section === 'Advisors' ||
+    section === 'Board' ||
+    title.includes('advisor')
+  ) {
+    return 'advisor';
+  }
+
   return 'coach';
 }
 

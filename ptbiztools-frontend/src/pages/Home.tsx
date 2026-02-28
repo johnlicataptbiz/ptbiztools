@@ -427,7 +427,7 @@ export default function Home({ user, isAdmin }: HomeProps) {
         )}
 
         <motion.div variants={itemVariants} className="tools-section">
-          <h2>{isAdmin ? 'Coach Tools (Preview)' : 'Your Coaching Tools'}</h2>
+          <h2>{isAdmin ? 'Coach & Advisor Tools' : 'Your Coaching Tools'}</h2>
           {!isAdmin && (
             <p className="coach-tools-subhead">
               These unlock at specific moments in Danny&apos;s onboarding video.

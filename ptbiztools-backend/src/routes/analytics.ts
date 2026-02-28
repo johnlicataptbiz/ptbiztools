@@ -106,6 +106,10 @@ function requireAdmin(req: SessionRequest, res: Response, next: NextFunction) {
   next();
 }
 
+function isAdminRole(role?: string) {
+  return role === 'admin';
+}
+
 analyticsRouter.use(attachSessionUser);
 
 analyticsRouter.post('/coaching-analyses', requireAuth, async (req: SessionRequest, res: Response) => {
@@ -337,7 +341,7 @@ analyticsRouter.get('/coaching-analyses', requireAuth, async (req: SessionReques
     const rawLimit = Number.parseInt(String(req.query.limit || '50'), 10);
     const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 50;
 
-    const where = req.currentUserRole === 'admin'
+    const where = isAdminRole(req.currentUserRole)
       ? undefined
       : { userId: req.currentUserId };
 
@@ -356,5 +360,60 @@ analyticsRouter.get('/coaching-analyses', requireAuth, async (req: SessionReques
   } catch (error) {
     console.error('Error fetching coaching analyses:', error);
     res.status(500).json({ error: 'Failed to fetch coaching analyses' });
+  }
+});
+
+analyticsRouter.get('/pdf-exports', requireAuth, async (req: SessionRequest, res: Response) => {
+  try {
+    const rawLimit = Number.parseInt(String(req.query.limit || '100'), 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 300) : 100;
+
+    const where = isAdminRole(req.currentUserRole)
+      ? undefined
+      : { userId: req.currentUserId };
+
+    const pdfExports = await prisma.pdfExport.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, name: true, title: true, teamSection: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    res.json({ pdfExports, total: pdfExports.length });
+  } catch (error) {
+    console.error('Error fetching pdf exports:', error);
+    res.status(500).json({ error: 'Failed to fetch PDF exports' });
+  }
+});
+
+analyticsRouter.get('/pl-audits', requireAuth, async (req: SessionRequest, res: Response) => {
+  try {
+    const rawLimit = Number.parseInt(String(req.query.limit || '100'), 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 300) : 100;
+
+    const where: Prisma.ActionLogWhereInput = {
+      actionType: 'pl_report_generated',
+      ...(isAdminRole(req.currentUserRole) ? {} : { userId: req.currentUserId }),
+    };
+
+    const audits = await prisma.actionLog.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, name: true, title: true, teamSection: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    res.json({ audits, total: audits.length });
+  } catch (error) {
+    console.error('Error fetching p&l audits:', error);
+    res.status(500).json({ error: 'Failed to fetch P&L audits' });
   }
 });

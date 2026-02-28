@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import type { Request } from 'express';
 import { Router } from 'express';
 import { prisma } from '../services/prisma.js';
 
@@ -10,6 +11,28 @@ interface ActionLogBody {
   metadata?: Record<string, unknown>;
   userId?: string;
   sessionId?: string;
+}
+
+interface SessionUser {
+  id: string;
+  role: string;
+}
+
+async function getSessionUser(req: Request): Promise<SessionUser | null> {
+  const userId = req.cookies?.ptbiz_user as string | undefined;
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true },
+  });
+
+  if (!user) return null;
+  return user;
+}
+
+function isAdminRole(role: string | undefined) {
+  return role === 'admin';
 }
 
 actionLogRouter.post('/', async (req, res) => {
@@ -42,16 +65,26 @@ actionLogRouter.post('/', async (req, res) => {
 
 actionLogRouter.get('/', async (req, res) => {
   try {
+    const sessionUser = await getSessionUser(req);
+    if (!sessionUser) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
     const { actionType, limit = '50', offset = '0' } = req.query;
+    const whereBase: Prisma.ActionLogWhereInput = {
+      ...(actionType ? { actionType: actionType as string } : {}),
+      ...(isAdminRole(sessionUser.role) ? {} : { userId: sessionUser.id }),
+    };
 
     const logs = await prisma.actionLog.findMany({
-      where: actionType ? { actionType: actionType as string } : undefined,
+      where: whereBase,
       take: parseInt(limit as string),
       skip: parseInt(offset as string),
       orderBy: { createdAt: 'desc' },
     });
 
-    const total = await prisma.actionLog.count();
+    const total = await prisma.actionLog.count({ where: whereBase });
 
     res.json({ logs, total });
   } catch (error) {
@@ -62,13 +95,25 @@ actionLogRouter.get('/', async (req, res) => {
 
 actionLogRouter.get('/stats', async (req, res) => {
   try {
+    const sessionUser = await getSessionUser(req);
+    if (!sessionUser) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const whereBase: Prisma.ActionLogWhereInput = isAdminRole(sessionUser.role)
+      ? {}
+      : { userId: sessionUser.id };
+
     const stats = await prisma.actionLog.groupBy({
+      where: whereBase,
       by: ['actionType'],
       _count: true,
       orderBy: { _count: { actionType: 'desc' } },
     });
 
     const recent = await prisma.actionLog.findMany({
+      where: whereBase,
       take: 10,
       orderBy: { createdAt: 'desc' },
     });

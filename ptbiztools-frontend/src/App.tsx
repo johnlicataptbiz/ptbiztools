@@ -127,14 +127,8 @@ function App() {
             element={<Layout user={user} isAdmin={isAdmin} onLogout={handleLogout} />}
           >
             <Route index element={<Home user={user} isAdmin={isAdmin} />} />
-            <Route
-              path="discovery-call-grader"
-              element={isAdmin ? <Navigate to="/" replace /> : <DiscoveryCallGrader />}
-            />
-            <Route
-              path="pl-calculator"
-              element={isAdmin ? <Navigate to="/" replace /> : <PLCalculator />}
-            />
+            <Route path="discovery-call-grader" element={<DiscoveryCallGrader />} />
+            <Route path="pl-calculator" element={<PLCalculator />} />
             <Route path="analyses" element={<AnalysisHistory isAdmin={isAdmin} />} />
             <Route path="knowledge" element={<KnowledgeCenter isAdmin={isAdmin} />} />
             <Route
