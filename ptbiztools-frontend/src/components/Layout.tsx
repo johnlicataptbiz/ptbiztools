@@ -77,17 +77,20 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            {user.imageUrl && !avatarDidError ? (
-              <img
-                className="user-avatar user-avatar-image"
-                src={user.imageUrl}
-                alt={user.name}
-                loading="lazy"
-                onError={() => setAvatarDidError(true)}
-              />
-            ) : (
-              <div className="user-avatar user-avatar-fallback">{initials}</div>
-            )}
+            <div className="user-avatar-shell">
+              {user.imageUrl && !avatarDidError ? (
+                <img
+                  className="user-avatar user-avatar-image"
+                  src={user.imageUrl}
+                  alt={user.name}
+                  loading="lazy"
+                  onError={() => setAvatarDidError(true)}
+                />
+              ) : (
+                <div className="user-avatar user-avatar-fallback">{initials}</div>
+              )}
+              <span className="user-avatar-badge" aria-hidden="true">PT</span>
+            </div>
             <div className="user-info">
               <span className="user-name">{user.name}</span>
               <span className="user-role">{isAdmin ? 'Admin / Owner' : user.title || 'Coach'}</span>

@@ -42,73 +42,155 @@
 
 .member-picker h2 {
   font-size: 18px;
-  margin: 0 0 14px;
+  margin: 0;
 }
 
-.member-grid {
+.member-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px;
+}
+
+.member-picker-header span {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.member-dropdown-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 14px;
-  max-height: 54vh;
+  gap: 10px;
+  max-height: 52vh;
   overflow: auto;
-  padding-right: 4px;
-}
-
-.member-card {
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  padding: 8px;
   border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.member-row-card {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
   text-align: left;
-  overflow: hidden;
   transition: var(--transition);
-}
-
-.member-card:hover {
-  border-color: rgba(233, 69, 96, 0.45);
-  transform: translateY(-2px);
-}
-
-.member-photo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  aspect-ratio: 1;
+}
+
+.member-row-card:hover {
+  border-color: rgba(233, 69, 96, 0.45);
+  transform: translateY(-1px);
+  background: rgba(233, 69, 96, 0.1);
+}
+
+.team-avatar-shell {
+  position: relative;
+  display: block;
+  isolation: isolate;
+}
+
+.member-list-photo-shell {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.member-list-photo {
+  width: 52px;
+  height: 52px;
   object-fit: cover;
   display: block;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.member-photo-fallback {
+.member-list-photo-fallback {
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  border-radius: 10px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
   background: linear-gradient(135deg, rgba(15, 52, 96, 0.95), rgba(233, 69, 96, 0.85));
 }
 
-.member-meta {
-  padding: 10px;
+.team-avatar-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: linear-gradient(135deg, #1a67d6, #1f8fff);
+  box-shadow: 0 8px 18px rgba(4, 26, 66, 0.6);
+}
+
+.member-list-photo-shell .team-avatar-badge {
+  right: -4px;
+  bottom: -4px;
+}
+
+.member-row-meta {
   display: grid;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
-.member-meta strong {
+.member-row-meta strong {
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.member-meta span {
+.member-row-meta span {
   color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.member-meta em {
+.member-row-meta em {
   color: var(--color-text-muted);
   font-style: normal;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.member-row-action {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 103, 214, 0.2);
+  color: #d5e7ff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
 }
 
 .selected-user-section {
@@ -145,6 +227,12 @@
   align-items: center;
 }
 
+.selected-user-photo-shell {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+
 .selected-user-photo {
   width: 64px;
   height: 64px;
@@ -161,6 +249,11 @@
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, rgba(15, 52, 96, 0.95), rgba(233, 69, 96, 0.85));
+}
+
+.selected-user-photo-shell .team-avatar-badge {
+  right: -3px;
+  bottom: -3px;
 }
 
 .selected-user-card h2 {
@@ -273,8 +366,7 @@
     font-size: 23px;
   }
 
-  .member-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-height: unset;
+  .member-dropdown-list {
+    max-height: 44vh;
   }
 }

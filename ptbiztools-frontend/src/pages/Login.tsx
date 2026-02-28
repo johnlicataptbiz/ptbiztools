@@ -41,19 +41,25 @@ function TeamAvatar({
 
   if (imageUrl && !didError) {
     return (
-      <img
-        src={imageUrl}
-        alt={name}
-        className={className}
-        loading="lazy"
-        onError={() => setDidError(true)}
-      />
+      <div className={`team-avatar-shell ${className}-shell`}>
+        <img
+          src={imageUrl}
+          alt={name}
+          className={className}
+          loading="lazy"
+          onError={() => setDidError(true)}
+        />
+        <span className="team-avatar-badge" aria-hidden="true">PT</span>
+      </div>
     )
   }
 
   return (
-    <div className={`${className} ${fallbackClassName}`} aria-label={name}>
-      {getInitials(name)}
+    <div className={`team-avatar-shell ${className}-shell`}>
+      <div className={`${className} ${fallbackClassName}`} aria-label={name}>
+        {getInitials(name)}
+      </div>
+      <span className="team-avatar-badge" aria-hidden="true">PT</span>
     </div>
   )
 }
@@ -201,24 +207,30 @@ export default function Login({ onAuthenticated }: LoginProps) {
 
         {!selectedUser && (
           <section className="member-picker">
-            <h2>Choose your profile</h2>
-            <div className="member-grid">
+            <div className="member-picker-header">
+              <h2>Choose your profile</h2>
+              <span>{teamMembers.length} team members</span>
+            </div>
+            <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
               {teamMembers.map((member) => (
                 <button
                   key={member.id}
-                  className="member-card"
+                  className="member-row-card"
                   onClick={() => handleUserSelect(member.id)}
                 >
                   <TeamAvatar
                     name={member.name}
                     imageUrl={member.imageUrl}
-                    className="member-photo"
-                    fallbackClassName="member-photo-fallback"
+                    className="member-list-photo"
+                    fallbackClassName="member-list-photo-fallback"
                   />
-                  <div className="member-meta">
+                  <div className="member-row-meta">
                     <strong>{member.name}</strong>
-                    <span>{member.title}</span>
-                    <em>{member.teamSection}</em>
+                    <span>{member.title || 'Team Member'}</span>
+                    <em>{member.teamSection || 'PT Biz Team'}</em>
+                  </div>
+                  <div className="member-row-action" aria-hidden="true">
+                    Select
                   </div>
                 </button>
               ))}
