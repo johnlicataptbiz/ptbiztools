@@ -22,22 +22,54 @@
 
 .login-header {
   margin-bottom: 22px;
+  display: grid;
+  justify-items: center;
+  text-align: center;
 }
 
-.login-logo {
-  width: 170px;
-  height: auto;
-  margin-bottom: 14px;
+.login-logo-hero {
+  width: min(520px, 88vw);
+  height: clamp(88px, 14vw, 132px);
+  position: relative;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  background: radial-gradient(90% 140% at 50% 50%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0));
+}
+
+.login-logo-mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #ffffff, #d6e9ff);
+  -webkit-mask-image: var(--logo-mask-url);
+  mask-image: var(--logo-mask-url);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  filter: drop-shadow(0 8px 24px rgba(43, 123, 255, 0.25));
+}
+
+.login-logo-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.34;
+  mix-blend-mode: screen;
 }
 
 .login-header h1 {
   margin: 0 0 8px;
-  font-size: 30px;
+  font-size: 36px;
 }
 
 .login-header p {
   margin: 0;
   color: var(--color-text-muted);
+  font-size: 16px;
 }
 
 .member-picker h2 {
@@ -300,8 +332,23 @@
   color: var(--color-text-secondary);
 }
 
-.auth-form input[type='password'] {
+.auth-form .corex-field {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-form .corex-field-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.auth-form .corex-input {
   min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text);
+  padding: 10px 12px;
 }
 
 .checkbox-row {
@@ -331,6 +378,10 @@
   font-size: 14px;
   font-weight: 700;
   box-shadow: var(--shadow-button);
+}
+
+.login-primary-btn.corex-button {
+  width: 100%;
 }
 
 .login-primary-btn:hover {
@@ -364,6 +415,15 @@
 
   .login-header h1 {
     font-size: 23px;
+  }
+
+  .login-logo-hero {
+    width: min(420px, 90vw);
+    height: 86px;
+  }
+
+  .login-header p {
+    font-size: 14px;
   }
 
   .member-dropdown-list {

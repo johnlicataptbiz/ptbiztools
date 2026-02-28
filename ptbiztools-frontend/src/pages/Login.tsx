@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import type { CSSProperties } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
 import {
   getTeamMembers,
@@ -8,6 +10,7 @@ import {
   type TeamMember,
   type User,
 } from '../services/api'
+import { CorexButton, CorexInput } from '../components/corex/CorexComponents'
 import { SITE_LOGO_URL } from '../constants/branding'
 import './Login.css'
 
@@ -16,6 +19,7 @@ interface LoginProps {
 }
 
 const rememberedUserKey = 'ptbiz_selected_user_id'
+const logoMaskStyle = { '--logo-mask-url': `url(${SITE_LOGO_URL})` } as CSSProperties
 
 function getInitials(name: string) {
   return name
@@ -198,9 +202,17 @@ export default function Login({ onAuthenticated }: LoginProps) {
 
   return (
     <div className="login-shell">
-      <div className="login-card">
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <header className="login-header">
-          <img src={SITE_LOGO_URL} alt="PT Biz" className="login-logo" />
+          <div className="login-logo-hero" style={logoMaskStyle} role="img" aria-label="BizCoach Suite logo">
+            <span className="login-logo-mask" aria-hidden="true" />
+            <img src={SITE_LOGO_URL} alt="" className="login-logo-image" aria-hidden="true" />
+          </div>
           <h1>PT Biz Team Login</h1>
           <p>Select your profile, then sign in with your password.</p>
         </header>
@@ -213,10 +225,12 @@ export default function Login({ onAuthenticated }: LoginProps) {
             </div>
             <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
               {teamMembers.map((member) => (
-                <button
+                <motion.button
                   key={member.id}
                   className="member-row-card"
                   onClick={() => handleUserSelect(member.id)}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.995 }}
                 >
                   <TeamAvatar
                     name={member.name}
@@ -232,7 +246,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   <div className="member-row-action" aria-hidden="true">
                     Select
                   </div>
-                </button>
+                </motion.button>
               ))}
             </div>
           </section>
@@ -273,45 +287,39 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   <span>I confirm I am {selectedUser.name}</span>
                 </label>
 
-                <label>
-                  New password
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="new-password"
-                  />
-                </label>
+                <CorexInput
+                  label="New password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={submitting}
+                />
 
-                <label>
-                  Confirm password
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    autoComplete="new-password"
-                  />
-                </label>
+                <CorexInput
+                  label="Confirm password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  disabled={submitting}
+                />
 
-                <button type="submit" className="login-primary-btn" disabled={submitting}>
+                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
                   <CheckCircle2 size={16} />
-                  {submitting ? 'Saving...' : 'Set Password'}
-                </button>
+                  Set Password
+                </CorexButton>
               </form>
             ) : (
               <form className="auth-form" onSubmit={handleLogin}>
                 <h3>Sign in</h3>
                 <p>Use your saved profile and enter your password.</p>
 
-                <label>
-                  Password
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="current-password"
-                  />
-                </label>
+                <CorexInput
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={submitting}
+                />
 
                 <label className="checkbox-row">
                   <input
@@ -322,10 +330,10 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   <span>Keep me logged in</span>
                 </label>
 
-                <button type="submit" className="login-primary-btn" disabled={submitting}>
+                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
                   <LockKeyhole size={16} />
-                  {submitting ? 'Signing in...' : 'Sign In'}
-                </button>
+                  Sign In
+                </CorexButton>
               </form>
             )}
           </section>
@@ -337,7 +345,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
             <span>{message}</span>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }
