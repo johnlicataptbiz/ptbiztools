@@ -79,6 +79,9 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
     if (stage === 'audio' && audioRef.current) {
       audioRef.current.play()
     }
+    if (stage === 'audio' && audioRef.current) {
+      audioRef.current.play()
+    }
     if (stage === 'danny' && dannyRef.current) {
       dannyRef.current.play()
     }
