@@ -4,7 +4,7 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import DiscoveryCallGrader from './pages/DiscoveryCallGrader'
 import PLCalculator from './pages/PLCalculator'
-import Login from x27./pages/Loginx27
+import Login from './pages/Login'
 
 import IntroVideo from './components/IntroVideo'
 import './index.css'

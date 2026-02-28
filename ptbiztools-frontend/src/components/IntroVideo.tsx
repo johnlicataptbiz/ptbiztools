@@ -23,6 +23,7 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
   const [progress, setProgress] = useState(0)
   const logoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const dannyRef = useRef<HTMLVideoElement>(null)
   
   const [videoUrls, setVideoUrls] = useState<{ logo: string; danny: string }>({
     logo: '/intro-logo.mp4',
@@ -85,7 +86,6 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
 
   useEffect(() => {
     if (stage !== 'danny' || !dannyRef.current) return
-    
     const video = dannyRef.current
     const updateProgress = () => {
       if (video.duration) {
@@ -108,11 +108,6 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
     setStage('danny')
   }
     setStage('logo-fade')
-    setTimeout(() => {
-      setStage('danny')
-    }, 600)
-  }
-
   const handleTimeUpdate = () => {
     if (!dannyRef.current) return
     const currentTime = dannyRef.current.currentTime
