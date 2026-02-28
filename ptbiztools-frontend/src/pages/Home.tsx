@@ -78,7 +78,7 @@ const tools: ToolItem[] = [
     path: '/discovery-call-grader',
     color: 'var(--color-accent)',
     revealKey: 'discovery',
-    unlockTime: '00:10',
+    unlockTime: '10s',
   },
   {
     title: 'P&L Calculator',
@@ -87,7 +87,7 @@ const tools: ToolItem[] = [
     path: '/pl-calculator',
     color: 'var(--color-success)',
     revealKey: 'pl',
-    unlockTime: '00:14',
+    unlockTime: '14s',
   },
 ]
 

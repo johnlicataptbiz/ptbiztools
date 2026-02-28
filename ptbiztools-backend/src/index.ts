@@ -11,9 +11,30 @@ import { prisma } from './services/prisma.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Restrict CORS to frontend URL in production, fallback to localhost for dev
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-app.use(cors({ origin: frontendUrl, credentials: true }));
+const configuredOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.FRONTEND_URLS || '').split(','),
+  'https://ptbiztools-frontend.vercel.app',
+].map((origin) => origin?.trim()).filter(Boolean) as string[];
+
+function isAllowedOrigin(origin: string) {
+  if (configuredOrigins.includes(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  if (/^http:\/\/localhost:\d+$/i.test(origin)) return true;
+  if (/^http:\/\/127\.0\.0\.1:\d+$/i.test(origin)) return true;
+  return false;
+}
+
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    callback(null, isAllowedOrigin(origin));
+  },
+}));
 app.use(cookieParser());
 app.use(express.json({ limit: '100mb' }));
 
