@@ -1,58 +1,134 @@
-import { chromium } from 'playwright';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const API_URL = 'https://ptbiz-backend-production.up.railway.app/api';
+const API_URL = process.env.PTBIZ_API_URL || 'https://ptbiz-backend-production.up.railway.app/api';
+const ADMIN_NAME = process.env.PTBIZ_ADMIN_NAME || 'Jack Licata';
+const ADMIN_PASSWORD = process.env.PTBIZ_ADMIN_PASSWORD;
 
-async function uploadVideo(name, filePath) {
-  const data = fs.readFileSync(filePath);
-  const base64 = data.toString('base64');
-  
-  const response = await fetch(`${API_URL}/videos/upload`, {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const REQUIRED_ASSETS = [
+  { key: 'intro-logo', filePath: path.join(__dirname, 'public', 'intro-logo.mp4') },
+  { key: 'intro-danny-name', filePath: path.join(__dirname, 'public', 'danny-intro.mp3') },
+  { key: 'intro-danny', filePath: path.join(__dirname, 'public', 'intro-danny.mp4') },
+];
+
+function mimeTypeForFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.mp4') return 'video/mp4';
+  if (ext === '.mp3') return 'audio/mpeg';
+  throw new Error(`Unsupported media extension "${ext}" for ${filePath}`);
+}
+
+async function getAdminUserId() {
+  const response = await fetch(`${API_URL}/auth/team`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch team list: HTTP ${response.status}`);
+  }
+
+  const users = await response.json();
+  const admin = users.find((user) => user.name === ADMIN_NAME);
+  if (!admin) {
+    throw new Error(`Could not find admin profile "${ADMIN_NAME}" in /auth/team`);
+  }
+
+  return admin.id;
+}
+
+async function loginAsAdmin(userId) {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, data: base64, mimeType: 'video/mp4' })
+    body: JSON.stringify({
+      userId,
+      password: ADMIN_PASSWORD,
+      rememberMe: true,
+      sessionId: `seed-videos-${Date.now()}`,
+    }),
   });
-  
-  const result = await response.json();
-  console.log(`${name}:`, response.status, result);
-  return result;
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(`Admin login failed: HTTP ${response.status} ${payload.error || ''}`.trim());
+  }
+
+  const cookie = response.headers.get('set-cookie');
+  if (!cookie) {
+    throw new Error('Admin login succeeded but no set-cookie header was returned');
+  }
+
+  return cookie.split(';')[0];
 }
 
-async function test() {
-  console.log('Seeding videos to Railway DB...');
-  
-  await uploadVideo('intro-logo', '/Users/jl/Desktop/ptbiztools/ptbiztools-main/ptbiztools-backend/intro-logo.mp4');
-  await uploadVideo('intro-danny', '/Users/jl/Desktop/ptbiztools/ptbiztools-main/ptbiztools-backend/intro-danny.mp4');
-  
-  console.log('\nTesting video retrieval...');
-  
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  
-  await page.goto('https://ptbiztools-frontend.vercel.app');
-  await page.evaluate(() => localStorage.removeItem('ptbiz_intro_seen'));
-  await page.reload();
-  
-  await page.waitForTimeout(3000);
-  
-  const videoTest = await page.evaluate(async () => {
-    try {
-      const logoRes = await fetch('https://ptbiz-backend-production.up.railway.app/api/videos/intro-logo');
-      const dannyRes = await fetch('https://ptbiz-backend-production.up.railway.app/api/videos/intro-danny');
-      return {
-        logo: logoRes.status,
-        danny: dannyRes.status
-      };
-    } catch (e) {
-      return { error: e.message };
-    }
+async function uploadAsset(asset, cookie) {
+  if (!fs.existsSync(asset.filePath)) {
+    throw new Error(`Missing media file: ${asset.filePath}`);
+  }
+
+  const mimeType = mimeTypeForFile(asset.filePath);
+  const base64 = fs.readFileSync(asset.filePath).toString('base64');
+
+  const response = await fetch(`${API_URL}/videos/upload`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: cookie,
+    },
+    body: JSON.stringify({
+      name: asset.key,
+      data: base64,
+      mimeType,
+    }),
   });
-  
-  console.log('Video API test:', videoTest);
-  
-  await browser.close();
-  console.log('\nDone!');
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(`Upload failed for ${asset.key}: HTTP ${response.status} ${payload.error || ''}`.trim());
+  }
+
+  console.log(`Uploaded ${asset.key} (${mimeType})`);
 }
 
-test();
+async function verifyAsset(key) {
+  const response = await fetch(`${API_URL}/videos/${key}`);
+  console.log(`Verify ${key}: HTTP ${response.status}`);
+  if (response.status !== 200) {
+    throw new Error(`Verification failed for ${key}: expected 200, got ${response.status}`);
+  }
+}
+
+async function main() {
+  if (!ADMIN_PASSWORD) {
+    throw new Error('Missing PTBIZ_ADMIN_PASSWORD environment variable');
+  }
+
+  console.log('Resolving admin user...');
+  const adminUserId = await getAdminUserId();
+  console.log(`Using admin profile "${ADMIN_NAME}" (${adminUserId})`);
+
+  console.log('Logging in as admin...');
+  const cookie = await loginAsAdmin(adminUserId);
+
+  console.log('Uploading required intro assets...');
+  for (const asset of REQUIRED_ASSETS) {
+    await uploadAsset(asset, cookie);
+  }
+
+  console.log('Verifying backend media endpoints...');
+  for (const asset of REQUIRED_ASSETS) {
+    await verifyAsset(asset.key);
+  }
+
+  console.log('Video seed complete: all required assets are live.');
+}
+
+main().catch((error) => {
+  console.error(error.message || error);
+  process.exit(1);
+});
