@@ -1,3 +1,5 @@
+/* CoreX-style Components (custom implementation) */
+
 :root {
   --color-dark: #0d0d12;
   --color-accent: #e94560;
@@ -449,6 +451,314 @@ label {
 .badge-error {
   background: var(--color-error-bg);
   color: var(--color-error);
+}
+
+/* CoreX UI Integration */
+@import '@corex-ui/static/style.css';
+
+/* CoreX Theme Overrides for PT Biz Brand */
+[data-corex-theme="dark"] {
+  --corex-color-1: #e94560;
+  --corex-color-2: #0f3460;
+  --corex-color-3: #1a1a2e;
+  --corex-color-4: #0d0d12;
+  --corex-color-5: #f4f4f5;
+  --corex-color-6: #a1a1aa;
+  --corex-color-7: #27272a;
+  --corex-color-8: #22c55e;
+  --corex-color-9: #f59e0b;
+  --corex-color-10: #ef4444;
+  --corex-color-fg: #f4f4f5;
+  --corex-color-bg: #0a0a0f;
+}
+
+/* CoreX Dialog Styles */
+.corex-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.corex-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.corex-dialog-position {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.corex-dialog-content {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  position: relative;
+}
+
+.corex-dialog-header {
+  padding: 24px 24px 0;
+}
+
+.corex-dialog-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.corex-dialog-description {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}
+
+.corex-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.corex-dialog-close:hover {
+  background: var(--color-card-hover);
+  color: var(--color-text);
+}
+
+.corex-dialog-body {
+  padding: 24px;
+}
+
+/* CoreX Accordion Styles */
+.corex-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.corex-accordion-item {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.corex-accordion-item[data-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.corex-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.corex-accordion-trigger:hover {
+  background: var(--color-card);
+}
+
+.corex-accordion-chevron {
+  transition: transform 0.2s;
+  color: var(--color-text-muted);
+}
+
+.corex-accordion-item[data-state="open"] .corex-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.corex-accordion-content {
+  overflow: hidden;
+}
+
+.corex-accordion-content-inner {
+  padding: 0 16px 16px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+/* CoreX Button Styles */
+.corex-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border: none;
+}
+
+.corex-button-primary {
+  background: var(--color-accent);
+  color: white;
+}
+
+.corex-button-primary:hover:not(:disabled) {
+  background: var(--color-accent-light);
+  transform: translateY(-1px);
+}
+
+.corex-button-secondary {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.corex-button-secondary:hover:not(:disabled) {
+  background: var(--color-card-hover);
+  border-color: var(--color-accent);
+}
+
+.corex-button-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.corex-button-ghost:hover:not(:disabled) {
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.corex-button-danger {
+  background: var(--color-error);
+  color: white;
+}
+
+.corex-button-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.corex-button-md {
+  padding: 12px 20px;
+  font-size: 14px;
+}
+
+.corex-button-lg {
+  padding: 16px 28px;
+  font-size: 15px;
+}
+
+.corex-button[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* CoreX Input Styles */
+.corex-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.corex-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.corex-input,
+.corex-select {
+  padding: 12px 14px;
+  font-size: 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  transition: var(--transition-fast);
+}
+
+.corex-input:focus,
+.corex-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+}
+
+.corex-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.corex-field-error {
+  font-size: 12px;
+  color: var(--color-error);
+}
+
+.corex-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23a1a1aa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* CoreX Tabs Styles */
+.corex-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.corex-tab {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.corex-tab:hover {
+  color: var(--color-text);
+}
+
+.corex-tab[data-state="active"] {
+  background: var(--color-card);
+  color: var(--color-accent);
 }
 
 /* Scrollbar */

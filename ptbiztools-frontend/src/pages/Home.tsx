@@ -174,7 +174,7 @@ export default function Home() {
   ]
 
   // Check if we're in reveal mode (intro hasn't been shown yet)
-  const isRevealMode = revealed !== undefined
+  const isRevealMode = revealed !== undefined && (revealed.discovery === false || revealed.pl === false)
 
   return (
     <div className="home">
@@ -322,19 +322,21 @@ export default function Home() {
           <h2>Tools</h2>
           <div className="tools-grid">
             {tools.map((tool, index) => {
-              const shouldReveal = isRevealMode ? revealed[tool.revealKey as 'discovery' | 'pl'] : true
+              const shouldShow = !isRevealMode || revealed[tool.revealKey as 'discovery' | 'pl']
               return (
                 <motion.button
                   key={tool.path}
                   onClick={() => navigate(tool.path)}
                   className="tool-card"
-                  whileHover={shouldReveal ? { scale: 1.02, y: -4 } : {}}
-                  whileTap={shouldReveal ? { scale: 0.98 } : {}}
-                  initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                  whileHover={shouldShow ? { scale: 1.02, y: -4 } : {}}
+                  whileTap={shouldShow ? { scale: 0.98 } : {}}
+                  initial={{ opacity: 0, y: 20, filter: 'blur(10px)', scale: 0.9 }}
                   animate={{ 
-                    opacity: shouldReveal ? 1 : 0, 
-                    y: shouldReveal ? 0 : 20,
-                    filter: shouldReveal ? 'blur(0px)' : 'blur(10px)'
+                    opacity: shouldShow ? 1 : 0, 
+                    y: shouldShow ? 0 : 20,
+                    filter: shouldShow ? 'blur(0px)' : 'blur(10px)',
+                    scale: shouldShow ? 1 : 0.9,
+                    pointerEvents: shouldShow ? 'auto' : 'none'
                   }}
                   transition={{ delay: 0.1 + index * 0.15, duration: 0.6 }}
                 >

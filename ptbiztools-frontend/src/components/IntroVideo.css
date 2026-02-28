@@ -25,11 +25,12 @@
 }
 
 .intro-video {
+  position: absolute;
   width: 100%;
   height: 100%;
   object-fit: contain;
   opacity: 0;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .intro-video.active {
@@ -41,61 +42,131 @@
   opacity: 0;
 }
 
+/* Skip button */
 .intro-skip {
   position: fixed;
-  top: 24px;
-  right: 24px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
-  padding: 10px 20px;
-  border-radius: 30px;
+  top: 32px;
+  right: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 24px;
+  border-radius: 40px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   z-index: 10000;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.02em;
+}
+
+.skip-arrow {
+  transition: transform 0.3s ease;
 }
 
 .intro-skip:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
+  transform: translateX(4px);
 }
 
-/* Reveal overlays for dashboard elements */
+.intro-skip:hover .skip-arrow {
+  transform: translateX(4px);
+}
+
+/* Progress bar */
+.intro-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 10001;
+}
+
+.intro-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e94560, #ff6b8a);
+  transition: width 0.1s linear;
+}
+
+/* Reveal overlays */
 .intro-reveal {
   position: fixed;
   pointer-events: none;
   z-index: 9997;
-  backdrop-filter: blur(30px);
-  background: rgba(0, 0, 0, 0.85);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-card {
+  background: rgba(20, 20, 30, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.reveal-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.reveal-status {
+  font-size: 12px;
+  font-weight: 500;
+  color: #22c55e;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 /* Discovery card reveal - top right area */
 .discovery-reveal {
-  top: 100px;
-  right: 40px;
-  width: 400px;
-  height: 280px;
+  top: 120px;
+  right: 60px;
+  width: 280px;
+  height: 120px;
+  backdrop-filter: blur(40px);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 20px;
+  opacity: 1;
 }
 
 .discovery-reveal.revealed {
   opacity: 0;
+  transform: scale(0.9);
   pointer-events: auto;
 }
 
 /* P&L card reveal - bottom right area */
 .pl-reveal {
-  bottom: 40px;
-  right: 40px;
-  width: 400px;
-  height: 280px;
+  bottom: 80px;
+  right: 60px;
+  width: 280px;
+  height: 120px;
+  backdrop-filter: blur(40px);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 20px;
+  opacity: 1;
 }
 
 .pl-reveal.revealed {
   opacity: 0;
+  transform: scale(0.9);
   pointer-events: auto;
 }
 
@@ -105,9 +176,9 @@
   }
   
   .intro-skip {
-    top: 16px;
-    right: 16px;
-    padding: 8px 16px;
-    font-size: 12px;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    font-size: 13px;
   }
 }

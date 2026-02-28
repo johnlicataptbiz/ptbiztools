@@ -23,6 +23,7 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
   const [progress, setProgress] = useState(0)
   const logoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const dannyRef = useRef<HTMLVideoElement>(null)
   
   const [videoUrls, setVideoUrls] = useState<{ logo: string; danny: string }>({
     logo: '/intro-logo.mp4',
@@ -33,6 +34,10 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
     discovery: false,
     pl: false
   })
+
+const handleAudioEnd = () => {
+    setStage('danny')
+  }
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -56,6 +61,10 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
     fetchVideos()
   }, [])
 
+const handleAudioEnd = () => {
+    setStage('danny')
+  }
+
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('ptbiz_intro_seen')
     if (hasSeenIntro) {
@@ -71,17 +80,27 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
     }, 800)
   }
 
+const handleAudioEnd = () => {
+    setStage('danny')
+  }
+
   useEffect(() => {
-    if (stage === 'logo' && logoRef.current) {
+    if (stage === 'logo'     if (stage === 'logo' && logoRef.current) {    if (stage === 'logo' && logoRef.current) { logoRef.current) {
       logoRef.current.play()
     }
-    if (stage === 'audio' && audioRef.current) {
+    if (stage === 'audio'     if (stage === 'logo' && logoRef.current) {    if (stage === 'logo' && logoRef.current) { audioRef.current) {
       audioRef.current.play()
+    }
+      logoRef.current.play()
     }
     if (stage === 'danny' && dannyRef.current) {
       dannyRef.current.play()
     }
   }, [stage])
+
+const handleAudioEnd = () => {
+    setStage('danny')
+  }
 
   useEffect(() => {
     if (stage !== 'danny' || !dannyRef.current) return
@@ -98,16 +117,7 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
   }, [stage])
 
   const handleLogoEnd = () => {
-    setStage('logo-fade')
-    setTimeout(() => {
-      setStage('audio')
-    }, 600)
-  }
-
-  const handleAudioEnd = () => {
-    setStage('danny')
-  }
-    setStage('logo-fade')
+    setStage('audio')
     setTimeout(() => {
       setStage('danny')
     }, 600)
@@ -172,11 +182,6 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
               >
                 <source src={videoUrls.logo} type="video/mp4" />
               </video>
-              <audio ref={audioRef} onEnded={handleAudioEnd}>
-                <source src="/danny-intro.mp3" type="audio/mpeg" />
-              </audio>
-
-
 
               <video
                 ref={dannyRef}
@@ -187,11 +192,6 @@ export default function IntroVideo({ onComplete }: IntroVideoProps) {
               >
                 <source src={videoUrls.danny} type="video/mp4" />
               </video>
-              <audio ref={audioRef} onEnded={handleAudioEnd}>
-                <source src="/danny-intro.mp3" type="audio/mpeg" />
-              </audio>
-
-
             </div>
 
             <div className={`intro-reveal discovery-reveal ${revealed.discovery ? 'revealed' : ''}`}>

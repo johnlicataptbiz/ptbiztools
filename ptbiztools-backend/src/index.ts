@@ -1,17 +1,25 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { actionLogRouter } from './routes/actionLog.js';
 import { knowledgeDocRouter } from './routes/knowledgeDoc.js';
+import videoRouter from './routes/video.js';
+import authRouter from './routes/auth.js';
 import { prisma } from './services/prisma.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Restrict CORS to frontend URL in production, fallback to localhost for dev
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+app.use(cors({ origin: frontendUrl, credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/actions', actionLogRouter);
 app.use('/api/knowledge', knowledgeDocRouter);
+app.use('/api/videos', videoRouter);
+app.use('/api/auth', authRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -21,31 +29,8 @@ async function main() {
   try {
     await prisma.$connect();
     console.log('Database connected');
-    
-    // Try to create tables if they don't exist (best effort)
-    try {
-      await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "ActionLog" (
-        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-        "actionType" TEXT NOT NULL,
-        description TEXT NOT NULL,
-        metadata JSONB,
-        "userId" TEXT,
-        "sessionId" TEXT,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
-      )`;
-      await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "KnowledgeDoc" (
-        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        category TEXT NOT NULL,
-        source TEXT,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
-        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
-      )`;
-      console.log('Tables created or verified');
-    } catch (e) {
-      console.log('Table creation skipped (may already exist)');
-    }
+    // Note: Database schema is managed by Prisma migrations (see prisma/schema.prisma)
+    // Run `npx prisma db push` or `npx prisma migrate dev` to sync the schema.
   } catch (error) {
     console.error('Database connection error:', error);
   }

@@ -1,6 +1,7 @@
 export type ClinicSize = 'individual' | 'multi'
 export type ClinicModel = 'cash' | 'hybrid'
 export type BusinessStage = 'startup' | 'growth' | 'maintenance'
+export type Grade = 'elite' | 'average' | 'critical'
 
 export interface PLInput {
   clinicSize: ClinicSize
@@ -19,11 +20,14 @@ export interface PLInput {
 export type GradeLevel = 'green' | 'yellow' | 'red'
 
 export interface MetricResult {
+  id: string
   name: string
   value: number
   grade: GradeLevel
   threshold: string
   diagnostic: string
+  tip: string
+  trend: number[]
 }
 
 export interface PLResult {
@@ -32,6 +36,20 @@ export interface PLResult {
   enterpriseValueLow: number
   enterpriseValueHigh: number
   cashFlowSummary: string
-  actionPlan: string[]
-  overallGrade: 'green' | 'yellow' | 'red'
+  actionPlan: ActionItem[]
+  overallGrade: GradeLevel
+}
+
+export interface ActionItem {
+  id: string
+  metricId: string
+  text: string
+  phase: 1 | 2 | 3
+  completed: boolean
+}
+
+export const GRADE_COLORS: Record<GradeLevel, string> = {
+  green: '#2d8a4e',
+  yellow: '#c47f17',
+  red: '#c0392b'
 }
