@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import type { GradeResult } from './grader';
 
 const COLORS = {
@@ -34,6 +33,7 @@ export async function generatePDF(
   clientName: string,
   callDate: string
 ): Promise<void> {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;

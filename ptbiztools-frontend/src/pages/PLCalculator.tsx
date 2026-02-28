@@ -6,7 +6,6 @@ import { usePLGrader } from '../utils/usePLGrader'
 import type { PLInput } from '../utils/plTypes'
 import { GRADE_COLORS } from '../utils/plTypes'
 import ReactConfetti from 'react-confetti'
-import { useKBar } from 'kbar'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
@@ -200,17 +199,17 @@ export default function PLCalculator() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [isExporting, setIsExporting] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showQuickActions, setShowQuickActions] = useState(false)
   const [actionItems, setActionItems] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const reportRef = useRef<HTMLDivElement>(null)
   const hasLoggedResultRef = useRef(false)
   const [sessionId] = useState(() => crypto.randomUUID())
-  const { query } = useKBar()
   const { playEliteSound, playCriticalSound } = useSoundEffects(soundEnabled)
   const toggleCommandPalette = useCallback(() => {
-    query?.toggle?.()
-  }, [query])
+    setShowQuickActions((open) => !open)
+  }, [])
 
   const result = usePLGrader(showResults ? input : null)
 
@@ -302,7 +301,7 @@ export default function PLCalculator() {
     setIsExporting(true)
 
     const html2canvas = (await import('html2canvas')).default
-    const jsPDF = (await import('jspdf')).default
+    const { jsPDF } = await import('jspdf')
 
     const canvas = await html2canvas(reportRef.current, {
       scale: 2,
@@ -392,6 +391,8 @@ export default function PLCalculator() {
     if (currentStep === 2) return input.totalGrossRevenue > 0 && input.totalPatientVisits > 0
     return true
   }
+
+  const canOpenExport = currentStep === 3 && showResults && !!result
 
   return (
     <div className={`pl-calculator-page ${theme}`}>
@@ -825,6 +826,49 @@ export default function PLCalculator() {
 
       {/* Export Modal */}
       <AnimatePresence>
+        {showQuickActions && (
+          <CorexDialog
+            open={showQuickActions}
+            onOpenChange={(open) => setShowQuickActions(open)}
+            title="Quick Actions"
+            description="Keyboard shortcut: Cmd/Ctrl + K"
+            size="md"
+          >
+            <div className="export-modal-body">
+              <div className="export-options">
+                <CorexButton
+                  variant="secondary"
+                  onClick={() => {
+                    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+                    setShowQuickActions(false)
+                  }}
+                >
+                  {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                </CorexButton>
+                <CorexButton
+                  variant="secondary"
+                  onClick={() => {
+                    setSoundEnabled((s) => !s)
+                    setShowQuickActions(false)
+                  }}
+                >
+                  {soundEnabled ? 'Mute Sounds' : 'Enable Sounds'}
+                </CorexButton>
+                <CorexButton
+                  variant="primary"
+                  disabled={!canOpenExport}
+                  onClick={() => {
+                    if (!canOpenExport) return
+                    setShowQuickActions(false)
+                    setShowExportModal(true)
+                  }}
+                >
+                  Open Export Dialog
+                </CorexButton>
+              </div>
+            </div>
+          </CorexDialog>
+        )}
         {showExportModal && (
           <CorexDialog
             open={showExportModal}

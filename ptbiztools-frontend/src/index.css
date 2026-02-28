@@ -453,9 +453,6 @@ label {
   color: var(--color-error);
 }
 
-/* CoreX UI Integration */
-@import '@corex-ui/static/style.css';
-
 /* CoreX Theme Overrides for PT Biz Brand */
 [data-corex-theme="dark"] {
   --corex-color-1: #e94560;
