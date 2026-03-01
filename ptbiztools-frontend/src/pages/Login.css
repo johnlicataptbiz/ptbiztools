@@ -235,6 +235,10 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }
 
+.jack-headshot-tight {
+  object-position: center 24%;
+}
+
 .member-list-photo-fallback {
   width: 56px;
   height: 56px;

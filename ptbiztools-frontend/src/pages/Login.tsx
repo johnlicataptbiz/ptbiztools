@@ -57,6 +57,8 @@ function TeamAvatar({
   fallbackClassName: string
 }) {
   const [didError, setDidError] = useState(false)
+  const isJack = normalizeText(name) === JACK_NAME
+  const imageClassName = `${className}${isJack ? ' jack-headshot-tight' : ''}`
 
   if (imageUrl && !didError) {
     return (
@@ -64,7 +66,7 @@ function TeamAvatar({
         <img
           src={imageUrl}
           alt={name}
-          className={className}
+          className={imageClassName}
           loading="lazy"
           onError={() => setDidError(true)}
         />
