@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Calculator, CheckCircle2, ClipboardList, Lock } from 'lucide-react'
 import { SITE_LOGO_URL } from '../constants/branding'
@@ -45,6 +45,10 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   const hasRevealedPLRef = useRef(false)
 
   const isPlaying = stage !== 'idle' && stage !== 'done'
+  const logoMaskStyle = useMemo(
+    () => ({ '--logo-mask-url': `url(${SITE_LOGO_URL})` } as CSSProperties),
+    [],
+  )
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -249,7 +253,7 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
             <div className="intro-player-frame">
               {stage === 'idle' && (
                 <div className="intro-start-card">
-                  <img src={SITE_LOGO_URL} alt="PT Biz" />
+                  <span className="intro-start-logo logo-mask" role="img" aria-label="PT Biz" style={logoMaskStyle} />
                   <button className="intro-play-btn" onClick={handleStart} disabled={!mediaReady}>
                     {mediaReady ? 'Play Intro' : 'Syncing Media...'}
                   </button>

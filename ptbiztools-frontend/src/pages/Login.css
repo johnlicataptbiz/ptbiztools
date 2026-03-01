@@ -94,8 +94,7 @@
 .login-logo-image {
   display: block;
   width: min(100%, 660px);
-  height: auto;
-  object-fit: contain;
+  height: clamp(66px, 12vw, 120px);
   image-rendering: auto;
   filter:
     saturate(1.04)

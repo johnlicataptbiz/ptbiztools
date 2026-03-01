@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
@@ -128,6 +128,10 @@ export default function Login({ onAuthenticated }: LoginProps) {
   )
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false
+  const loginLogoMaskStyle = useMemo(
+    () => ({ '--logo-mask-url': `url(${LOGIN_LOGO_URL})` } as CSSProperties),
+    [],
+  )
 
   const resetInputs = () => {
     setPassword('')
@@ -236,7 +240,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
       >
         <header className="login-header">
           <div className="login-logo-hero">
-            <img src={LOGIN_LOGO_URL} alt="BizCoach Suite" className="login-logo-image" />
+            <span className="login-logo-image logo-mask" role="img" aria-label="BizCoach Suite" style={loginLogoMaskStyle} />
           </div>
           <span className="login-header-kicker">Private Platform Access</span>
           <h1>PT Biz Team Login</h1>

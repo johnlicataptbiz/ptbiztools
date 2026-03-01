@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import IntroVideo, { IntroContext, type RevealedTools } from './components/IntroVideo'
@@ -125,10 +125,15 @@ function App() {
     setShowIntro(false)
   }
 
+  const logoMaskStyle = useMemo(
+    () => ({ '--logo-mask-url': `url(${SITE_LOGO_URL})` } as CSSProperties),
+    [],
+  )
+
   if (loading) {
     return (
       <div className="app-loader-screen">
-        <img src={SITE_LOGO_URL} alt="PT Biz" className="app-loader-logo" />
+        <span className="app-loader-logo logo-mask" style={logoMaskStyle} role="img" aria-label="PT Biz" />
         <p>Loading PT Biz Tools...</p>
       </div>
     )
@@ -144,7 +149,7 @@ function App() {
 
       return (
         <div className="app-loader-screen app-loader-screen-staging">
-          <img src={SITE_LOGO_URL} alt="PT Biz" className="app-loader-logo" />
+          <span className="app-loader-logo logo-mask" style={logoMaskStyle} role="img" aria-label="PT Biz" />
           <div className="app-loader-copy">
             <h2>Preparing your onboarding</h2>
             <p>Lining up video, audio, and tool access so your walkthrough plays cleanly.</p>
@@ -168,7 +173,7 @@ function App() {
 
     return (
       <div className="app-loader-screen">
-        <img src={SITE_LOGO_URL} alt="PT Biz" className="app-loader-logo" />
+        <span className="app-loader-logo logo-mask" style={logoMaskStyle} role="img" aria-label="PT Biz" />
         <p>Preparing your dashboard…</p>
       </div>
     )

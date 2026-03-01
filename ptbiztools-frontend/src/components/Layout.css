@@ -73,8 +73,9 @@
 }
 
 .sidebar-logo .logo-img {
+  display: block;
+  width: 160px;
   height: 36px;
-  width: auto;
 }
 
 .sidebar-nav {
