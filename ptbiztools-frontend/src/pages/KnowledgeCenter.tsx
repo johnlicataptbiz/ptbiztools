@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { getKnowledgeDocs, seedKnowledgeDocs, type KnowledgeDoc } from '../services/api'
 import './KnowledgeCenter.css'
 
@@ -13,6 +14,9 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
   const [loading, setLoading] = useState(true)
   const [seedLoading, setSeedLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const selectedSlugParam = searchParams.get('slug')
 
   const loadDocs = async () => {
     setLoading(true)
@@ -23,24 +27,54 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
       setLoading(false)
       return
     }
+
     const loaded = rows || []
     setDocs(loaded)
-    if (loaded.length > 0) {
-      setSelectedId((prev) => prev && loaded.some((doc) => doc.id === prev) ? prev : loaded[0].id)
-    } else {
+
+    if (loaded.length === 0) {
       setSelectedId(null)
+      setLoading(false)
+      return
     }
+
+    const bySlug = selectedSlugParam
+      ? loaded.find((doc) => doc.slug && doc.slug === selectedSlugParam)
+      : null
+    const byCurrentId = selectedId ? loaded.find((doc) => doc.id === selectedId) : null
+    const fallback = loaded[0]
+
+    setSelectedId((bySlug || byCurrentId || fallback).id)
     setLoading(false)
   }
 
   useEffect(() => {
-    loadDocs()
+    void loadDocs()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!selectedSlugParam || docs.length === 0) return
+
+    const requested = docs.find((doc) => doc.slug && doc.slug === selectedSlugParam)
+    if (requested && requested.id !== selectedId) {
+      setSelectedId(requested.id)
+    }
+  }, [docs, selectedId, selectedSlugParam])
 
   const selectedDoc = useMemo(
     () => docs.find((doc) => doc.id === selectedId) || null,
     [docs, selectedId],
   )
+
+  const handleSelectDoc = (doc: KnowledgeDoc) => {
+    setSelectedId(doc.id)
+
+    if (!doc.slug) return
+
+    const next = new URLSearchParams(searchParams)
+    next.set('slug', doc.slug)
+    setSearchParams(next, { replace: true })
+  }
 
   const handleSeed = async () => {
     setSeedLoading(true)
@@ -51,6 +85,7 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
       setSeedLoading(false)
       return
     }
+
     setMessage('Knowledge docs reseeded.')
     await loadDocs()
     setSeedLoading(false)
@@ -64,12 +99,12 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
           <p>Connected to backend `/api/knowledge` docs and seed endpoint.</p>
         </div>
         <div className="knowledge-actions">
-          <button className="knowledge-refresh-btn" onClick={loadDocs}>
+          <button className="knowledge-refresh-btn" onClick={() => void loadDocs()}>
             <RefreshCw size={14} />
             Refresh
           </button>
           {isAdmin && (
-            <button className="knowledge-seed-btn" onClick={handleSeed} disabled={seedLoading}>
+            <button className="knowledge-seed-btn" onClick={() => void handleSeed()} disabled={seedLoading}>
               {seedLoading ? 'Reseeding...' : 'Reseed Docs'}
             </button>
           )}
@@ -87,7 +122,7 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
               <button
                 key={doc.id}
                 className={`knowledge-item ${doc.id === selectedId ? 'active' : ''}`}
-                onClick={() => setSelectedId(doc.id)}
+                onClick={() => handleSelectDoc(doc)}
               >
                 <strong>{doc.title}</strong>
                 <span>{doc.category}</span>
@@ -100,11 +135,12 @@ export default function KnowledgeCenter({ isAdmin }: KnowledgeCenterProps) {
               <>
                 <header>
                   <h2>{selectedDoc.title}</h2>
-                  <p>{selectedDoc.category} · {selectedDoc.source || 'Internal'}</p>
+                  <p>
+                    {selectedDoc.category} · {selectedDoc.source || 'Internal'}
+                    {selectedDoc.version ? ` · v${selectedDoc.version}` : ''}
+                  </p>
                 </header>
-                <div className="knowledge-content">
-                  {selectedDoc.content}
-                </div>
+                <div className="knowledge-content">{selectedDoc.content}</div>
               </>
             ) : (
               <div className="knowledge-empty">Select a document.</div>

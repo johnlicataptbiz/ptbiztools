@@ -25,10 +25,13 @@ model ActionLog {
 
 model KnowledgeDoc {
   id        String   @id @default(uuid())
+  slug      String?  @unique
   title     String
   content   String   @db.Text
   category  String
   source    String?
+  version   String   @default("2026.02")
+  checksum  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -62,6 +65,8 @@ model User {
   loginEvents        LoginEvent[]
   coachingAnalyses   CoachingAnalysis[]
   pdfExports         PdfExport[]
+  plImportSessions   PLImportSession[]
+  plImportBatches    PLImportBatch[]
 
   @@index([email])
   @@index([role])
@@ -127,4 +132,109 @@ model PdfExport {
   @@index([userId])
   @@index([coachingAnalysisId])
   @@index([createdAt])
+}
+
+model PLImportSession {
+  id                    String               @id @default(uuid())
+  userId                String?
+  status                String               @default("uploaded")
+  sourceType            String
+  sourceLabel           String?
+  filename              String
+  mimeType              String
+  sizeBytes             Int
+  parserVersion         String?
+  mappingVersion        String?
+  overallConfidence     Int                  @default(0)
+  requiredFieldsComplete Boolean             @default(false)
+  errorMessage          String?              @db.Text
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  user                  User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sourceFile            PLImportSourceFile?
+  parseArtifact         PLImportParseArtifact?
+  mapping               PLImportMapping?
+  batchItems            PLImportBatchItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PLImportSourceFile {
+  id             String          @id @default(uuid())
+  importSessionId String         @unique
+  data           Bytes
+  sha256         String
+  isCompressed   Boolean         @default(false)
+  compression    String          @default("none")
+  createdAt      DateTime        @default(now())
+
+  importSession  PLImportSession @relation(fields: [importSessionId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model PLImportParseArtifact {
+  id             String          @id @default(uuid())
+  importSessionId String         @unique
+  rawExtraction  Json
+  qualitySignals Json
+  createdAt      DateTime        @default(now())
+
+  importSession  PLImportSession @relation(fields: [importSessionId], references: [id], onDelete: Cascade)
+}
+
+model PLImportMapping {
+  id             String          @id @default(uuid())
+  importSessionId String         @unique
+  autoMap        Json
+  finalMap       Json
+  mappedInput    Json
+  fieldConfidence Json
+  manualOverrides Json
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  importSession  PLImportSession @relation(fields: [importSessionId], references: [id], onDelete: Cascade)
+}
+
+model PLImportBatch {
+  id              String              @id @default(uuid())
+  userId          String?
+  name            String?
+  programType     String              @default("mastermind")
+  status          String              @default("draft")
+  overallConfidence Int               @default(0)
+  timelinePayload Json?
+  warningSummary  Json?
+  approvedAt      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  user            User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items           PLImportBatchItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PLImportBatchItem {
+  id              String          @id @default(uuid())
+  batchId         String
+  importSessionId String
+  periodLabel     String
+  periodOrder     Int
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  batch           PLImportBatch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  importSession   PLImportSession @relation(fields: [importSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, importSessionId])
+  @@unique([batchId, periodOrder])
+  @@index([importSessionId])
+  @@index([periodLabel])
 }

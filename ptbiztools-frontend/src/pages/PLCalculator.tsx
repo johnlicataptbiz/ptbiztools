@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calculator, Download, DollarSign, TrendingUp, Users, Activity, ArrowRight, ArrowLeft, Sun, Moon, Sparkles, Target, CheckCircle2, Circle, GripVertical, Volume2, VolumeX } from 'lucide-react'
+import { Calculator, Download, DollarSign, TrendingUp, Users, Activity, ArrowRight, ArrowLeft, Sun, Moon, Sparkles, Target, CheckCircle2, Circle, GripVertical, Volume2, VolumeX, FileUp } from 'lucide-react'
 import { NumberFormatBase } from 'react-number-format'
 import { usePLGrader } from '../utils/usePLGrader'
-import type { PLInput } from '../utils/plTypes'
+import type { MetricResult, PLInput } from '../utils/plTypes'
 import { GRADE_COLORS } from '../utils/plTypes'
 import ReactConfetti from 'react-confetti'
 import { DndContext, closestCenter } from '@dnd-kit/core'
@@ -11,7 +11,21 @@ import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { CorexDialog, CorexButton } from '../components/corex/CorexComponents'
-import { logAction, savePdfExport } from '../services/api'
+import PLImportDialog from '../components/plImport/PLImportDialog'
+import {
+  addPLImportBatchItem,
+  approvePLImportBatch,
+  createPLImportBatch,
+  getPLImportBatch,
+  listPLImportBatches,
+  logAction,
+  removePLImportBatchItem,
+  savePdfExport,
+  type PLImportApprovalDto,
+  type PLImportBatchDetailDto,
+  type PLImportNumericField,
+} from '../services/api'
+import { buildMastermindPLResult, type MastermindPeriod } from '../utils/pl/mastermindEngine'
 import './PLCalculator.css'
 
 // Sound effects hook
@@ -73,7 +87,20 @@ const initialInput: PLInput = {
   totalStaffPayroll: 0,
   totalOperatingExpenses: 0,
   ownerSalary: 0,
-  ownerAddBacks: 0
+  ownerAddBacks: 0,
+  frontEndRevenue: undefined,
+  tertiaryRevenue: undefined,
+  marketingSpend: undefined,
+  techAdminSpend: undefined,
+  merchantFees: undefined,
+  retailCOGS: undefined,
+  leadCount: undefined,
+  evaluationsBooked: undefined,
+  packagesClosed: undefined,
+  activeContinuityMembers: undefined,
+  npsScore: undefined,
+  patientLTV: undefined,
+  patientAcquisitionCost: undefined
 }
 
 const steps = [
@@ -81,6 +108,17 @@ const steps = [
   { id: 2, title: 'Financials', icon: DollarSign },
   { id: 3, title: 'Report Card', icon: Target }
 ]
+
+function buildPLInputFromMappedImport(mappedInput: Partial<Record<PLImportNumericField, number>>): PLInput {
+  const nextInput: PLInput = { ...initialInput }
+  for (const [key, value] of Object.entries(mappedInput)) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue
+    ;(nextInput as unknown as Record<string, number | string | undefined>)[key] = value
+  }
+  return nextInput
+}
+
+type ProgramMode = 'rainmaker' | 'mastermind'
 
 function RadialProgress({ value, max, grade, size = 80 }: { value: number; max: number; grade: string; size?: number }) {
   const radius = (size - 12) / 2
@@ -156,7 +194,11 @@ function SortableActionCard({ item, onToggle }: { item: any; onToggle: (id: stri
       <button className="action-card-check" onClick={() => onToggle(item.id)}>
         {item.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
       </button>
-      <span className={`action-card-text ${item.completed ? 'completed' : ''}`}>{item.text}</span>
+      <div className="action-card-body">
+        <span className={`action-card-text ${item.completed ? 'completed' : ''}`}>{item.text}</span>
+        {item.target ? <span className="action-card-meta">Target: {item.target}</span> : null}
+        {item.expectedImpact ? <span className="action-card-meta">Impact: {item.expectedImpact}</span> : null}
+      </div>
     </div>
   )
 }
@@ -191,6 +233,14 @@ function calculatePLScore(greenCount: number, yellowCount: number, redCount: num
 
 export default function PLCalculator() {
   const [input, setInput] = useState<PLInput>(initialInput)
+  const [programMode, setProgramMode] = useState<ProgramMode>('rainmaker')
+  const [mastermindPeriods, setMastermindPeriods] = useState<MastermindPeriod[]>([])
+  const [mastermindPeriodLabel, setMastermindPeriodLabel] = useState('')
+  const [mastermindNotice, setMastermindNotice] = useState<string | null>(null)
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null)
+  const [activeBatchStatus, setActiveBatchStatus] = useState<string | null>(null)
+  const [isBatchSyncing, setIsBatchSyncing] = useState(false)
+  const [importedFields, setImportedFields] = useState<Set<keyof PLInput>>(new Set())
   const [currentStep, setCurrentStep] = useState(1)
   const [showResults, setShowResults] = useState(false)
   const [coachName, setCoachName] = useState('')
@@ -203,6 +253,8 @@ export default function PLCalculator() {
   const [actionItems, setActionItems] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [showAdvancedInputs, setShowAdvancedInputs] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(false)
   const reportRef = useRef<HTMLDivElement>(null)
   const hasLoggedResultRef = useRef(false)
   const [sessionId] = useState(() => crypto.randomUUID())
@@ -211,7 +263,103 @@ export default function PLCalculator() {
     setShowQuickActions((open) => !open)
   }, [])
 
-  const result = usePLGrader(showResults ? input : null)
+  const sortedMastermindPeriods = useMemo(
+    () => [...mastermindPeriods].sort((a, b) => a.order - b.order),
+    [mastermindPeriods],
+  )
+
+  const rainmakerResult = usePLGrader(showResults && programMode === 'rainmaker' ? input : null)
+  const mastermindResult = useMemo(() => {
+    if (!showResults || programMode !== 'mastermind') return null
+    return buildMastermindPLResult(sortedMastermindPeriods)
+  }, [programMode, showResults, sortedMastermindPeriods])
+
+  const result = programMode === 'mastermind' ? mastermindResult : rainmakerResult
+  const isV2Enabled = ['true', '1', 'yes', 'on'].includes(
+    String(import.meta.env.VITE_PL_CALCULATOR_V2 || '').toLowerCase().trim(),
+  )
+  const isImportsEnabled = ['true', '1', 'yes', 'on'].includes(
+    String(import.meta.env.VITE_PL_IMPORTS_ENABLED || '').toLowerCase().trim(),
+  )
+
+  const hydrateMastermindPeriodsFromBatch = useCallback((detail: PLImportBatchDetailDto) => {
+    const periods = detail.items.reduce<MastermindPeriod[]>((acc, item) => {
+      if (!item.import.mappedInput) return acc
+      acc.push({
+        id: item.id,
+        label: item.periodLabel,
+        input: buildPLInputFromMappedImport(item.import.mappedInput),
+        order: item.periodOrder,
+        source: 'import',
+        importSessionId: item.import.id,
+      })
+      return acc
+    }, [])
+
+    setMastermindPeriods(periods)
+    setActiveBatchStatus(detail.batch.status)
+  }, [])
+
+  const refreshBatchState = useCallback(async (batchId: string): Promise<boolean> => {
+    const response = await getPLImportBatch(batchId)
+    if (response.error || !response.detail) {
+      setMastermindNotice(response.error || 'Failed to refresh Mastermind timeline from server.')
+      return false
+    }
+
+    hydrateMastermindPeriodsFromBatch(response.detail)
+    return true
+  }, [hydrateMastermindPeriodsFromBatch])
+
+  useEffect(() => {
+    if (!isImportsEnabled || programMode !== 'mastermind') return
+
+    let isCancelled = false
+    const initializeBatch = async () => {
+      setIsBatchSyncing(true)
+      setMastermindNotice(null)
+
+      const listed = await listPLImportBatches()
+      if (isCancelled) return
+
+      let selectedBatch = listed.batches?.find((batch) => batch.programType === 'mastermind' && batch.status !== 'approved')
+        || listed.batches?.find((batch) => batch.programType === 'mastermind')
+
+      if (!selectedBatch) {
+        const created = await createPLImportBatch({ programType: 'mastermind' })
+        if (isCancelled) return
+        if (created.error || !created.batch) {
+          setMastermindNotice(created.error || 'Failed to create import timeline batch.')
+          setIsBatchSyncing(false)
+          return
+        }
+        selectedBatch = created.batch
+      }
+
+      setActiveBatchId(selectedBatch.id)
+      setActiveBatchStatus(selectedBatch.status)
+
+      const refreshed = await refreshBatchState(selectedBatch.id)
+      if (isCancelled) return
+
+      if (refreshed) {
+        setMastermindNotice((previous) => {
+          if (previous) return previous
+          return selectedBatch?.itemCount
+            ? `Loaded ${selectedBatch.itemCount} import-backed period${selectedBatch.itemCount === 1 ? '' : 's'} from server timeline.`
+            : null
+        })
+      }
+
+      setIsBatchSyncing(false)
+    }
+
+    void initializeBatch()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isImportsEnabled, programMode, refreshBatchState])
 
   useEffect(() => {
     void logAction({
@@ -240,7 +388,7 @@ export default function PLCalculator() {
     const greenCount = result.metrics.filter((metric) => metric.grade === 'green').length
     const yellowCount = result.metrics.filter((metric) => metric.grade === 'yellow').length
     const redCount = result.metrics.filter((metric) => metric.grade === 'red').length
-    const score = calculatePLScore(greenCount, yellowCount, redCount)
+    const score = typeof result.score === 'number' ? result.score : calculatePLScore(greenCount, yellowCount, redCount)
 
     hasLoggedResultRef.current = true
     void logAction({
@@ -253,9 +401,22 @@ export default function PLCalculator() {
         coachName: coachName || null,
         clientName: clientName || null,
         metricCount: result.metrics.length,
+        benchmarkVersion: result.benchmarkVersion,
+        confidence: result.confidence,
+        calculatorMode: programMode,
+        periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
+        warningCount: result.warnings.length,
+        warnings: result.warnings,
+        metrics: result.metrics.map((metric) => ({
+          id: metric.id,
+          grade: metric.grade,
+          value: metric.value,
+          threshold: metric.threshold,
+          group: metric.group,
+        })),
       },
     })
-  }, [coachName, clientName, currentStep, result, sessionId, showResults])
+  }, [coachName, clientName, currentStep, programMode, result, sessionId, showResults, sortedMastermindPeriods.length])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -270,9 +431,197 @@ export default function PLCalculator() {
 
   const handleInputChange = (field: keyof PLInput, value: string | number) => {
     setInput(prev => ({ ...prev, [field]: value }))
+    if (programMode === 'mastermind') {
+      setMastermindNotice(null)
+    }
   }
 
-  const handleNext = () => {
+  const inputHasRequiredCoreValues = useCallback((candidate: PLInput) => (
+    candidate.totalGrossRevenue > 0
+    && candidate.totalPatientVisits > 0
+    && candidate.revenueFromContinuity >= 0
+    && candidate.totalFacilityCosts >= 0
+    && candidate.totalStaffPayroll >= 0
+    && candidate.totalOperatingExpenses >= 0
+    && candidate.ownerSalary >= 0
+    && candidate.ownerAddBacks >= 0
+  ), [])
+
+  const upsertMastermindPeriod = useCallback((
+    label: string,
+    snapshot: PLInput,
+    source: 'manual' | 'import',
+  ): boolean => {
+    const trimmedLabel = label.trim()
+    if (!trimmedLabel) {
+      setMastermindNotice('Add a period label (for example: FY2024, TTM 2025).')
+      return false
+    }
+
+    if (!inputHasRequiredCoreValues(snapshot)) {
+      setMastermindNotice('Complete required core fields before saving this period.')
+      return false
+    }
+
+    setMastermindPeriods((prev) => {
+      const existing = prev.find((period) => period.label.toLowerCase() === trimmedLabel.toLowerCase())
+      if (existing) {
+        return prev.map((period) => (
+          period.id === existing.id
+            ? { ...period, label: trimmedLabel, input: { ...snapshot }, source }
+            : period
+        ))
+      }
+
+      const nextOrder = prev.length > 0 ? Math.max(...prev.map((period) => period.order)) + 1 : 1
+      return [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          label: trimmedLabel,
+          input: { ...snapshot },
+          order: nextOrder,
+          source,
+        },
+      ]
+    })
+
+    setMastermindNotice(`${trimmedLabel} saved to Mastermind timeline.`)
+    return true
+  }, [inputHasRequiredCoreValues])
+
+  const removeMastermindPeriod = useCallback((periodId: string) => {
+    const period = sortedMastermindPeriods.find((entry) => entry.id === periodId)
+    if (!period) return
+
+    setMastermindPeriods((prev) => prev.filter((entry) => entry.id !== periodId))
+    setMastermindNotice('Period removed from timeline.')
+
+    if (!activeBatchId || period.source !== 'import') return
+
+    void (async () => {
+      const removed = await removePLImportBatchItem(activeBatchId, periodId)
+      if (removed.error) {
+        setMastermindNotice(`Period removed locally, but server sync failed: ${removed.error}`)
+        return
+      }
+
+      await refreshBatchState(activeBatchId)
+      setMastermindNotice('Period removed and server timeline synced.')
+    })()
+  }, [activeBatchId, refreshBatchState, sortedMastermindPeriods])
+
+  const loadMastermindPeriod = useCallback((periodId: string) => {
+    const selected = sortedMastermindPeriods.find((period) => period.id === periodId)
+    if (!selected) return
+    setInput({ ...selected.input })
+    setMastermindPeriodLabel(selected.label)
+    setImportedFields(new Set())
+    setMastermindNotice(`Loaded ${selected.label} into the form for editing.`)
+  }, [sortedMastermindPeriods])
+
+  const saveCurrentMastermindPeriod = useCallback(() => {
+    const saved = upsertMastermindPeriod(mastermindPeriodLabel, input, 'manual')
+    if (saved) {
+      setMastermindPeriodLabel('')
+      setImportedFields(new Set())
+    }
+  }, [input, mastermindPeriodLabel, upsertMastermindPeriod])
+
+  const handleImportApply = useCallback((
+    mappedInput: Partial<Record<PLImportNumericField, number>>,
+    approval?: PLImportApprovalDto,
+  ) => {
+    const keys = Object.keys(mappedInput) as (keyof PLInput)[]
+    if (keys.length === 0) return
+
+    const nextInput = { ...input, ...(mappedInput as Partial<PLInput>) }
+    setInput(nextInput)
+    setImportedFields((prev) => {
+      const next = new Set(prev)
+      keys.forEach((key) => next.add(key))
+      return next
+    })
+
+    if (programMode === 'mastermind') {
+      const fallbackLabel = `Period ${sortedMastermindPeriods.length + 1}`
+      const resolvedLabel = mastermindPeriodLabel.trim() || fallbackLabel
+      const saved = upsertMastermindPeriod(resolvedLabel, nextInput, 'import')
+      if (saved) {
+        setMastermindPeriodLabel('')
+      } else {
+        setMastermindNotice('Imported values are loaded. Add period label and save to timeline.')
+        return
+      }
+
+      if (!activeBatchId || !approval?.importId) return
+
+      void (async () => {
+        const response = await addPLImportBatchItem(activeBatchId, {
+          importSessionId: approval.importId,
+          periodLabel: resolvedLabel,
+        })
+
+        if (response.error) {
+          setMastermindNotice(`Saved locally, but server sync failed: ${response.error}`)
+          return
+        }
+
+        await refreshBatchState(activeBatchId)
+        setMastermindNotice(`${resolvedLabel} synced to server timeline.`)
+      })()
+    }
+  }, [
+    activeBatchId,
+    input,
+    mastermindPeriodLabel,
+    programMode,
+    refreshBatchState,
+    sortedMastermindPeriods.length,
+    upsertMastermindPeriod,
+  ])
+
+  const isImportedField = useCallback((field: keyof PLInput) => importedFields.has(field), [importedFields])
+
+  const inputGroupClass = useCallback((field: keyof PLInput) => (
+    `pl-input-group ${isImportedField(field) ? 'pl-input-group-imported' : ''}`
+  ), [isImportedField])
+
+  const renderInputLabel = useCallback((field: keyof PLInput, label: string) => (
+    <label>
+      {label}
+      {isImportedField(field) ? <span className="pl-imported-pill">Imported</span> : null}
+    </label>
+  ), [isImportedField])
+
+  const handleNext = async () => {
+    if (currentStep === 2 && programMode === 'mastermind' && sortedMastermindPeriods.length < 2) {
+      setMastermindNotice('Mastermind mode needs at least 2 saved periods before calculating.')
+      return
+    }
+
+    if (
+      currentStep === 2
+      && programMode === 'mastermind'
+      && isImportsEnabled
+      && activeBatchId
+      && sortedMastermindPeriods.length >= 2
+      && sortedMastermindPeriods.every((period) => period.source === 'import')
+    ) {
+      setIsBatchSyncing(true)
+      const approved = await approvePLImportBatch(activeBatchId)
+      if (approved.error || !approved.approval) {
+        setIsBatchSyncing(false)
+        setMastermindNotice(approved.error || 'Failed to approve server timeline batch.')
+        return
+      }
+
+      await refreshBatchState(activeBatchId)
+      setActiveBatchStatus(approved.approval.batch.status)
+      setIsBatchSyncing(false)
+      setMastermindNotice(`Server timeline approved with ${approved.approval.timeline.length} period${approved.approval.timeline.length === 1 ? '' : 's'}.`)
+    }
+
     if (currentStep < 3) {
       setCurrentStep(prev => prev + 1)
       if (currentStep === 2) {
@@ -320,7 +669,7 @@ export default function PLCalculator() {
     const greenCount = result.metrics.filter((metric) => metric.grade === 'green').length
     const yellowCount = result.metrics.filter((metric) => metric.grade === 'yellow').length
     const redCount = result.metrics.filter((metric) => metric.grade === 'red').length
-    const score = calculatePLScore(greenCount, yellowCount, redCount)
+    const score = typeof result.score === 'number' ? result.score : calculatePLScore(greenCount, yellowCount, redCount)
 
     await Promise.all([
       logAction({
@@ -332,6 +681,11 @@ export default function PLCalculator() {
           overallGrade: result.overallGrade,
           coachName: coachName || null,
           clientName: clientName || null,
+          benchmarkVersion: result.benchmarkVersion,
+          confidence: result.confidence,
+          calculatorMode: programMode,
+          periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
+          warnings: result.warnings,
         },
       }),
       savePdfExport({
@@ -349,6 +703,12 @@ export default function PLCalculator() {
           cashFlowSummary: result.cashFlowSummary,
           metrics: result.metrics,
           actionPlan: actionItems,
+          benchmarkVersion: result.benchmarkVersion,
+          confidence: result.confidence,
+          calculatorMode: programMode,
+          periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
+          mastermindPeriods: programMode === 'mastermind' ? sortedMastermindPeriods : undefined,
+          warnings: result.warnings,
           input,
         },
       }),
@@ -381,18 +741,42 @@ export default function PLCalculator() {
   }
 
   const formatPercent = (value: number) => `${value.toFixed(1)}%`
+  const formatRatio = (value: number) => `${value.toFixed(2)}x`
 
   const getGradeLabel = (grade: string) => {
     return grade === 'green' ? 'Elite' : grade === 'yellow' ? 'Average' : 'Critical'
   }
 
+  const formatMetricValue = (metric: MetricResult) => {
+    if (metric.displayType === 'currency') return formatCurrency(metric.value)
+    if (metric.displayType === 'ratio') return formatRatio(metric.value)
+    if (metric.displayType === 'score') return `${metric.value.toFixed(1)} / 100`
+    if (metric.displayType === 'count') return Math.round(metric.value).toString()
+    return formatPercent(metric.value)
+  }
+
+  const getMetricGaugeMax = (metric: MetricResult) => {
+    if (metric.displayType === 'currency') return 250
+    if (metric.displayType === 'ratio') return 5
+    if (metric.displayType === 'score' || metric.displayType === 'percent') return 100
+    return Math.max(100, metric.value)
+  }
+
+  const hasRequiredCoreFields = inputHasRequiredCoreValues(input)
+
   const canProceed = () => {
     if (currentStep === 1) return true
-    if (currentStep === 2) return input.totalGrossRevenue > 0 && input.totalPatientVisits > 0
+    if (currentStep === 2) {
+      if (programMode === 'mastermind') return sortedMastermindPeriods.length >= 2
+      return hasRequiredCoreFields
+    }
     return true
   }
 
   const canOpenExport = currentStep === 3 && showResults && !!result
+  const coreMetrics = result?.coreMetrics || []
+  const growthMetrics = result?.growthMetrics || []
+  const operationalMetrics = result?.operationalMetrics || []
 
   return (
     <div className={`pl-calculator-page ${theme}`}>
@@ -410,7 +794,11 @@ export default function PLCalculator() {
           </div>
           <div>
             <h1>P&L Grader</h1>
-            <p>Financial health analysis for cash-based PT practices</p>
+            <p>
+              Financial health analysis for cash-based PT practices
+              <span className="pl-version-pill">{isV2Enabled ? 'Benchmark v2' : 'Legacy model'}</span>
+              <span className="pl-version-pill">{programMode === 'mastermind' ? 'Mastermind Track' : 'Rainmaker Track'}</span>
+            </p>
           </div>
         </div>
         <div className="pl-header-actions">
@@ -501,6 +889,35 @@ export default function PLCalculator() {
                   <span className="pl-input-hint">Where are you in your journey?</span>
                 </div>
               </div>
+
+              <div className="pl-program-selector">
+                <h4>Coaching Program Track</h4>
+                <p className="pl-input-hint">Choose the scoring model aligned with clinic stage.</p>
+                <div className="pl-program-cards">
+                  <button
+                    type="button"
+                    className={`pl-program-card ${programMode === 'rainmaker' ? 'active' : ''}`}
+                    onClick={() => {
+                      setProgramMode('rainmaker')
+                      setMastermindNotice(null)
+                    }}
+                  >
+                    <strong>Clinical Rainmaker</strong>
+                    <span>Newer clinics (0-12 months), single-period grading.</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`pl-program-card ${programMode === 'mastermind' ? 'active' : ''}`}
+                    onClick={() => {
+                      setProgramMode('mastermind')
+                      setMastermindNotice(null)
+                    }}
+                  >
+                    <strong>Mastermind Scale</strong>
+                    <span>Established clinics (12+ months), multi-period trajectory grading.</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -516,14 +933,106 @@ export default function PLCalculator() {
           >
             <div className="pl-section-card">
               <h3><DollarSign size={20} /> Financial Data</h3>
-              <p className="pl-section-desc">Enter your trailing 12-month or 30-day numbers</p>
+              <p className="pl-section-desc">
+                {programMode === 'mastermind'
+                  ? 'Build a multi-period timeline for established clinic trajectory scoring.'
+                  : 'Enter your trailing 12-month or 30-day numbers.'}
+              </p>
+
+              {isImportsEnabled ? (
+                <div className="pl-import-callout">
+                  <div>
+                    <strong>{programMode === 'mastermind' ? 'Add Mastermind periods from files' : 'Need true multi-format intake?'}</strong>
+                    <span>
+                      {programMode === 'mastermind'
+                        ? 'Import each period file (CSV/XLSX/PDF/image), confirm mapping, and save into your timeline.'
+                        : 'Upload CSV, XLSX, PDF, or image files, confirm mappings, then hydrate this form.'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="pl-import-trigger"
+                    onClick={() => setShowImportDialog(true)}
+                  >
+                    <FileUp size={16} />
+                    {programMode === 'mastermind' ? 'Import Period File' : 'Import P&L'}
+                  </button>
+                </div>
+              ) : null}
+
+              {programMode === 'mastermind' ? (
+                <div className="pl-mastermind-panel">
+                  <div className="pl-mastermind-header">
+                    <h4>Mastermind Timeline Builder</h4>
+                    <span>{sortedMastermindPeriods.length} period{sortedMastermindPeriods.length === 1 ? '' : 's'} saved</span>
+                  </div>
+                  <p className="pl-input-hint">
+                    Save at least two periods for trajectory scoring. Use labels like FY2023, FY2024, or TTM 2025.
+                  </p>
+                  {isImportsEnabled ? (
+                    <p className="pl-input-hint">
+                      Server timeline: {activeBatchId ? `${activeBatchId.slice(0, 8)}…` : 'initializing'}
+                      {activeBatchStatus ? ` · ${activeBatchStatus}` : ''}
+                      {isBatchSyncing ? ' · syncing…' : ''}
+                    </p>
+                  ) : null}
+                  <div className="pl-mastermind-controls">
+                    <input
+                      type="text"
+                      placeholder="Period label"
+                      value={mastermindPeriodLabel}
+                      onChange={(event) => setMastermindPeriodLabel(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="pl-mastermind-btn secondary"
+                      onClick={saveCurrentMastermindPeriod}
+                    >
+                      Save Current Period
+                    </button>
+                  </div>
+                  {mastermindNotice ? <div className="pl-mastermind-notice">{mastermindNotice}</div> : null}
+                  <div className="pl-mastermind-periods">
+                    {sortedMastermindPeriods.length === 0 ? (
+                      <div className="pl-mastermind-empty">No periods saved yet.</div>
+                    ) : (
+                      sortedMastermindPeriods.map((period) => (
+                        <div key={period.id} className="pl-mastermind-period-card">
+                          <div className="pl-mastermind-period-meta">
+                            <strong>{period.label}</strong>
+                            <span>
+                              {formatCurrency(period.input.totalGrossRevenue)} · {Math.round(period.input.totalPatientVisits)} visits · {period.source}
+                            </span>
+                          </div>
+                          <div className="pl-mastermind-period-actions">
+                            <button
+                              type="button"
+                              className="pl-mastermind-btn ghost"
+                              onClick={() => loadMastermindPeriod(period.id)}
+                            >
+                              Load
+                            </button>
+                            <button
+                              type="button"
+                              className="pl-mastermind-btn danger"
+                              onClick={() => removeMastermindPeriod(period.id)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="pl-financials-grid">
                 <div className="pl-input-section">
                   <h4><TrendingUp size={16} /> Revenue</h4>
                   <div className="pl-inputs-row">
-                    <div className="pl-input-group">
-                      <label>Total Gross Revenue</label>
+                    <div className={inputGroupClass('totalGrossRevenue')}>
+                      {renderInputLabel('totalGrossRevenue', 'Total Gross Revenue')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -533,8 +1042,8 @@ export default function PLCalculator() {
                         />
                       </div>
                     </div>
-                    <div className="pl-input-group">
-                      <label>Patient Visits</label>
+                    <div className={inputGroupClass('totalPatientVisits')}>
+                      {renderInputLabel('totalPatientVisits', 'Patient Visits')}
                       <input 
                         type="number" 
                         placeholder="2,500"
@@ -542,8 +1051,8 @@ export default function PLCalculator() {
                         onChange={(e) => handleInputChange('totalPatientVisits', Number(e.target.value))}
                       />
                     </div>
-                    <div className="pl-input-group">
-                      <label>Continuity Revenue</label>
+                    <div className={inputGroupClass('revenueFromContinuity')}>
+                      {renderInputLabel('revenueFromContinuity', 'Continuity Revenue')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -560,8 +1069,8 @@ export default function PLCalculator() {
                 <div className="pl-input-section">
                   <h4><Users size={16} /> Expenses</h4>
                   <div className="pl-inputs-row">
-                    <div className="pl-input-group">
-                      <label>Facility Costs</label>
+                    <div className={inputGroupClass('totalFacilityCosts')}>
+                      {renderInputLabel('totalFacilityCosts', 'Facility Costs')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -571,8 +1080,8 @@ export default function PLCalculator() {
                         />
                       </div>
                     </div>
-                    <div className="pl-input-group">
-                      <label>Staff Payroll</label>
+                    <div className={inputGroupClass('totalStaffPayroll')}>
+                      {renderInputLabel('totalStaffPayroll', 'Staff Payroll')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -583,8 +1092,8 @@ export default function PLCalculator() {
                       </div>
                       <span className="pl-input-hint">Excluding owner</span>
                     </div>
-                    <div className="pl-input-group">
-                      <label>Operating Expenses</label>
+                    <div className={inputGroupClass('totalOperatingExpenses')}>
+                      {renderInputLabel('totalOperatingExpenses', 'Operating Expenses')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -600,8 +1109,8 @@ export default function PLCalculator() {
                 <div className="pl-input-section">
                   <h4><Sparkles size={16} /> Owner</h4>
                   <div className="pl-inputs-row">
-                    <div className="pl-input-group">
-                      <label>Owner Salary</label>
+                    <div className={inputGroupClass('ownerSalary')}>
+                      {renderInputLabel('ownerSalary', 'Owner Salary')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -611,8 +1120,8 @@ export default function PLCalculator() {
                         />
                       </div>
                     </div>
-                    <div className="pl-input-group">
-                      <label>Add-Backs</label>
+                    <div className={inputGroupClass('ownerAddBacks')}>
+                      {renderInputLabel('ownerAddBacks', 'Add-Backs')}
                       <div className="pl-currency-input">
                         <span>$</span>
                         <NumberFormatBase
@@ -624,6 +1133,173 @@ export default function PLCalculator() {
                       <span className="pl-input-hint">Vehicle, insurance, CE, etc.</span>
                     </div>
                   </div>
+                </div>
+
+                <div className="pl-advanced-section">
+                  <button
+                    type="button"
+                    className="pl-advanced-toggle"
+                    onClick={() => setShowAdvancedInputs((open) => !open)}
+                  >
+                    <span>Advanced Inputs (Optional)</span>
+                    <span>{showAdvancedInputs ? 'Hide' : 'Show'}</span>
+                  </button>
+
+                  {showAdvancedInputs && (
+                    <div className="pl-advanced-grid">
+                      <div className="pl-input-section">
+                        <h4><TrendingUp size={16} /> Revenue Stratification</h4>
+                        <div className="pl-inputs-row">
+                          <div className={inputGroupClass('frontEndRevenue')}>
+                            {renderInputLabel('frontEndRevenue', 'Front-End Revenue')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="250,000"
+                                value={input.frontEndRevenue ?? ''}
+                                onValueChange={(values) => handleInputChange('frontEndRevenue', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('tertiaryRevenue')}>
+                            {renderInputLabel('tertiaryRevenue', 'Tertiary Revenue')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="50,000"
+                                value={input.tertiaryRevenue ?? ''}
+                                onValueChange={(values) => handleInputChange('tertiaryRevenue', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('activeContinuityMembers')}>
+                            {renderInputLabel('activeContinuityMembers', 'Active Continuity Members')}
+                            <input
+                              type="number"
+                              placeholder="40"
+                              value={input.activeContinuityMembers ?? ''}
+                              onChange={(e) => handleInputChange('activeContinuityMembers', Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pl-input-section">
+                        <h4><Users size={16} /> Detailed Expenses</h4>
+                        <div className="pl-inputs-row">
+                          <div className={inputGroupClass('marketingSpend')}>
+                            {renderInputLabel('marketingSpend', 'Marketing Spend')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="45,000"
+                                value={input.marketingSpend ?? ''}
+                                onValueChange={(values) => handleInputChange('marketingSpend', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('techAdminSpend')}>
+                            {renderInputLabel('techAdminSpend', 'Tech/Admin Spend')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="18,000"
+                                value={input.techAdminSpend ?? ''}
+                                onValueChange={(values) => handleInputChange('techAdminSpend', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('merchantFees')}>
+                            {renderInputLabel('merchantFees', 'Merchant Fees')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="12,000"
+                                value={input.merchantFees ?? ''}
+                                onValueChange={(values) => handleInputChange('merchantFees', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('retailCOGS')}>
+                            {renderInputLabel('retailCOGS', 'Retail COGS')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="7,500"
+                                value={input.retailCOGS ?? ''}
+                                onValueChange={(values) => handleInputChange('retailCOGS', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pl-input-section">
+                        <h4><Activity size={16} /> Growth KPIs</h4>
+                        <div className="pl-inputs-row">
+                          <div className={inputGroupClass('leadCount')}>
+                            {renderInputLabel('leadCount', 'Lead Count')}
+                            <input
+                              type="number"
+                              placeholder="180"
+                              value={input.leadCount ?? ''}
+                              onChange={(e) => handleInputChange('leadCount', Number(e.target.value))}
+                            />
+                          </div>
+                          <div className={inputGroupClass('evaluationsBooked')}>
+                            {renderInputLabel('evaluationsBooked', 'Evaluations Booked')}
+                            <input
+                              type="number"
+                              placeholder="95"
+                              value={input.evaluationsBooked ?? ''}
+                              onChange={(e) => handleInputChange('evaluationsBooked', Number(e.target.value))}
+                            />
+                          </div>
+                          <div className={inputGroupClass('packagesClosed')}>
+                            {renderInputLabel('packagesClosed', 'Packages Closed')}
+                            <input
+                              type="number"
+                              placeholder="70"
+                              value={input.packagesClosed ?? ''}
+                              onChange={(e) => handleInputChange('packagesClosed', Number(e.target.value))}
+                            />
+                          </div>
+                          <div className={inputGroupClass('npsScore')}>
+                            {renderInputLabel('npsScore', 'NPS')}
+                            <input
+                              type="number"
+                              step="0.1"
+                              placeholder="9.2"
+                              value={input.npsScore ?? ''}
+                              onChange={(e) => handleInputChange('npsScore', Number(e.target.value))}
+                            />
+                          </div>
+                          <div className={inputGroupClass('patientLTV')}>
+                            {renderInputLabel('patientLTV', 'Patient LTV')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="2,200"
+                                value={input.patientLTV ?? ''}
+                                onValueChange={(values) => handleInputChange('patientLTV', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                          <div className={inputGroupClass('patientAcquisitionCost')}>
+                            {renderInputLabel('patientAcquisitionCost', 'Patient Acquisition Cost')}
+                            <div className="pl-currency-input">
+                              <span>$</span>
+                              <NumberFormatBase
+                                placeholder="550"
+                                value={input.patientAcquisitionCost ?? ''}
+                                onValueChange={(values) => handleInputChange('patientAcquisitionCost', values.floatValue || 0)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -695,44 +1371,76 @@ export default function PLCalculator() {
                       {result?.overallGrade === 'green' ? <Sparkles size={24} /> : null}
                       {getGradeLabel(result?.overallGrade || 'red')}
                     </div>
-                    <h2>Financial Health Score</h2>
+                    <h2>{programMode === 'mastermind' ? 'Scale Trajectory Score' : 'Financial Health Score'}: {result?.score ?? 0}</h2>
                   </motion.div>
 
-                  {/* Living Tiles */}
-                  <div className="pl-metrics-grid">
-                    {result?.metrics.map((metric, index) => (
-                      <motion.div 
-                        key={metric.id}
-                        className="pl-metric-tile"
-                        initial={{ opacity: 0, y: 40 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + index * 0.08 }}
-                        data-grade={metric.grade}
-                      >
-                        <div className="tile-header">
-                          <RadialProgress 
-                            value={metric.name.includes('%') ? metric.value : metric.value} 
-                            max={metric.name.includes('%') ? 100 : metric.name.includes('Revenue') ? 50 : 30}
-                            grade={metric.grade}
-                          />
-                          <Sparkline data={metric.trend} color={GRADE_COLORS[metric.grade]} />
-                        </div>
-                        <div className="tile-content">
-                          <span className="tile-name">{metric.name}</span>
-                          <span className="tile-value">
-                            {metric.name.includes('Ratio') || metric.name.includes('%') || metric.name.includes('Margin') 
-                              ? formatPercent(metric.value) 
-                              : formatCurrency(metric.value)}
-                          </span>
-                          <span className="tile-threshold">Target: {metric.threshold}</span>
-                        </div>
-                        <Tooltip content={metric.tip}>
-                          <div className="tile-tip">?</div>
-                        </Tooltip>
-                        <p className="tile-diagnostic">{metric.diagnostic}</p>
-                      </motion.div>
-                    ))}
+                  <div className="pl-benchmark-row">
+                    <span>Benchmark Version: {result?.benchmarkVersion || 'legacy'}</span>
+                    <span>Confidence: {result?.confidence ?? 0}%</span>
+                    <span>Composite Score: {result?.score ?? 0}</span>
                   </div>
+
+                  {result?.warnings?.length ? (
+                    <div className="pl-warning-panel">
+                      <h4>Data Quality Warnings</h4>
+                      <ul>
+                        {result.warnings.map((warning) => (
+                          <li key={warning}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {/* Grouped Metric Tiles */}
+                  {[
+                    { key: 'core', title: 'Core Financial Health', metrics: coreMetrics },
+                    { key: 'growth', title: 'Growth KPIs', metrics: growthMetrics },
+                    { key: 'operational', title: 'Operational Efficiency', metrics: operationalMetrics },
+                  ].map((section, sectionIndex) => (
+                    section.metrics.length > 0 ? (
+                      <div key={section.key} className="pl-metric-group">
+                        <h3>{section.title}</h3>
+                        <div className="pl-metrics-grid">
+                          {section.metrics.map((metric, metricIndex) => (
+                            <motion.div
+                              key={metric.id}
+                              className="pl-metric-tile"
+                              initial={{ opacity: 0, y: 40 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.08 + sectionIndex * 0.15 + metricIndex * 0.05 }}
+                              data-grade={metric.grade}
+                            >
+                              <div className="tile-header">
+                                <RadialProgress
+                                  value={metric.value}
+                                  max={getMetricGaugeMax(metric)}
+                                  grade={metric.grade}
+                                />
+                                <Sparkline data={metric.trend} color={GRADE_COLORS[metric.grade]} />
+                              </div>
+                              <div className="tile-content">
+                                <span className="tile-name">{metric.name}</span>
+                                <span className="tile-value">{formatMetricValue(metric)}</span>
+                                <span className="tile-threshold">Band: {metric.threshold}</span>
+                              </div>
+                              <Tooltip content={metric.tip}>
+                                <div className="tile-tip">?</div>
+                              </Tooltip>
+                              <p className="tile-diagnostic">{metric.diagnostic}</p>
+                              {metric.knowledgeRefSlug ? (
+                                <a
+                                  className="tile-why-link"
+                                  href={`/knowledge?slug=${encodeURIComponent(metric.knowledgeRefSlug)}`}
+                                >
+                                  Why this matters
+                                </a>
+                              ) : null}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null
+                  ))}
 
                   {/* ODI Section */}
                   <motion.div 
@@ -741,7 +1449,7 @@ export default function PLCalculator() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <h3>Owner's Discretionary Income (ODI)</h3>
+                    <h3>Enterprise Value (ODI)</h3>
                     <div className="odi-display">
                       <div className="odi-value">{formatCurrency(result?.odi || 0)}</div>
                       <div className="valuation-range">
@@ -817,9 +1525,13 @@ export default function PLCalculator() {
           <button 
             className="pl-nav-btn primary"
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isBatchSyncing}
           >
-            {currentStep === 2 ? 'Calculate' : 'Next'} <ArrowRight size={18} />
+            {isBatchSyncing && currentStep === 2 && programMode === 'mastermind'
+              ? 'Syncing Timeline'
+              : currentStep === 2
+              ? (programMode === 'mastermind' ? 'Calculate Trajectory' : 'Calculate')
+              : 'Next'} <ArrowRight size={18} />
           </button>
         </motion.div>
       )}
@@ -898,6 +1610,14 @@ export default function PLCalculator() {
           </CorexDialog>
         )}
       </AnimatePresence>
+
+      {isImportsEnabled ? (
+        <PLImportDialog
+          open={showImportDialog}
+          onOpenChange={setShowImportDialog}
+          onApplyMappedInput={handleImportApply}
+        />
+      ) : null}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { knowledgeDocRouter } from './routes/knowledgeDoc.js';
 import videoRouter from './routes/video.js';
 import authRouter from './routes/auth.js';
 import { analyticsRouter } from './routes/analytics.js';
+import { plImportRouter } from './routes/plImport.js';
 import { prisma } from './services/prisma.js';
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/knowledge', knowledgeDocRouter);
 app.use('/api/videos', videoRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/pl-imports', plImportRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

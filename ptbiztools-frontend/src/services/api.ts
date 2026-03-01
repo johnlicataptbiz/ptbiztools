@@ -1,3 +1,7 @@
+import type { PLInput } from '../utils/plTypes';
+
+export type PLImportNumericField = Exclude<keyof PLInput, 'clinicSize' | 'clinicModel' | 'businessStage'>;
+
 export const API_BASE = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api';
 
 // Authentication & Team Types
@@ -62,10 +66,13 @@ export interface AdminRecentAction {
 
 export interface KnowledgeDoc {
   id: string;
+  slug?: string | null;
   title: string;
   content: string;
   category: string;
   source?: string | null;
+  version?: string;
+  checksum?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -124,6 +131,165 @@ export interface PLAuditRecord {
   metadata?: Record<string, unknown> | null;
   createdAt: string;
   user?: UsageUserLite | null;
+}
+
+export type PLImportStatus =
+  | 'uploaded'
+  | 'parsing'
+  | 'parsed'
+  | 'mapping'
+  | 'ready_for_review'
+  | 'approved'
+  | 'failed';
+
+export interface PLImportSessionDto {
+  id: string;
+  status: PLImportStatus;
+  sourceType: 'csv' | 'xlsx' | 'pdf' | 'image';
+  sourceLabel?: string | null;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  parserVersion?: string | null;
+  mappingVersion?: string | null;
+  overallConfidence: number;
+  requiredFieldsComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PLImportParseArtifactDto {
+  id: string;
+  importSessionId: string;
+  rawExtraction: Record<string, unknown>;
+  qualitySignals: {
+    parser?: string;
+    parserVersion?: string;
+    rowCount?: number;
+    columnCount?: number;
+    pageCount?: number;
+    extractedChars?: number;
+    numericTokenCount?: number;
+    labelCoverageScore?: number;
+    usedOCR?: boolean;
+    warnings?: string[];
+  };
+  createdAt: string;
+}
+
+export interface PLImportFieldMapping {
+  field: string;
+  candidateId: string | null;
+  label: string | null;
+  value: number | null;
+  confidence: number;
+  reasoning: string;
+}
+
+export interface PLImportMappingDto {
+  id: string;
+  importSessionId: string;
+  autoMap: Record<string, PLImportFieldMapping>;
+  finalMap: Record<string, PLImportFieldMapping>;
+  mappedInput: Partial<Record<PLImportNumericField, number>>;
+  fieldConfidence: Record<string, number>;
+  manualOverrides: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PLImportDetailDto {
+  import: PLImportSessionDto;
+  parseArtifact?: PLImportParseArtifactDto | null;
+  mapping?: PLImportMappingDto | null;
+  warnings: string[];
+}
+
+export interface PLImportApprovalDto {
+  importId: string;
+  status: PLImportStatus;
+  overallConfidence: number;
+  requiredFieldsComplete: boolean;
+  mappedInput: Partial<Record<PLImportNumericField, number>>;
+  warnings: string[];
+  fieldConfidence: Record<string, number>;
+}
+
+export type PLImportBatchStatus = 'draft' | 'approved' | 'failed';
+
+export interface PLImportBatchSummaryDto {
+  id: string;
+  name: string | null;
+  programType: string;
+  status: PLImportBatchStatus;
+  overallConfidence: number;
+  approvedAt: string | null;
+  itemCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PLImportBatchItemDto {
+  id: string;
+  periodLabel: string;
+  periodOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  import: {
+    id: string;
+    status: PLImportStatus;
+    sourceType: 'csv' | 'xlsx' | 'pdf' | 'image';
+    sourceLabel: string | null;
+    filename: string;
+    overallConfidence: number;
+    requiredFieldsComplete: boolean;
+    mappedInput: Partial<Record<PLImportNumericField, number>> | null;
+    fieldConfidence: Record<string, number> | null;
+    warnings: string[];
+  };
+}
+
+export interface PLImportBatchDetailDto {
+  batch: {
+    id: string;
+    name: string | null;
+    programType: string;
+    status: PLImportBatchStatus;
+    overallConfidence: number;
+    timelinePayload: unknown;
+    warningSummary: unknown;
+    approvedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+  items: PLImportBatchItemDto[];
+}
+
+export interface PLImportBatchTimelinePeriodDto {
+  itemId: string;
+  importSessionId: string;
+  periodLabel: string;
+  periodOrder: number;
+  sourceType: 'csv' | 'xlsx' | 'pdf' | 'image';
+  sourceLabel: string | null;
+  filename: string;
+  overallConfidence: number;
+  mappedInput: Partial<Record<PLImportNumericField, number>>;
+  fieldConfidence: Record<string, number>;
+  warnings: string[];
+}
+
+export interface PLImportBatchApprovalDto {
+  batch: {
+    id: string;
+    name: string | null;
+    programType: string;
+    status: PLImportBatchStatus;
+    overallConfidence: number;
+    approvedAt: string | null;
+  };
+  timeline: PLImportBatchTimelinePeriodDto[];
+  warningSummary: Array<{ periodLabel: string; warnings: string[] }>;
 }
 
 export interface GradeStoragePayload {
@@ -442,6 +608,211 @@ export async function getVideoAssetStatus(name: string): Promise<{ exists: boole
     return { exists: response.ok, status: response.status };
   } catch {
     return { exists: false, status: 0 };
+  }
+}
+
+export async function createPLImport(formData: FormData): Promise<{
+  importId?: string;
+  status?: PLImportStatus;
+  overallConfidence?: number;
+  requiredFieldsComplete?: boolean;
+  warnings?: string[];
+  error?: string;
+}> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to create import session' };
+    return {
+      importId: data.importId,
+      status: data.status,
+      overallConfidence: data.overallConfidence,
+      requiredFieldsComplete: data.requiredFieldsComplete,
+      warnings: data.warnings || [],
+    };
+  } catch (error) {
+    console.error('Failed to create P&L import:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function listPLImports(): Promise<{ imports?: PLImportSessionDto[]; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports`, { credentials: 'include' });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to list imports' };
+    return { imports: data.imports || [] };
+  } catch (error) {
+    console.error('Failed to list P&L imports:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function getPLImport(id: string): Promise<{ detail?: PLImportDetailDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/${id}`, { credentials: 'include' });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to fetch import' };
+    return { detail: data };
+  } catch (error) {
+    console.error('Failed to fetch P&L import detail:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function updatePLImportMapping(
+  id: string,
+  patch: {
+    values?: Partial<Record<PLImportNumericField, number | null>>;
+    useCandidate?: Record<string, string | null>;
+  },
+): Promise<{ mapping?: PLImportMappingDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/${id}/remap`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(patch),
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to update mapping' };
+    return { mapping: data.mapping as PLImportMappingDto };
+  } catch (error) {
+    console.error('Failed to update P&L mapping:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function approvePLImport(id: string, reviewConfirmed = false): Promise<{ approval?: PLImportApprovalDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reviewConfirmed }),
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to approve import' };
+    return { approval: data as PLImportApprovalDto };
+  } catch (error) {
+    console.error('Failed to approve P&L import:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function createPLImportBatch(input?: {
+  name?: string;
+  programType?: string;
+}): Promise<{ batch?: PLImportBatchSummaryDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: input?.name || undefined,
+        programType: input?.programType || 'mastermind',
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to create import batch' };
+    return { batch: data.batch as PLImportBatchSummaryDto };
+  } catch (error) {
+    console.error('Failed to create import batch:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function listPLImportBatches(): Promise<{ batches?: PLImportBatchSummaryDto[]; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches`, { credentials: 'include' });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to list import batches' };
+    return { batches: data.batches as PLImportBatchSummaryDto[] };
+  } catch (error) {
+    console.error('Failed to list import batches:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function getPLImportBatch(id: string): Promise<{ detail?: PLImportBatchDetailDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches/${id}`, { credentials: 'include' });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to fetch import batch' };
+    return { detail: data as PLImportBatchDetailDto };
+  } catch (error) {
+    console.error('Failed to fetch import batch:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function addPLImportBatchItem(
+  batchId: string,
+  input: {
+    importSessionId: string;
+    periodLabel: string;
+    periodOrder?: number;
+  },
+): Promise<{
+  item?: {
+    id: string;
+    batchId: string;
+    importSessionId: string;
+    periodLabel: string;
+    periodOrder: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  error?: string;
+}> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches/${batchId}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(input),
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to add period to import batch' };
+    return { item: data.item };
+  } catch (error) {
+    console.error('Failed to add import batch item:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function removePLImportBatchItem(batchId: string, itemId: string): Promise<{ ok?: boolean; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches/${batchId}/items/${itemId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to remove period from import batch' };
+    return { ok: Boolean(data.ok) };
+  } catch (error) {
+    console.error('Failed to remove import batch item:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function approvePLImportBatch(batchId: string): Promise<{ approval?: PLImportBatchApprovalDto; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/pl-imports/batches/${batchId}/approve`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    const data = await response.json();
+    if (!response.ok) return { error: data.error || 'Failed to approve import batch' };
+    return { approval: data as PLImportBatchApprovalDto };
+  } catch (error) {
+    console.error('Failed to approve import batch:', error);
+    return { error: 'Network error' };
   }
 }
 

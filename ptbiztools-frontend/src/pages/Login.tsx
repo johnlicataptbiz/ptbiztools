@@ -18,6 +18,23 @@ interface LoginProps {
 }
 
 const rememberedUserKey = 'ptbiz_selected_user_id'
+const JACK_NAME = 'jack licata'
+
+function normalizeText(value: string | null | undefined) {
+  return (value || '').trim().toLowerCase()
+}
+
+function getMemberSortPriority(member: TeamMember) {
+  const name = normalizeText(member.name)
+  const title = normalizeText(member.title)
+  const section = normalizeText(member.teamSection)
+  const role = normalizeText(member.role)
+
+  if (name === JACK_NAME) return 99
+  if (section.includes('coach') || title.includes('coach') || role === 'coach') return 0
+  if (section.includes('partner') || title.includes('partner')) return 1
+  return 2
+}
 
 function getInitials(name: string) {
   return name
@@ -97,6 +114,15 @@ export default function Login({ onAuthenticated }: LoginProps) {
   const selectedUser = useMemo(
     () => teamMembers.find((member) => member.id === selectedUserId) || null,
     [selectedUserId, teamMembers],
+  )
+
+  const orderedTeamMembers = useMemo(
+    () => [...teamMembers].sort((a, b) => {
+      const priorityDiff = getMemberSortPriority(a) - getMemberSortPriority(b)
+      if (priorityDiff !== 0) return priorityDiff
+      return a.name.localeCompare(b.name)
+    }),
+    [teamMembers],
   )
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false
@@ -219,10 +245,10 @@ export default function Login({ onAuthenticated }: LoginProps) {
           <section className="member-picker">
             <div className="member-picker-header">
               <h2>Choose your profile</h2>
-              <span>{teamMembers.length} team members</span>
+              <span>{orderedTeamMembers.length} team members</span>
             </div>
             <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
-              {teamMembers.map((member) => (
+              {orderedTeamMembers.map((member) => (
                 <motion.button
                   key={member.id}
                   className="member-row-card"
