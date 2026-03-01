@@ -152,7 +152,7 @@ function App() {
           <span className="app-loader-logo logo-mask" style={logoMaskStyle} role="img" aria-label="PT Biz" />
           <div className="app-loader-copy">
             <h2>Preparing your onboarding</h2>
-            <p>Lining up video, audio, and tool access so your walkthrough plays cleanly.</p>
+            <p>Lining up your welcome video and tool access so your walkthrough plays cleanly.</p>
           </div>
           <div className="app-loader-step-list" aria-live="polite">
             {onboardingSteps.map((step, index) => {

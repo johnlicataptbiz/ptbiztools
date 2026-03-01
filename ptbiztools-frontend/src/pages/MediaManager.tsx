@@ -3,9 +3,7 @@ import { getVideoAssetStatus, uploadVideoAsset } from '../services/api'
 import './MediaManager.css'
 
 const MANAGED_ASSETS = [
-  { key: 'intro-logo', label: 'Logo Intro Video', accept: 'video/mp4' },
-  { key: 'intro-danny-name', label: 'Danny Name Intro Audio', accept: 'audio/mpeg,audio/mp3' },
-  { key: 'intro-danny', label: 'Danny Intro Video', accept: 'video/mp4' },
+  { key: 'intro-combined', label: 'Combined Intro Video', accept: 'video/mp4' },
 ] as const
 
 function fileToBase64(file: File): Promise<string> {
@@ -26,7 +24,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export default function MediaManager() {
-  const [selectedName, setSelectedName] = useState<string>('intro-logo')
+  const [selectedName, setSelectedName] = useState<string>('intro-combined')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
@@ -79,7 +77,7 @@ export default function MediaManager() {
     <div className="media-manager">
       <div className="media-header">
         <h1>Media Manager</h1>
-        <p>Connected to backend `/api/videos/upload` and `/api/videos/:name` for intro video/audio assets.</p>
+        <p>Connected to backend `/api/videos/upload` and `/api/videos/:name` for intro onboarding media.</p>
       </div>
 
       <div className="media-grid">

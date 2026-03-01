@@ -25,22 +25,16 @@ interface IntroVideoProps {
   onRevealChange?: (next: Partial<RevealedTools>) => void
 }
 
-type IntroStage = 'idle' | 'logo' | 'audio' | 'danny' | 'done'
+type IntroStage = 'idle' | 'playing' | 'done'
 
 export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoProps) {
   const [stage, setStage] = useState<IntroStage>('idle')
   const [progress, setProgress] = useState(0)
   const [mediaReady, setMediaReady] = useState(false)
   const [revealedTools, setRevealedTools] = useState<RevealedTools>({ discovery: false, pl: false })
-  const [videoUrls, setVideoUrls] = useState({
-    logo: '/intro-logo.mp4',
-    nameAudio: '/danny-intro.mp3',
-    danny: '/intro-danny.mp4',
-  })
+  const [videoUrl, setVideoUrl] = useState('/intro-video.mp4')
 
-  const logoRef = useRef<HTMLVideoElement>(null)
-  const nameAudioRef = useRef<HTMLAudioElement>(null)
-  const dannyRef = useRef<HTMLVideoElement>(null)
+  const combinedRef = useRef<HTMLVideoElement>(null)
   const hasRevealedDiscoveryRef = useRef(false)
   const hasRevealedPLRef = useRef(false)
 
@@ -51,52 +45,26 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   )
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchVideo = async () => {
       const objectUrls: string[] = []
 
       try {
-        const [logoResponse, nameAudioResponse, dannyResponse] = await Promise.all([
-          fetch(`${API_URL}/videos/intro-logo`),
-          fetch(`${API_URL}/videos/intro-danny-name`),
-          fetch(`${API_URL}/videos/intro-danny`),
-        ])
+        const response = await fetch(`${API_URL}/videos/intro-combined`)
 
-        const nextUrls = {
-          logo: '/intro-logo.mp4',
-          nameAudio: '/danny-intro.mp3',
-          danny: '/intro-danny.mp4',
+        if (response.ok) {
+          const blob = await response.blob()
+          const objectUrl = URL.createObjectURL(blob)
+          objectUrls.push(objectUrl)
+
+          setVideoUrl((prev) => {
+            if (prev.startsWith('blob:')) URL.revokeObjectURL(prev)
+            return objectUrl
+          })
         }
 
-        if (logoResponse.ok) {
-          const logoBlob = await logoResponse.blob()
-          const logoObjectUrl = URL.createObjectURL(logoBlob)
-          objectUrls.push(logoObjectUrl)
-          nextUrls.logo = logoObjectUrl
-        }
-
-        if (nameAudioResponse.ok) {
-          const audioBlob = await nameAudioResponse.blob()
-          const audioObjectUrl = URL.createObjectURL(audioBlob)
-          objectUrls.push(audioObjectUrl)
-          nextUrls.nameAudio = audioObjectUrl
-        }
-
-        if (dannyResponse.ok) {
-          const dannyBlob = await dannyResponse.blob()
-          const dannyObjectUrl = URL.createObjectURL(dannyBlob)
-          objectUrls.push(dannyObjectUrl)
-          nextUrls.danny = dannyObjectUrl
-        }
-
-        setVideoUrls((prev) => {
-          if (prev.logo.startsWith('blob:')) URL.revokeObjectURL(prev.logo)
-          if (prev.nameAudio.startsWith('blob:')) URL.revokeObjectURL(prev.nameAudio)
-          if (prev.danny.startsWith('blob:')) URL.revokeObjectURL(prev.danny)
-          return nextUrls
-        })
         setMediaReady(true)
       } catch {
-        // Keep local fallback media
+        // Keep local fallback media.
         setMediaReady(true)
       }
 
@@ -108,9 +76,11 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
     }
 
     let cleanup: (() => void) | undefined
-    fetchVideos().then((fn) => {
-      cleanup = fn
-    }).catch(() => {})
+    fetchVideo()
+      .then((fn) => {
+        cleanup = fn
+      })
+      .catch(() => {})
 
     return () => {
       cleanup?.()
@@ -118,45 +88,25 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   }, [])
 
   useEffect(() => {
-    if (stage === 'logo' && logoRef.current) {
+    if (stage === 'playing' && combinedRef.current) {
       setProgress(0)
-      void logoRef.current.play()
-    }
-
-    if (stage === 'audio' && nameAudioRef.current) {
-      nameAudioRef.current.currentTime = 0
-      void nameAudioRef.current.play().catch(() => {
-        setTimeout(() => {
-          setStage('danny')
-        }, 900)
+      void combinedRef.current.play().catch(() => {
+        // Browser autoplay policy may still block unmuted playback in some contexts.
       })
-    }
-
-    if (stage === 'danny' && dannyRef.current) {
-      setProgress(0)
-      void dannyRef.current.play()
     }
   }, [stage])
 
-  const handleStart = () => {
-    if (!mediaReady) return
+  useEffect(() => {
+    if (!mediaReady || stage !== 'idle') return
     hasRevealedDiscoveryRef.current = false
     hasRevealedPLRef.current = false
     setRevealedTools({ discovery: false, pl: false })
     onRevealChange?.({ discovery: false, pl: false })
-    setStage('logo')
-  }
+    setStage('playing')
+  }, [mediaReady, onRevealChange, stage])
 
-  const handleLogoEnd = () => {
-    setStage('audio')
-  }
-
-  const handleNameAudioEnd = () => {
-    setStage('danny')
-  }
-
-  const handleDannyTimeUpdate = () => {
-    const video = dannyRef.current
+  const handleCombinedTimeUpdate = () => {
+    const video = combinedRef.current
     if (!video || !video.duration) return
 
     setProgress((video.currentTime / video.duration) * 100)
@@ -183,11 +133,9 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
   }
 
   const subtitle = useMemo(() => {
-    if (stage === 'logo') return 'Queueing logo sequence'
-    if (stage === 'audio') return 'Danny intro audio'
-    if (stage === 'danny') return 'Coach onboarding in progress'
-    return mediaReady ? 'Press play to begin your walkthrough' : 'Syncing onboarding media'
-  }, [stage])
+    if (stage === 'playing') return 'Coach onboarding in progress'
+    return mediaReady ? 'Starting welcome video...' : 'Syncing onboarding media'
+  }, [stage, mediaReady])
 
   const timeline = [
     {
@@ -254,45 +202,21 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
               {stage === 'idle' && (
                 <div className="intro-start-card">
                   <span className="intro-start-logo logo-mask" role="img" aria-label="PT Biz" style={logoMaskStyle} />
-                  <button className="intro-play-btn" onClick={handleStart} disabled={!mediaReady}>
-                    {mediaReady ? 'Play Intro' : 'Syncing Media...'}
-                  </button>
-                  <p>{mediaReady ? 'Audio starts only after you click play.' : 'Pulling logo, audio, and Danny video now.'}</p>
+                  <p>{mediaReady ? 'Starting welcome video...' : 'Pulling the combined intro video now.'}</p>
                 </div>
               )}
 
-              {stage === 'logo' && (
+              {stage === 'playing' && (
                 <video
-                  ref={logoRef}
+                  ref={combinedRef}
                   className="intro-video active"
-                  onEnded={handleLogoEnd}
-                  playsInline
-                  muted
-                  preload="auto"
-                >
-                  <source src={videoUrls.logo} type="video/mp4" />
-                </video>
-              )}
-
-              {stage === 'audio' && (
-                <div className="intro-audio-stage">
-                  <span>“Danny Matta here…”</span>
-                  <audio ref={nameAudioRef} onEnded={handleNameAudioEnd} preload="auto">
-                    <source src={videoUrls.nameAudio} type="audio/mpeg" />
-                  </audio>
-                </div>
-              )}
-
-              {stage === 'danny' && (
-                <video
-                  ref={dannyRef}
-                  className="intro-video active"
-                  onTimeUpdate={handleDannyTimeUpdate}
+                  autoPlay
+                  onTimeUpdate={handleCombinedTimeUpdate}
                   onEnded={finishIntro}
                   playsInline
                   preload="auto"
                 >
-                  <source src={videoUrls.danny} type="video/mp4" />
+                  <source src={videoUrl} type="video/mp4" />
                 </video>
               )}
             </div>

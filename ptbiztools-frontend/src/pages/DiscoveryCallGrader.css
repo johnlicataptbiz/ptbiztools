@@ -41,9 +41,142 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   padding: 36px;
-  max-width: 800px;
+  max-width: 1120px;
   margin: 0 auto;
   border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.grader-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: 20px;
+}
+
+.grader-main-pane {
+  display: grid;
+  gap: 14px;
+}
+
+.grader-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grader-card .form-group.compact {
+  margin-bottom: 0;
+}
+
+.grader-card .form-group.compact input {
+  width: 100%;
+}
+
+.grader-intake-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.grader-file-input {
+  display: none;
+}
+
+.grader-side-pane {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.grader-side-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.grader-side-card h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.diag-item {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 9px;
+  display: grid;
+  gap: 2px;
+  background: var(--color-card);
+}
+
+.diag-item span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.diag-item strong {
+  font-size: 17px;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.checklist li {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.checklist li.ok {
+  color: var(--color-success);
+}
+
+.checklist li.bad {
+  color: var(--color-text-secondary);
+}
+
+.checklist-progress {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tips-list {
+  list-style: disc;
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.tips-list li {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.tips-footnote {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 .grader-card .form-group {
@@ -416,6 +549,18 @@
 }
 
 @media (max-width: 768px) {
+  .grader-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .grader-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diag-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .grader-card {
     padding: 24px;
   }

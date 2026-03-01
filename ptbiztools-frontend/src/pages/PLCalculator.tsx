@@ -781,57 +781,65 @@ export default function PLCalculator() {
   return (
     <div className={`pl-calculator-page ${theme}`}>
       {showConfetti && <ReactConfetti numberOfPieces={150} recycle={false} gravity={0.2} />}
-      
-      {/* Header */}
-      <motion.div 
-        className="pl-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="pl-header-content">
-          <div className="pl-header-icon">
-            <Calculator size={28} />
-          </div>
-          <div>
-            <h1>P&L Grader</h1>
-            <p>
-              Financial health analysis for cash-based PT practices
-              <span className="pl-version-pill">{isV2Enabled ? 'Benchmark v2' : 'Legacy model'}</span>
-              <span className="pl-version-pill">{programMode === 'mastermind' ? 'Mastermind Track' : 'Rainmaker Track'}</span>
-            </p>
-          </div>
-        </div>
-        <div className="pl-header-actions">
-          <button className="theme-toggle" onClick={() => setSoundEnabled(s => !s)} title="Toggle sound">
-            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </button>
-          <button className="theme-toggle" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button className="cmd-k-btn" onClick={toggleCommandPalette}>
-            ⌘K
-          </button>
-        </div>
-      </motion.div>
 
-      {/* Stepper */}
-      <div className="pl-stepper">
-        {steps.map((step, idx) => (
-          <div 
-            key={step.id} 
-            className={`stepper-item ${currentStep >= step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}
-            onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-          >
-            <div className="stepper-number">
-              {currentStep > step.id ? <CheckCircle2 size={16} /> : step.id}
+      <div className="pl-calculator-shell">
+        <div className="pl-calculator-shell-topbar" aria-hidden="true">
+          <span className="shell-dot shell-dot-red" />
+          <span className="shell-dot shell-dot-yellow" />
+          <span className="shell-dot shell-dot-green" />
+          <span className="shell-title">PT Biz Financial Console</span>
+        </div>
+
+        {/* Header */}
+        <motion.div
+          className="pl-header"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="pl-header-content">
+            <div className="pl-header-icon">
+              <Calculator size={28} />
             </div>
-            <span className="stepper-label">{step.title}</span>
-            {idx < steps.length - 1 && <div className="stepper-line" />}
+            <div>
+              <h1>P&L Grader</h1>
+              <p>
+                Financial health analysis for cash-based PT practices
+                <span className="pl-version-pill">{isV2Enabled ? 'Benchmark v2' : 'Legacy model'}</span>
+                <span className="pl-version-pill">{programMode === 'mastermind' ? 'Mastermind Track' : 'Rainmaker Track'}</span>
+              </p>
+            </div>
           </div>
-        ))}
-      </div>
+          <div className="pl-header-actions">
+            <button className="theme-toggle" onClick={() => setSoundEnabled(s => !s)} title="Toggle sound">
+              {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            </button>
+            <button className="theme-toggle" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button className="cmd-k-btn" onClick={toggleCommandPalette}>
+              ⌘K
+            </button>
+          </div>
+        </motion.div>
 
-      <AnimatePresence mode="wait">
+        {/* Stepper */}
+        <div className="pl-stepper">
+          {steps.map((step, idx) => (
+            <div
+              key={step.id}
+              className={`stepper-item ${currentStep >= step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}
+              onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+            >
+              <div className="stepper-number">
+                {currentStep > step.id ? <CheckCircle2 size={16} /> : step.id}
+              </div>
+              <span className="stepper-label">{step.title}</span>
+              {idx < steps.length - 1 && <div className="stepper-line" />}
+            </div>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
         {/* Step 1: Clinic DNA */}
         {currentStep === 1 && (
           <motion.div
@@ -1506,35 +1514,36 @@ export default function PLCalculator() {
             )}
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-      {/* Navigation */}
-      {currentStep < 3 && (
-        <motion.div 
-          className="pl-nav"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <button 
-            className="pl-nav-btn secondary"
-            onClick={handlePrev}
-            disabled={currentStep === 1}
+        {/* Navigation */}
+        {currentStep < 3 && (
+          <motion.div
+            className="pl-nav"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            <ArrowLeft size={18} /> Back
-          </button>
-          <button 
-            className="pl-nav-btn primary"
-            onClick={handleNext}
-            disabled={!canProceed() || isBatchSyncing}
-          >
-            {isBatchSyncing && currentStep === 2 && programMode === 'mastermind'
-              ? 'Syncing Timeline'
-              : currentStep === 2
-              ? (programMode === 'mastermind' ? 'Calculate Trajectory' : 'Calculate')
-              : 'Next'} <ArrowRight size={18} />
-          </button>
-        </motion.div>
-      )}
+            <button
+              className="pl-nav-btn secondary"
+              onClick={handlePrev}
+              disabled={currentStep === 1}
+            >
+              <ArrowLeft size={18} /> Back
+            </button>
+            <button
+              className="pl-nav-btn primary"
+              onClick={handleNext}
+              disabled={!canProceed() || isBatchSyncing}
+            >
+              {isBatchSyncing && currentStep === 2 && programMode === 'mastermind'
+                ? 'Syncing Timeline'
+                : currentStep === 2
+                ? (programMode === 'mastermind' ? 'Calculate Trajectory' : 'Calculate')
+                : 'Next'} <ArrowRight size={18} />
+            </button>
+          </motion.div>
+        )}
+      </div>
 
       {/* Export Modal */}
       <AnimatePresence>

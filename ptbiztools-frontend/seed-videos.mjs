@@ -10,9 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const REQUIRED_ASSETS = [
-  { key: 'intro-logo', filePath: path.join(__dirname, 'public', 'intro-logo.mp4') },
-  { key: 'intro-danny-name', filePath: path.join(__dirname, 'public', 'danny-intro.mp3') },
-  { key: 'intro-danny', filePath: path.join(__dirname, 'public', 'intro-danny.mp4') },
+  { key: 'intro-combined', filePath: path.join(__dirname, 'public', 'intro-video.mp4') },
 ];
 
 function mimeTypeForFile(filePath) {
@@ -115,17 +113,17 @@ async function main() {
   console.log('Logging in as admin...');
   const cookie = await loginAsAdmin(adminUserId);
 
-  console.log('Uploading required intro assets...');
+  console.log('Uploading required intro asset...');
   for (const asset of REQUIRED_ASSETS) {
     await uploadAsset(asset, cookie);
   }
 
-  console.log('Verifying backend media endpoints...');
+  console.log('Verifying backend media endpoint...');
   for (const asset of REQUIRED_ASSETS) {
     await verifyAsset(asset.key);
   }
 
-  console.log('Video seed complete: all required assets are live.');
+  console.log('Video seed complete: combined intro asset is live.');
 }
 
 main().catch((error) => {
