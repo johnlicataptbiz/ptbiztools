@@ -221,6 +221,8 @@ function buildCashFlowSummary(netMargin: number, recurringRatio: number, score: 
 }
 
 export function buildPLResult(input: PLInput): PLResult {
+  // Product guardrail:
+  // the benchmark profile is static in code. We do not load scoring logic from knowledge docs.
   const profile = DEFAULT_BENCHMARK_PROFILE
   const warnings: string[] = []
 

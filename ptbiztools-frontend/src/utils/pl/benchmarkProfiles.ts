@@ -1,5 +1,7 @@
 import type { GradeBand, MetricGroup } from '../plTypes'
 
+// Scoring thresholds are intentionally encoded in code, not parsed from knowledge docs at runtime.
+// knowledgeRefSlug / knowledgeRefSection are reference links for user context only.
 export type MetricId =
   | 'arpv'
   | 'recurring'

@@ -61,6 +61,38 @@ const KNOWLEDGE_DOC_DEFINITIONS: KnowledgeDocDefinition[] = [
     version: '2026.02',
     file: 'cash-based-pt-financial-pl-research-2026-02.md',
   },
+  {
+    slug: 'cash-based-pt-financial-pl-research-markdown-source-2026-02',
+    title: 'Cash-Based PT Financial P&L Research (Markdown Source, Feb 2026)',
+    category: 'financial',
+    source: 'PT Biz Research',
+    version: '2026.02-md',
+    file: 'cash-based-pt-financial-pl-research-markdown-source-2026-02.md',
+  },
+  {
+    slug: 'clinic-owner-language-playbook',
+    title: 'Clinic Owner Language Playbook',
+    category: 'operations',
+    source: 'PT Biz Internal',
+    version: '2026.03',
+    file: 'clinic-owner-language-playbook.md',
+  },
+  {
+    slug: 'pt-biz-sales-framework-and-objection-playbook-2026-02',
+    title: 'PT Biz Sales Framework and Objection Playbook (Feb 2026)',
+    category: 'sales',
+    source: 'PT Biz Internal',
+    version: '2026.02',
+    file: 'pt-biz-sales-framework-and-objection-playbook-2026-02.md',
+  },
+  {
+    slug: 'pt-biz-core-client-definition-2026-02',
+    title: 'PT Biz Core Client Definition (Feb 2026)',
+    category: 'strategy',
+    source: 'PT Biz Internal',
+    version: '2026.02',
+    file: 'pt-biz-core-client-definition-2026-02.md',
+  },
 ];
 
 async function readDoc(file: string): Promise<string> {

@@ -31,6 +31,17 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
 knowledgeDocRouter.get('/', async (req, res) => {
   try {
+    // Intentional product boundary:
+    // Knowledge docs are retrieved by list/detail (and optional slug filter) only.
+    // Live RAG/semantic search is explicitly out of scope for this API.
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (q.length > 0) {
+      res.status(400).json({
+        error: 'Live semantic knowledge search is disabled. Use slug or list retrieval.',
+      });
+      return;
+    }
+
     const slug = typeof req.query.slug === 'string' ? req.query.slug.trim() : '';
 
     const docs = await prisma.knowledgeDoc.findMany({
