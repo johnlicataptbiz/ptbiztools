@@ -461,3 +461,22 @@ analyticsRouter.get('/pl-audits', requireAuth, async (req: SessionRequest, res: 
     res.status(500).json({ error: 'Failed to fetch P&L audits' });
   }
 });
+
+// TEMPORARY: one-time cleanup of dev/testing login events
+// DELETE after use
+analyticsRouter.delete('/cleanup-dev-logins', requireAdmin, async (req: SessionRequest, res: Response) => {
+  const DEV_USER_IDS = [
+    '6c29ecc2-83aa-4278-8df7-9f79117f0d93', // Jack Licata
+    'a7aec13a-dbdb-4097-9c52-1bf67a686582', // John Licata
+  ];
+  try {
+    const result = await prisma.loginEvent.deleteMany({
+      where: { userId: { in: DEV_USER_IDS } },
+    });
+    const remaining = await prisma.loginEvent.count();
+    res.json({ deleted: result.count, remaining });
+  } catch (error) {
+    console.error('Error cleaning dev logins:', error);
+    res.status(500).json({ error: 'Cleanup failed' });
+  }
+});
