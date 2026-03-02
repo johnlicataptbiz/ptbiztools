@@ -245,9 +245,8 @@ export default function Login({ onAuthenticated }: LoginProps) {
           <div className="login-logo-hero">
             <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="BizCoach Suite" />
           </div>
-          <span className="login-header-kicker">Private Platform Access</span>
-          <h1>PT Biz Team Login</h1>
-          <p>Select your profile, then sign in with your password.</p>
+          <h1>Sign in</h1>
+          <p>Select your profile and enter your password.</p>
         </header>
 
         {!selectedUser && (

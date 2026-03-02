@@ -46,10 +46,10 @@
   background:
     linear-gradient(145deg, rgba(7, 11, 23, 0.96) 0%, rgba(8, 9, 19, 0.93) 42%, rgba(12, 8, 19, 0.92) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 22px 64px rgba(0, 0, 0, 0.56),
-    0 0 0 1px rgba(22, 30, 54, 0.52);
-  padding: clamp(18px, 2.2vw, 32px);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(22, 30, 54, 0.42);
+  padding: clamp(16px, 1.8vw, 26px);
   overflow: hidden;
 }
 
@@ -74,53 +74,37 @@
 }
 
 .login-header {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .login-logo-hero {
-  width: min(760px, 94vw);
+  width: min(560px, 90vw);
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .login-logo-image {
   display: block;
-  width: min(100%, 660px);
-  height: clamp(66px, 12vw, 120px);
+  width: min(100%, 460px);
+  height: clamp(48px, 8vw, 82px);
   object-fit: contain;
   image-rendering: auto;
   filter:
-    saturate(1.04)
-    contrast(1.05)
-    drop-shadow(0 18px 30px rgba(6, 9, 20, 0.66));
-}
-
-.login-header-kicker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(117, 149, 196, 0.54);
-  background: linear-gradient(180deg, rgba(43, 73, 122, 0.36), rgba(24, 39, 64, 0.24));
-  color: #d8e8ff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+    saturate(1.03)
+    contrast(1.03)
+    drop-shadow(0 10px 18px rgba(6, 9, 20, 0.5));
 }
 
 .login-header h1 {
-  margin: 2px 0 0;
-  font-size: clamp(34px, 4.1vw, 54px);
+  margin: 0;
+  font-size: clamp(30px, 3.2vw, 44px);
   letter-spacing: -0.03em;
   line-height: 1.05;
   color: #f6f9ff;
@@ -129,13 +113,13 @@
 .login-header p {
   margin: 0;
   width: 100%;
-  max-width: min(560px, 100%);
+  max-width: min(460px, 100%);
   display: block;
   white-space: normal;
   overflow-wrap: anywhere;
   text-wrap: balance;
   color: rgba(198, 207, 225, 0.84);
-  font-size: clamp(16px, 1.5vw, 20px);
+  font-size: clamp(15px, 1.2vw, 18px);
   line-height: 1.42;
 }
 
@@ -146,7 +130,7 @@
 
 .member-picker h2 {
   margin: 0;
-  font-size: clamp(26px, 2vw, 34px);
+  font-size: clamp(22px, 1.6vw, 30px);
   letter-spacing: -0.02em;
 }
 
@@ -168,7 +152,7 @@
 .member-dropdown-list {
   display: grid;
   gap: 10px;
-  max-height: 50vh;
+  max-height: 54vh;
   overflow: auto;
   padding: 10px;
   border-radius: 18px;
@@ -520,7 +504,7 @@
   }
 
   .login-logo-image {
-    width: min(100%, 560px);
+    width: min(100%, 420px);
   }
 
   .member-row-meta strong {
@@ -548,7 +532,7 @@
   }
 
   .login-header h1 {
-    font-size: 34px;
+    font-size: 30px;
   }
 
   .login-header p {
