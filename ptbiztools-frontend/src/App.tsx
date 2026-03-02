@@ -28,6 +28,10 @@ function introSeenKey(userId: string) {
   return `ptbiz_intro_seen:${userId}`
 }
 
+function forceIntroKey(userId: string) {
+  return `ptbiz_force_intro_once:${userId}`
+}
+
 function App() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,8 +60,10 @@ function App() {
 
     let stepTimer: ReturnType<typeof setInterval> | undefined
     let completeTimer: ReturnType<typeof setTimeout> | undefined
+    const hasSeenIntro = localStorage.getItem(introSeenKey(user.id))
+    const forceIntro = localStorage.getItem(forceIntroKey(user.id)) === 'true'
 
-    if (isAdminUser(user)) {
+    if (isAdminUser(user) && !forceIntro) {
       setShowOnboardingPrep(false)
       setShowIntro(false)
       setRevealed(defaultRevealed)
@@ -65,11 +71,18 @@ function App() {
       return
     }
 
-    const hasSeenIntro = localStorage.getItem(introSeenKey(user.id))
-    if (hasSeenIntro) {
+    if (hasSeenIntro && !forceIntro) {
       setShowOnboardingPrep(false)
       setShowIntro(false)
       setRevealed(defaultRevealed)
+      setIntroReady(true)
+      return
+    }
+
+    if (isAdminUser(user) && forceIntro) {
+      setShowOnboardingPrep(false)
+      setShowIntro(true)
+      setRevealed(lockedRevealed)
       setIntroReady(true)
       return
     }
@@ -120,6 +133,7 @@ function App() {
   const handleIntroComplete = () => {
     if (user) {
       localStorage.setItem(introSeenKey(user.id), 'true')
+      localStorage.removeItem(forceIntroKey(user.id))
     }
     setRevealed(defaultRevealed)
     setShowIntro(false)
@@ -175,8 +189,8 @@ function App() {
   }
 
   return (
-    <IntroContext.Provider value={{ revealed }}>
-      {showIntro && !isAdmin && (
+      <IntroContext.Provider value={{ revealed }}>
+      {showIntro && (
         <IntroVideo
           onComplete={handleIntroComplete}
           onRevealChange={handleRevealChange}

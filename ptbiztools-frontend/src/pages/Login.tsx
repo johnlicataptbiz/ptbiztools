@@ -20,6 +20,14 @@ interface LoginProps {
 const rememberedUserKey = 'ptbiz_selected_user_id'
 const JACK_NAME = 'jack licata'
 
+function introSeenKey(userId: string) {
+  return `ptbiz_intro_seen:${userId}`
+}
+
+function forceIntroKey(userId: string) {
+  return `ptbiz_force_intro_once:${userId}`
+}
+
 function normalizeText(value: string | null | undefined) {
   return (value || '').trim().toLowerCase()
 }
@@ -193,6 +201,8 @@ export default function Login({ onAuthenticated }: LoginProps) {
     setPassword('')
     setConfirmPassword('')
     setIdentityConfirmed(false)
+    localStorage.removeItem(introSeenKey(selectedUser.id))
+    localStorage.setItem(forceIntroKey(selectedUser.id), 'true')
     setMessage('Password saved. Sign in below to continue.')
     setSubmitting(false)
   }
