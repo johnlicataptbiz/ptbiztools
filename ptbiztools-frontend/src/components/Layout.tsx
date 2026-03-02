@@ -53,6 +53,9 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
     ]
   }, [isAdmin, isAdvisor])
 
+  // Keep routes available but hide the last two low-priority sidebar links.
+  const featuredNavItems = useMemo(() => navItems.slice(0, Math.max(navItems.length - 2, 0)), [navItems])
+
   const initials = user.name
     .split(' ')
     .map((part) => part[0])
@@ -82,7 +85,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
+          {featuredNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

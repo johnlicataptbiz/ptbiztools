@@ -4,7 +4,6 @@ import Layout from './components/Layout'
 import IntroVideo, { IntroContext, type RevealedTools } from './components/IntroVideo'
 import Home from './pages/Home'
 import DiscoveryCallGrader from './pages/DiscoveryCallGrader'
-import PLCalculator from './pages/PLCalculator'
 import DannyFinancialAudit from './pages/danny/DannyFinancialAudit'
 import DannyCloserCallGrader from './pages/danny/DannyCloserCallGrader'
 import DannyCompensationCalculator from './pages/danny/DannyCompensationCalculator'
@@ -167,7 +166,7 @@ function App() {
             <Route index element={<Home user={user} isAdmin={isAdmin} />} />
             <Route path="discovery-call-grader" element={<DiscoveryCallGrader />} />
             <Route path="pl-calculator" element={<DannyFinancialAudit />} />
-            <Route path="pl-calculator-advanced" element={<PLCalculator />} />
+            <Route path="pl-calculator-advanced" element={<Navigate to="/pl-calculator" replace />} />
             <Route path="compensation-calculator" element={<DannyCompensationCalculator />} />
             <Route
               path="sales-discovery-grader"
