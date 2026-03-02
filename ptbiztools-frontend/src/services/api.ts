@@ -730,35 +730,6 @@ export async function extractTranscriptFromFile(file: File): Promise<{
   }
 }
 
-export async function gradeDannySalesCall(input: {
-  transcript: string;
-  closer: string;
-  outcome: string;
-  program: string;
-}): Promise<{ result?: Record<string, unknown>; model?: string; error?: string }> {
-  try {
-    const response = await fetch(`${API_BASE}/danny-tools/sales-grade`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(input),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      return { error: data.error || 'Failed to grade sales call' };
-    }
-
-    return {
-      result: data.result as Record<string, unknown>,
-      model: data.model as string,
-    };
-  } catch (error) {
-    console.error('Failed to grade Danny sales call:', error);
-    return { error: 'Network error' };
-  }
-}
-
 export async function gradeDannySalesCallV2(input: {
   transcript: string;
   closer: string;

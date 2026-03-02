@@ -28,79 +28,6 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 const ANTHROPIC_VERSION = process.env.ANTHROPIC_VERSION || '2023-06-01'
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514'
 
-const SALES_SYSTEM_PROMPT = `You are a sales call analyst for PT Biz, a physical therapy business coaching company. You grade sales call transcripts against a specific 7-phase framework.
-
-SCORING FRAMEWORK (each phase scored 0-100):
-
-1. CONNECTION & AGENDA (Weight: 10%)
-- Did the closer build genuine rapport in 3-5 minutes?
-- Was the agenda clearly set?
-- Did the prospect feel comfortable and heard from the start?
-
-2. DISCOVERY (Weight: 25%) - THIS IS THE MOST IMPORTANT PHASE
-- Did they get the FACTS? (revenue, sessions, evals, overhead, team size, years in business)
-- Did they get the FEELINGS? When the prospect shared stress, fear, overwhelm - did the closer go DEEPER or move on? Saying "sure" or "yeah" and moving to the next question = low score. Asking "what does that look like day to day?" or "how is that affecting things at home?" = high score.
-- Did they explore the FUTURE? What does the prospect want? Why does it matter to them personally?
-- A closer who gets all the numbers but misses the emotion scores no higher than 60 here.
-
-3. GAP CREATION (Weight: 20%)
-- Did they help the prospect see the gap between where they are and where they want to be?
-- Did they quantify the cost of staying stuck? (Math exercise: "If you stay at $15K/mo for another year, that's $180K you're leaving on the table")
-- Did they identify skill gaps the prospect can't solve alone?
-
-4. TEMPERATURE CHECK (Weight: 10%)
-- Did they explicitly or clearly gauge the prospect's readiness/interest level?
-- If the prospect was cold (below 5/10), did they adjust strategy or wrap up?
-- If no temperature check happened, this scores low automatically.
-
-5. SOLUTION PRESENTATION (Weight: 15%)
-- Was the presentation calibrated to the prospect's specific situation, or generic?
-- Did they deploy a personal ownership story or relevant client transformation story?
-- Did they focus on outcomes and transformation, or just features and platform demos?
-- A walkthrough of the platform/course without tying it to the prospect's specific pain = low score.
-
-6. INVESTMENT & CLOSE (Weight: 15%)
-- Was the price presented confidently?
-- How was objection handling? (Acknowledge -> Isolate -> Resolve -> Re-ask)
-- DISCOUNT DISCIPLINE: Did they offer unprompted discounts? Did they cave at first pushback? Offering a discount to someone who was already buying = major deduction.
-- Did they actually ASK for the sale clearly?
-
-7. FOLLOW-UP / WRAP (Weight: 5%)
-- If the prospect said yes: clean onboarding, next steps
-- If the prospect said no: did they schedule a specific follow-up or just let them drift?
-- CRITICAL: Did they give away free consulting AFTER the prospect declined? (e.g., hiring advice, marketing tips, Amazon links for equipment). This is a major negative.
-
-CRITICAL BEHAVIORS (Pass/Fail):
-- No Free Consulting: Did they avoid giving actionable business advice before or after the prospect committed? Diagnosing the problem is fine. Handing over the solution is not.
-- Discount Discipline: No unprompted concessions. Structured incentives (workshop waiver, etc.) are fine if presented early as a benefit, not reactively.
-- Emotional Depth: Did they go below the surface when prospects shared feelings?
-- Time Management: Call under 60 minutes. Did not spend 20+ minutes after a clear "no."
-- Story Deployment: Used a personal or client transformation story effectively.
-
-RESPONSE FORMAT - You MUST respond in valid JSON only, no other text:
-{
-  "phases": {
-    "connection": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "discovery": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "gap_creation": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "temp_check": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "solution": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "close": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "followup": { "score": 0-100, "summary": "2-3 sentence assessment" }
-  },
-  "critical_behaviors": {
-    "free_consulting": { "pass": true/false, "note": "brief explanation" },
-    "discount_discipline": { "pass": true/false, "note": "brief explanation" },
-    "emotional_depth": { "pass": true/false, "note": "brief explanation" },
-    "time_management": { "pass": true/false, "note": "brief explanation" },
-    "personal_story": { "pass": true/false, "note": "brief explanation" }
-  },
-  "overall_score": 0-100,
-  "top_strength": "One sentence - the single best thing they did on this call",
-  "top_improvement": "One sentence - the single highest-leverage thing to fix",
-  "prospect_summary": "Brief: prospect name, business stage, revenue, program discussed"
-}`
-
 const SALES_V2_SYSTEM_PROMPT = `You are an evidence extractor for PT Biz sales calls. You do NOT compute weighted or overall scores.
 
 Core rules:
@@ -352,35 +279,6 @@ dannyToolsRouter.post('/sales-grade-v2', requireAuth, async (req: SessionRequest
       transcriptHash: privacyArtifacts.transcriptHash,
     },
   })
-})
-
-dannyToolsRouter.post('/sales-grade', requireAuth, async (req: SessionRequest, res: Response) => {
-  try {
-    console.warn('[DEPRECATED] /api/danny-tools/sales-grade called. Use /api/danny-tools/sales-grade-v2')
-
-    const transcript = typeof req.body?.transcript === 'string' ? req.body.transcript.trim() : ''
-    const closer = typeof req.body?.closer === 'string' ? req.body.closer.trim() : 'Unknown'
-    const outcome = typeof req.body?.outcome === 'string' ? req.body.outcome.trim() : 'Unknown'
-    const program = typeof req.body?.program === 'string' ? req.body.program.trim() : 'Unknown'
-
-    if (!transcript) {
-      res.status(400).json({ error: 'Transcript is required' })
-      return
-    }
-
-    const promptText = `Analyze this sales call transcript. The closer is ${closer}. The outcome was: ${outcome}. The program discussed was: ${program}.`
-    const content = `${promptText}\n\nTRANSCRIPT:\n${transcript}`
-    const result = await callAnthropic({
-      maxTokens: 2000,
-      system: SALES_SYSTEM_PROMPT,
-      content,
-    })
-
-    res.json({ result, model: ANTHROPIC_MODEL })
-  } catch (error) {
-    console.error('Danny sales grade failed:', error)
-    res.status(500).json({ error: (error as Error).message || 'Failed to grade sales call' })
-  }
 })
 
 dannyToolsRouter.post('/pl-extract', requireAuth, upload.single('file'), async (req: SessionRequest, res: Response) => {
