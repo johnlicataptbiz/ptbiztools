@@ -6,8 +6,8 @@
 .sales-discovery-card {
   width: min(860px, 100%);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
   box-shadow: var(--shadow-card);
   padding: 24px;
   display: grid;
@@ -22,8 +22,8 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(135deg, #1a67d6, #1f8fff);
-  box-shadow: 0 10px 28px rgba(11, 48, 103, 0.45);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  box-shadow: var(--shadow-button);
 }
 
 .sales-discovery-card h1 {
@@ -42,12 +42,12 @@
 }
 
 .sales-discovery-bullets > div {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 10px;
   display: grid;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-bg-secondary);
 }
 
 .sales-discovery-bullets strong {
@@ -65,9 +65,9 @@
 .sales-discovery-note {
   margin-top: 4px;
   border-radius: 10px;
-  border: 1px solid rgba(31, 143, 255, 0.35);
-  background: rgba(31, 143, 255, 0.1);
-  color: #cfe6ff;
+  border: 1px solid rgba(91, 127, 166, 0.3);
+  background: rgba(91, 127, 166, 0.08);
+  color: var(--color-accent-dark);
   padding: 10px 12px;
   display: inline-flex;
   align-items: center;

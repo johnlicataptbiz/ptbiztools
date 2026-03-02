@@ -6,9 +6,9 @@
   justify-content: center;
   padding: clamp(16px, 2.4vw, 30px);
   background:
-    radial-gradient(70% 80% at 8% -8%, rgba(36, 118, 231, 0.24), transparent 70%),
-    radial-gradient(62% 72% at 94% 110%, rgba(208, 40, 85, 0.2), transparent 75%),
-    linear-gradient(145deg, #04050b 0%, #080b17 45%, #0c0d1b 100%);
+    radial-gradient(70% 80% at 8% -8%, rgba(91, 127, 166, 0.1), transparent 70%),
+    radial-gradient(62% 72% at 94% 110%, rgba(168, 140, 120, 0.08), transparent 75%),
+    linear-gradient(145deg, #f0ede8 0%, #eeebe5 45%, #e8e4de 100%);
   overflow: hidden;
   isolation: isolate;
 }
@@ -19,10 +19,10 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(96, 125, 167, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(96, 125, 167, 0.12) 1px, transparent 1px);
+    linear-gradient(rgba(91, 127, 166, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 127, 166, 0.07) 1px, transparent 1px);
   background-size: 56px 56px;
-  opacity: 0.16;
+  opacity: 0.5;
 }
 
 .login-shell::after {
@@ -31,10 +31,10 @@
   inset: -12%;
   pointer-events: none;
   background:
-    radial-gradient(36% 38% at 10% 92%, rgba(52, 132, 252, 0.22), transparent 68%),
-    radial-gradient(34% 40% at 90% 8%, rgba(154, 53, 110, 0.18), transparent 66%);
+    radial-gradient(36% 38% at 10% 92%, rgba(91, 127, 166, 0.08), transparent 68%),
+    radial-gradient(34% 40% at 90% 8%, rgba(168, 140, 120, 0.06), transparent 66%);
   filter: blur(32px);
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .login-card {
@@ -42,13 +42,12 @@
   z-index: 1;
   width: min(1080px, 100%);
   border-radius: 28px;
-  border: 1px solid rgba(110, 143, 196, 0.34);
-  background:
-    linear-gradient(145deg, rgba(7, 11, 23, 0.96) 0%, rgba(8, 9, 19, 0.93) 42%, rgba(12, 8, 19, 0.92) 100%);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 16px 48px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(22, 30, 54, 0.42);
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 16px 48px rgba(0, 0, 0, 0.08),
+    0 0 0 1px var(--color-border);
   padding: clamp(16px, 1.8vw, 26px);
   overflow: hidden;
 }
@@ -60,8 +59,8 @@
   right: 4%;
   top: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(198, 221, 255, 0.76), transparent);
-  opacity: 0.78;
+  background: linear-gradient(90deg, transparent, rgba(91, 127, 166, 0.4), transparent);
+  opacity: 0.8;
 }
 
 .login-card::after {
@@ -69,7 +68,7 @@
   position: absolute;
   inset: 10px;
   border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   pointer-events: none;
 }
 
@@ -107,7 +106,7 @@
   font-size: clamp(30px, 3.2vw, 44px);
   letter-spacing: -0.03em;
   line-height: 1.05;
-  color: #f6f9ff;
+  color: var(--color-text);
 }
 
 .login-header p {
@@ -118,7 +117,7 @@
   white-space: normal;
   overflow-wrap: anywhere;
   text-wrap: balance;
-  color: rgba(198, 207, 225, 0.84);
+  color: var(--color-text-secondary);
   font-size: clamp(15px, 1.2vw, 18px);
   line-height: 1.42;
 }
@@ -146,7 +145,7 @@
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 192, 214, 0.72);
+  color: var(--color-text-muted);
 }
 
 .member-dropdown-list {
@@ -156,9 +155,8 @@
   overflow: auto;
   padding: 10px;
   border-radius: 18px;
-  border: 1px solid rgba(120, 145, 194, 0.26);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
 }
 
 .member-dropdown-list::-webkit-scrollbar {
@@ -166,20 +164,20 @@
 }
 
 .member-dropdown-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-border);
   border-radius: 999px;
 }
 
 .member-dropdown-list::-webkit-scrollbar-thumb {
-  background: rgba(119, 152, 206, 0.56);
+  background: var(--color-border-light);
   border-radius: 999px;
 }
 
 .member-row-card {
-  border: 1px solid rgba(124, 147, 191, 0.26);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: linear-gradient(130deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
   padding: 11px;
   text-align: left;
   transition: var(--transition);
@@ -190,10 +188,10 @@
 }
 
 .member-row-card:hover {
-  border-color: rgba(138, 175, 236, 0.62);
+  border-color: rgba(91, 127, 166, 0.4);
   transform: translateY(-1px);
-  background: linear-gradient(140deg, rgba(19, 42, 79, 0.45), rgba(14, 20, 37, 0.55));
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  background: var(--color-card);
+  box-shadow: var(--shadow-hover);
 }
 
 .team-avatar-shell {
@@ -214,8 +212,8 @@
   object-fit: cover;
   display: block;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .jack-headshot-tight {
@@ -233,7 +231,7 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
-  background: linear-gradient(135deg, rgba(32, 82, 153, 0.98), rgba(220, 62, 126, 0.9));
+  background: linear-gradient(135deg, var(--color-dark), var(--color-medium));
 }
 
 .team-avatar-badge {
@@ -269,7 +267,7 @@
 }
 
 .member-row-meta strong {
-  color: #eef4ff;
+  color: var(--color-text);
   font-size: 24px;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -279,7 +277,7 @@
 }
 
 .member-row-meta span {
-  color: #c8d2e6;
+  color: var(--color-text-secondary);
   font-size: 20px;
   line-height: 1.2;
   white-space: nowrap;
@@ -288,7 +286,7 @@
 }
 
 .member-row-meta em {
-  color: rgba(173, 188, 214, 0.76);
+  color: var(--color-text-muted);
   font-style: normal;
   font-size: 12px;
   text-transform: uppercase;
@@ -297,9 +295,9 @@
 
 .member-row-action {
   border-radius: 999px;
-  border: 1px solid rgba(142, 173, 224, 0.42);
-  background: linear-gradient(145deg, rgba(34, 86, 161, 0.58), rgba(26, 66, 129, 0.4));
-  color: #e7f1ff;
+  border: 1px solid rgba(91, 127, 166, 0.35);
+  background: rgba(91, 127, 166, 0.1);
+  color: var(--color-accent-dark);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -315,9 +313,9 @@
 .change-user-btn {
   width: fit-content;
   border-radius: 999px;
-  border: 1px solid rgba(132, 157, 200, 0.34);
-  background: linear-gradient(160deg, rgba(22, 33, 57, 0.6), rgba(16, 23, 40, 0.52));
-  color: #e6efff;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
   padding: 8px 12px;
   display: inline-flex;
   align-items: center;
@@ -327,18 +325,20 @@
 }
 
 .change-user-btn:hover {
-  border-color: rgba(162, 189, 235, 0.58);
-  background: linear-gradient(160deg, rgba(29, 49, 83, 0.66), rgba(17, 31, 58, 0.62));
+  border-color: var(--color-accent);
+  background: var(--color-card);
+  color: var(--color-accent);
 }
 
 .selected-user-card {
   border-radius: 16px;
-  border: 1px solid rgba(127, 153, 199, 0.32);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
   padding: 13px;
   display: flex;
   gap: 12px;
   align-items: center;
+  box-shadow: var(--shadow-card);
 }
 
 .selected-user-photo-shell {
@@ -352,7 +352,7 @@
   height: 66px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.32);
+  border: 2px solid var(--color-border);
 }
 
 .selected-user-photo-fallback {
@@ -365,7 +365,7 @@
   font-size: 20px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, rgba(32, 82, 153, 0.98), rgba(220, 62, 126, 0.9));
+  background: linear-gradient(135deg, var(--color-dark), var(--color-medium));
 }
 
 .selected-user-photo-shell .team-avatar-badge {
@@ -376,11 +376,13 @@
 .selected-user-card h2 {
   margin: 0;
   font-size: 19px;
+  color: var(--color-text);
 }
 
 .selected-user-card p {
   margin: 2px 0;
   font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
 .selected-user-card span {
@@ -394,8 +396,8 @@
   display: grid;
   gap: 12px;
   border-radius: 16px;
-  border: 1px solid rgba(124, 148, 194, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
   padding: 14px;
 }
 
@@ -430,8 +432,8 @@
 .auth-form .corex-input {
   min-height: 44px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(8, 11, 21, 0.9);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
   color: var(--color-text);
   padding: 10px 12px;
 }
@@ -458,11 +460,11 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #2b7bff, #1f4ec2 52%, #183fa8);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
   color: #fff;
   font-size: 14px;
   font-weight: 700;
-  box-shadow: 0 12px 24px rgba(16, 50, 118, 0.42);
+  box-shadow: var(--shadow-button);
 }
 
 .login-primary-btn.corex-button {
@@ -471,7 +473,7 @@
 
 .login-primary-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px rgba(12, 42, 103, 0.52);
+  box-shadow: var(--shadow-button-hover);
 }
 
 .login-primary-btn:disabled {
@@ -483,9 +485,9 @@
 .login-message {
   margin-top: 14px;
   border-radius: 11px;
-  border: 1px solid rgba(124, 150, 196, 0.28);
-  background: linear-gradient(150deg, rgba(38, 71, 127, 0.36), rgba(20, 32, 57, 0.3));
-  color: #e6eeff;
+  border: 1px solid rgba(91, 127, 166, 0.3);
+  background: rgba(91, 127, 166, 0.08);
+  color: var(--color-accent-dark);
   font-size: 13px;
   padding: 10px 12px;
   display: inline-flex;

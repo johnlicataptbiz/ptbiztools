@@ -1,36 +1,36 @@
 /* CoreX-style Components (custom implementation) */
 
 :root {
-  --color-dark: #0d0d12;
-  --color-accent: #e94560;
-  --color-accent-light: #ff6b84;
-  --color-accent-dark: #c73a52;
-  --color-medium: #1a1a2e;
-  --color-bg: #0a0a0f;
-  --color-bg-secondary: #12121a;
-  --color-card: #16161f;
-  --color-card-hover: #1c1c28;
-  --color-success: #22c55e;
-  --color-success-bg: rgba(34, 197, 94, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-bg: rgba(245, 158, 11, 0.1);
-  --color-error: #ef4444;
-  --color-error-bg: rgba(239, 68, 68, 0.1);
-  --color-text: #f4f4f5;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
-  --color-border: #27272a;
-  --color-border-light: #3f3f46;
+  --color-dark: #3c4a5a;
+  --color-accent: #5b7fa6;
+  --color-accent-light: #7a9bbf;
+  --color-accent-dark: #4a6b8a;
+  --color-medium: #4d5d70;
+  --color-bg: #f7f5f2;
+  --color-bg-secondary: #eeebe5;
+  --color-card: #ffffff;
+  --color-card-hover: #faf8f5;
+  --color-success: #16a34a;
+  --color-success-bg: rgba(22, 163, 74, 0.1);
+  --color-warning: #d97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.1);
+  --color-error: #dc2626;
+  --color-error-bg: rgba(220, 38, 38, 0.1);
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #a8a29e;
+  --color-border: #e2dfd9;
+  --color-border-light: #ccc9c2;
   --color-white: #ffffff;
   
   --font-heading: 'Sora', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   
-  --shadow-card: 0 0 0 1px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-hover: 0 0 0 1px rgba(233,69,96,0.2), 0 16px 48px rgba(0,0,0,0.5);
-  --shadow-glow: 0 0 40px rgba(233, 69, 96, 0.15);
-  --shadow-button: 0 4px 16px rgba(233, 69, 96, 0.3);
-  --shadow-button-hover: 0 8px 24px rgba(233, 69, 96, 0.45);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-hover: 0 0 0 1px rgba(91,127,166,0.2), 0 8px 24px rgba(0,0,0,0.1);
+  --shadow-glow: 0 0 40px rgba(91, 127, 166, 0.12);
+  --shadow-button: 0 2px 8px rgba(91, 127, 166, 0.28);
+  --shadow-button-hover: 0 4px 16px rgba(91, 127, 166, 0.38);
   --radius-lg: 16px;
   --radius-md: 10px;
   --radius-sm: 6px;
@@ -59,8 +59,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(233, 69, 96, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 52, 96, 0.1) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(91, 127, 166, 0.04) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
@@ -100,7 +99,7 @@ a {
 }
 
 a:hover {
-  color: var(--color-dark);
+  color: var(--color-accent-dark);
 }
 
 button {
@@ -124,7 +123,7 @@ input, textarea {
   padding: 14px 18px;
   transition: var(--transition);
   width: 100%;
-  background: var(--color-bg-secondary);
+  background: var(--color-card);
   color: var(--color-text);
 }
 
@@ -135,7 +134,7 @@ input::placeholder, textarea::placeholder {
 input:focus, textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15), 0 0 0 1px var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(91, 127, 166, 0.15), 0 0 0 1px var(--color-accent);
 }
 
 textarea {
@@ -252,12 +251,12 @@ textarea {
   box-shadow: var(--shadow-card);
   padding: 28px;
   transition: var(--transition);
-  border: 1px solid rgba(255,255,255,0.03);
+  border: 1px solid var(--color-border);
 }
 
 .card:hover {
   box-shadow: var(--shadow-hover);
-  border-color: rgba(233, 69, 96, 0.1);
+  border-color: rgba(91, 127, 166, 0.25);
 }
 
 .card-flat {
@@ -266,7 +265,7 @@ textarea {
 
 .card-flat:hover {
   box-shadow: none;
-  border-color: rgba(255,255,255,0.06);
+  border-color: var(--color-border-light);
 }
 
 /* Floating Label Input */
@@ -288,7 +287,7 @@ textarea {
   font-size: 15px;
   pointer-events: none;
   transition: var(--transition-fast);
-  background: var(--color-bg-secondary);
+  background: var(--color-card);
   padding: 0 4px;
 }
 
@@ -325,9 +324,9 @@ textarea {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--color-card) 25%,
-    var(--color-card-hover) 50%,
-    var(--color-card) 75%
+    var(--color-bg-secondary) 25%,
+    var(--color-border) 50%,
+    var(--color-bg-secondary) 75%
   );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
@@ -455,18 +454,18 @@ label {
 
 /* CoreX Theme Overrides for PT Biz Brand */
 [data-corex-theme="dark"] {
-  --corex-color-1: #e94560;
-  --corex-color-2: #0f3460;
-  --corex-color-3: #1a1a2e;
-  --corex-color-4: #0d0d12;
-  --corex-color-5: #f4f4f5;
-  --corex-color-6: #a1a1aa;
-  --corex-color-7: #27272a;
-  --corex-color-8: #22c55e;
-  --corex-color-9: #f59e0b;
-  --corex-color-10: #ef4444;
-  --corex-color-fg: #f4f4f5;
-  --corex-color-bg: #0a0a0f;
+  --corex-color-1: #5b7fa6;
+  --corex-color-2: #3c4a5a;
+  --corex-color-3: #eeebe5;
+  --corex-color-4: #f7f5f2;
+  --corex-color-5: #1c1917;
+  --corex-color-6: #57534e;
+  --corex-color-7: #e2dfd9;
+  --corex-color-8: #16a34a;
+  --corex-color-9: #d97706;
+  --corex-color-10: #dc2626;
+  --corex-color-fg: #1c1917;
+  --corex-color-bg: #f7f5f2;
 }
 
 /* CoreX Dialog Styles */
@@ -483,7 +482,7 @@ label {
 .corex-dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(28, 25, 23, 0.5);
   backdrop-filter: blur(4px);
 }
 
@@ -500,7 +499,7 @@ label {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-border);
   width: 100%;
   max-height: calc(100vh - 64px);
   overflow-y: auto;
@@ -558,7 +557,7 @@ label {
 }
 
 .corex-accordion-item {
-  background: var(--color-bg-secondary);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -585,7 +584,7 @@ label {
 }
 
 .corex-accordion-trigger:hover {
-  background: var(--color-card);
+  background: var(--color-bg-secondary);
 }
 
 .corex-accordion-chevron {
@@ -637,7 +636,7 @@ label {
 }
 
 .corex-button-secondary:hover:not(:disabled) {
-  background: var(--color-card-hover);
+  background: var(--color-bg-secondary);
   border-color: var(--color-accent);
 }
 
@@ -647,7 +646,7 @@ label {
 }
 
 .corex-button-ghost:hover:not(:disabled) {
-  background: var(--color-card);
+  background: var(--color-bg-secondary);
   color: var(--color-text);
 }
 
@@ -694,7 +693,7 @@ label {
 .corex-select {
   padding: 12px 14px;
   font-size: 14px;
-  background: var(--color-bg);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
@@ -705,7 +704,7 @@ label {
 .corex-select:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+  box-shadow: 0 0 0 3px rgba(91, 127, 166, 0.15);
 }
 
 .corex-input::placeholder {
@@ -731,7 +730,7 @@ label {
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: var(--color-bg);
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }
@@ -756,6 +755,7 @@ label {
 .corex-tab[data-state="active"] {
   background: var(--color-card);
   color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 /* Scrollbar */
@@ -765,14 +765,14 @@ label {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--color-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-border-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-light);
+  background: #b5b2ab;
 }

@@ -10,14 +10,14 @@
 .header-icon {
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, rgba(233, 69, 96, 0.2) 0%, rgba(233, 69, 96, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(91, 127, 166, 0.12) 0%, rgba(91, 127, 166, 0.04) 100%);
   border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
   color: var(--color-accent);
-  border: 1px solid rgba(233, 69, 96, 0.15);
+  border: 1px solid rgba(91, 127, 166, 0.2);
 }
 
 .header-icon svg {
@@ -43,7 +43,7 @@
   padding: 36px;
   max-width: 1120px;
   margin: 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
 }
 
 .grader-workbench {
@@ -92,6 +92,7 @@
   background: var(--color-bg-secondary);
   border-radius: 14px;
   padding: 14px;
+  box-shadow: var(--shadow-card);
 }
 
 .grader-side-card h3 {
@@ -118,6 +119,7 @@
   display: grid;
   gap: 2px;
   background: var(--color-card);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .diag-item span {
@@ -234,7 +236,7 @@
   box-shadow: var(--shadow-card);
   padding: 28px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
 }
 
 .preview-header {
@@ -298,8 +300,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(28, 25, 23, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -315,8 +318,8 @@
   max-height: 88vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-border);
+  border: 1px solid var(--color-border);
 }
 
 .modal-close {
@@ -338,7 +341,7 @@
 }
 
 .modal-close:hover {
-  background: var(--color-border);
+  background: var(--color-border-light);
   color: var(--color-text);
 }
 
@@ -350,6 +353,7 @@
 .modal-header {
   padding: 32px 32px 24px;
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -397,6 +401,8 @@
   padding: 16px 20px;
   background: var(--color-bg-secondary);
   border-radius: 10px;
+  border-left: 3px solid var(--color-accent);
+  border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-accent);
 }
 
@@ -493,7 +499,7 @@
   padding-left: 22px;
   position: relative;
   line-height: 1.55;
-  border-bottom: 1px solid rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .modal-section li:last-child {
@@ -531,6 +537,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  border-radius: 0 0 20px 20px;
 }
 
 .pdf-form {

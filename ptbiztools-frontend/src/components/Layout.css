@@ -14,18 +14,20 @@
   width: 44px;
   height: 44px;
   border-radius: var(--radius-md);
-  background: rgba(22, 22, 31, 0.9);
+  background: rgba(255, 253, 250, 0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border);
   color: var(--color-text);
   cursor: pointer;
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  box-shadow: var(--shadow-card);
 }
 
 .mobile-menu-btn:hover {
-  background: rgba(22, 22, 31, 1);
+  background: var(--color-card);
   border-color: var(--color-accent);
 }
 
@@ -37,8 +39,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(28, 25, 23, 0.45);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 150;
 }
 
@@ -53,7 +56,8 @@
   left: 0;
   bottom: 0;
   z-index: 100;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.12);
 }
 
 .sidebar-close {
@@ -62,7 +66,7 @@
 
 .sidebar-header {
   padding: 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -93,7 +97,7 @@
   gap: 14px;
   padding: 14px 16px;
   border-radius: var(--radius-md);
-  color: var(--color-text-muted);
+  color: rgba(255,255,255,0.55);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -110,19 +114,19 @@
   transform: translateY(-50%);
   width: 3px;
   height: 0;
-  background: var(--color-accent);
+  background: var(--color-accent-light);
   border-radius: 0 2px 2px 0;
   transition: height 0.2s ease;
 }
 
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.04);
-  color: var(--color-text);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
 }
 
 .sidebar-link.active {
-  background: linear-gradient(135deg, rgba(233, 69, 96, 0.15), rgba(233, 69, 96, 0.05));
-  color: var(--color-accent);
+  background: rgba(91, 127, 166, 0.22);
+  color: #a8c8e8;
 }
 
 .sidebar-link.active::before {
@@ -131,7 +135,7 @@
 
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .sidebar-user {
@@ -159,7 +163,7 @@
   font-size: 14px;
   font-weight: 600;
   color: white;
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(91, 127, 166, 0.35);
 }
 
 .user-avatar-shell .user-avatar {
@@ -204,12 +208,12 @@
 .user-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: rgba(255,255,255,0.9);
 }
 
 .user-role {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: rgba(255,255,255,0.45);
 }
 
 .logout-btn {
@@ -217,9 +221,9 @@
   width: 100%;
   border-radius: var(--radius-md);
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.02);
-  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255,255,255,0.7);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -229,8 +233,9 @@
 }
 
 .logout-btn:hover {
-  background: rgba(233, 69, 96, 0.12);
-  border-color: rgba(233, 69, 96, 0.4);
+  background: rgba(91, 127, 166, 0.2);
+  border-color: rgba(91, 127, 166, 0.45);
+  color: rgba(255,255,255,0.9);
 }
 
 /* Main Wrapper */
@@ -272,8 +277,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,0.75);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .video-container {
@@ -335,6 +341,7 @@
 .footer {
   padding: 24px 40px;
   border-top: 1px solid var(--color-border);
+  background: var(--color-card);
 }
 
 .footer-container {
@@ -384,9 +391,9 @@
     width: 32px;
     height: 32px;
     border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.08);
     border: none;
-    color: var(--color-text-muted);
+    color: rgba(255,255,255,0.55);
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -394,8 +401,8 @@
   }
   
   .sidebar-close:hover {
-    background: rgba(255,255,255,0.1);
-    color: var(--color-text);
+    background: rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.9);
   }
   
   .sidebar-logo .logo-img {
