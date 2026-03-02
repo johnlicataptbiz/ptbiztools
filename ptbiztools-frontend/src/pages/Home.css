@@ -312,6 +312,37 @@
   flex-shrink: 0;
 }
 
+/* User avatar in activity feed */
+.activity-user-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.activity-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1.5px solid var(--color-border);
+  display: block;
+}
+
+.activity-avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-medium));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .activity-content {
   flex: 1;
   display: flex;

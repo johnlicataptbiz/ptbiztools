@@ -82,6 +82,11 @@ actionLogRouter.get('/', async (req, res) => {
       take: parseInt(limit as string),
       skip: parseInt(offset as string),
       orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, imageUrl: true },
+        },
+      },
     });
 
     const total = await prisma.actionLog.count({ where: whereBase });

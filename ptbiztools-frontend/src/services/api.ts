@@ -30,6 +30,7 @@ export interface UsageUserLite {
   name: string;
   title: string | null;
   teamSection: string | null;
+  imageUrl?: string | null;
 }
 
 export interface AdminRecentLoginEvent {
@@ -62,6 +63,11 @@ export interface AdminRecentAction {
   actionType: string;
   description: string;
   createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+  } | null;
 }
 
 export interface KnowledgeDoc {

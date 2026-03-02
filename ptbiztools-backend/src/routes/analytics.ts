@@ -285,7 +285,7 @@ analyticsRouter.get('/admin-summary', requireAdmin, async (req: SessionRequest, 
       }),
       prisma.actionLog.findMany({
         where: { createdAt: { gte: since } },
-        include: { user: { select: { id: true, name: true, title: true, teamSection: true } } },
+        include: { user: { select: { id: true, name: true, title: true, teamSection: true, imageUrl: true } } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),

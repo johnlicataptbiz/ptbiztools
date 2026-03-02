@@ -1,25 +1,18 @@
-# UI Redesign — Warm Neutral Monochromatic + Muted Slate Blue
+# PT Biz Tools - TODO
 
-## Palette
-- Backgrounds: warm off-white (#f7f5f2), light tan (#eeebe5)
-- Cards: white (#ffffff)
-- Sidebar: dark slate blue-grey (#3c4a5a) — clearly not black
-- Accent: muted slate blue (#5b7fa6)
-- Text: warm near-black (#1c1917), warm grey (#57534e), muted (#a8a29e)
-- Borders: light warm (#e2dfd9, #ccc9c2)
+## Active Sprint
 
-## Files to Update
+### 1. Logo Size
+- [x] Increase `.sidebar-logo .logo-img` in `Layout.css` (160px→210px wide, 36px→52px tall)
+- [x] Update mobile responsive logo height
 
-- [x] src/index.css — CSS variables + all shared component styles
-- [x] src/components/Layout.css — sidebar, nav, footer
-- [x] src/pages/Login.css — hardcoded dark gradients
-- [x] src/pages/Home.css — hardcoded rgba dark values
-- [x] src/pages/DiscoveryCallGrader.css — modal, hardcoded colors
-- [x] src/pages/AnalysisHistory.css
-- [x] src/pages/KnowledgeCenter.css
-- [x] src/pages/PLCalculator.css
-- [x] src/pages/SalesDiscoveryGrader.css
-- [x] src/pages/MediaManager.css
-- [x] src/components/IntroVideo.css
+### 2. Activity Log - Show WHO it is (user avatar/photo)
+- [x] Backend: `actionLog.ts` GET `/` — include user relation (name, imageUrl)
+- [x] Backend: `analytics.ts` admin-summary — add imageUrl to actions user select
+- [x] Frontend: `api.ts` — add imageUrl to UsageUserLite, update AdminRecentAction type
+- [x] Frontend: `Home.tsx` — add userName/userImageUrl to ActivityFeedItem, update feed builders, render user avatar
+- [x] Frontend: `Home.css` — add activity user avatar styles
 
-## Status: COMPLETE ✓
+### 3. Vercel INP Issue
+- [x] `vercel.json` — add Cache-Control headers for static assets
+- [ ] NOTE: The `body.hubspot-disable-focus-styles` INP warning is caused by the HubSpot browser extension, not app code. Disabling the extension eliminates the warning.

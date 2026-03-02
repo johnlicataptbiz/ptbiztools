@@ -30,12 +30,7 @@ interface Stats {
   totalTranscripts: number
   totalPdfs: number
   totalGrades: number
-  recentActivity: Array<{
-    id: string
-    actionType: string
-    description: string
-    createdAt: string
-  }>
+  recentActivity: ActivityFeedItem[]
   chartData: Array<{
     date: string
     graded: number
@@ -48,6 +43,8 @@ interface ActivityFeedItem {
   actionType: string
   description: string
   createdAt: string
+  userName?: string
+  userImageUrl?: string | null
 }
 
 interface ToolItem {
@@ -128,9 +125,15 @@ export default function Home({ user, isAdmin }: HomeProps) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${API_BASE}/actions`)
+        const response = await fetch(`${API_BASE}/actions`, { credentials: 'include' })
         const data = await response.json()
-        const logs = data.logs || []
+        const logs: Array<{
+          id: string
+          actionType: string
+          description: string
+          createdAt?: string
+          user?: { id: string; name: string; imageUrl?: string | null } | null
+        }> = data.logs || []
 
         const transcripts = logs.filter((log: { actionType: string }) => trackedTranscriptActions.has(log.actionType)).length
         const pdfs = logs.filter((log: { actionType: string }) => trackedPdfActions.has(log.actionType)).length
@@ -155,7 +158,14 @@ export default function Home({ user, isAdmin }: HomeProps) {
           totalTranscripts: transcripts,
           totalPdfs: pdfs,
           totalGrades: grades,
-          recentActivity: logs.slice(0, 10),
+          recentActivity: logs.slice(0, 10).map((log) => ({
+            id: log.id,
+            actionType: log.actionType,
+            description: log.description,
+            createdAt: log.createdAt ?? new Date().toISOString(),
+            userName: log.user?.name || undefined,
+            userImageUrl: log.user?.imageUrl ?? null,
+          })),
           chartData,
         })
       } catch (error) {
@@ -260,6 +270,8 @@ export default function Home({ user, isAdmin }: HomeProps) {
       actionType: 'login_success',
       description: `${event.user?.name || 'Unknown User'} logged in`,
       createdAt: event.createdAt,
+      userName: event.user?.name || undefined,
+      userImageUrl: event.user?.imageUrl ?? null,
     }))
 
     const coachingEvents = adminUsage.recent.analyses.map((analysis) => ({
@@ -267,6 +279,8 @@ export default function Home({ user, isAdmin }: HomeProps) {
       actionType: 'coaching_analysis_saved',
       description: `${analysis.user?.name || 'Unknown User'} saved coaching analysis (${analysis.score}/100)`,
       createdAt: analysis.createdAt,
+      userName: analysis.user?.name || undefined,
+      userImageUrl: analysis.user?.imageUrl ?? null,
     }))
 
     const pdfEvents = adminUsage.recent.pdfExports.map((pdfExport) => ({
@@ -274,6 +288,8 @@ export default function Home({ user, isAdmin }: HomeProps) {
       actionType: 'pdf_export_saved',
       description: `${pdfExport.user?.name || 'Unknown User'} exported a coaching PDF`,
       createdAt: pdfExport.createdAt,
+      userName: pdfExport.user?.name || undefined,
+      userImageUrl: pdfExport.user?.imageUrl ?? null,
     }))
 
     const actionEvents = adminUsage.recent.actions.map((action) => ({
@@ -281,6 +297,8 @@ export default function Home({ user, isAdmin }: HomeProps) {
       actionType: action.actionType || 'activity',
       description: action.description || 'Activity recorded',
       createdAt: action.createdAt,
+      userName: action.user?.name || undefined,
+      userImageUrl: action.user?.imageUrl ?? null,
     }))
 
     return [...loginEvents, ...coachingEvents, ...pdfEvents, ...actionEvents]
@@ -531,18 +549,38 @@ export default function Home({ user, isAdmin }: HomeProps) {
                 <p>No activity yet.</p>
               </div>
             ) : (
-              activityFeed.map((item) => (
-                <div key={item.id} className="activity-item">
-                  <div className="activity-icon">{getActionIcon(item.actionType)}</div>
-                  <div className="activity-content">
-                    <span className="activity-desc">{item.description}</span>
-                    <span className="activity-time">
-                      <Clock size={12} />
-                      {formatDate(item.createdAt)}
-                    </span>
+            activityFeed.map((item) => {
+                const initials = item.userName
+                  ? item.userName.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
+                  : '?'
+                return (
+                  <div key={item.id} className="activity-item">
+                    <div className="activity-user-avatar">
+                      {item.userImageUrl ? (
+                        <img
+                          src={item.userImageUrl}
+                          alt={item.userName || 'User'}
+                          className="activity-avatar-img"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex' }}
+                        />
+                      ) : null}
+                      <div
+                        className="activity-avatar-fallback"
+                        style={{ display: item.userImageUrl ? 'none' : 'flex' }}
+                      >
+                        {item.userName ? initials : getActionIcon(item.actionType)}
+                      </div>
+                    </div>
+                    <div className="activity-content">
+                      <span className="activity-desc">{item.description}</span>
+                      <span className="activity-time">
+                        <Clock size={12} />
+                        {formatDate(item.createdAt)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </motion.div>
