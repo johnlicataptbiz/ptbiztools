@@ -5,7 +5,9 @@ import IntroVideo, { IntroContext, type RevealedTools } from './components/Intro
 import Home from './pages/Home'
 import DiscoveryCallGrader from './pages/DiscoveryCallGrader'
 import PLCalculator from './pages/PLCalculator'
-import SalesDiscoveryGrader from './pages/SalesDiscoveryGrader'
+import DannyFinancialAudit from './pages/danny/DannyFinancialAudit'
+import DannyCloserCallGrader from './pages/danny/DannyCloserCallGrader'
+import DannyCompensationCalculator from './pages/danny/DannyCompensationCalculator'
 import Login from './pages/Login'
 import AnalysisHistory from './pages/AnalysisHistory'
 import KnowledgeCenter from './pages/KnowledgeCenter'
@@ -164,10 +166,12 @@ function App() {
           >
             <Route index element={<Home user={user} isAdmin={isAdmin} />} />
             <Route path="discovery-call-grader" element={<DiscoveryCallGrader />} />
-            <Route path="pl-calculator" element={<PLCalculator />} />
+            <Route path="pl-calculator" element={<DannyFinancialAudit />} />
+            <Route path="pl-calculator-advanced" element={<PLCalculator />} />
+            <Route path="compensation-calculator" element={<DannyCompensationCalculator />} />
             <Route
               path="sales-discovery-grader"
-              element={canAccessSalesDiscovery ? <SalesDiscoveryGrader /> : <Navigate to="/" replace />}
+              element={canAccessSalesDiscovery ? <DannyCloserCallGrader /> : <Navigate to="/" replace />}
             />
             <Route path="analyses" element={<AnalysisHistory isAdmin={isAdmin} />} />
             <Route path="knowledge" element={<KnowledgeCenter isAdmin={isAdmin} />} />

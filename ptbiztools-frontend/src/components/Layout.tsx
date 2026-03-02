@@ -23,6 +23,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         { to: '/', label: 'Dashboard', icon: BarChart3 },
         { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
         { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
+        { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
         { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
         { to: '/analyses', label: 'Analyses', icon: ScrollText },
         { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
@@ -35,6 +36,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         { to: '/', label: 'Dashboard', icon: BarChart3 },
         { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
         { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
+        { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
         { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
         { to: '/analyses', label: 'My Analyses', icon: ScrollText },
         { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
@@ -45,6 +47,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
       { to: '/', label: 'Dashboard', icon: BarChart3 },
       { to: '/discovery-call-grader', label: 'Call Grader', icon: ClipboardList },
       { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
+      { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
       { to: '/analyses', label: 'My Analyses', icon: ScrollText },
       { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
     ]
