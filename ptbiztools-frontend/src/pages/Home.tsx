@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   Activity,
@@ -101,6 +102,78 @@ const trackedGradeActions = new Set([
 const trackedTranscriptActions = new Set(['transcript_uploaded', 'transcript_pasted', 'TRANSCRIPT_UPLOADED', 'TRANSCRIPT_PASTED'])
 const trackedPdfActions = new Set(['pdf_generated', 'PDF_GENERATED', 'pl_pdf_generated'])
 
+const defaultStats: Stats = {
+  totalTranscripts: 0,
+  totalPdfs: 0,
+  totalGrades: 0,
+  recentActivity: [],
+  chartData: [],
+}
+
+interface HomeAdminUsageData {
+  adminUsage: AdminUsageSummary | null
+  actionStats: ActionStatsSummary | null
+}
+
+async function fetchCoachStats(): Promise<Stats> {
+  const response = await fetch(`${API_BASE}/actions`, { credentials: 'include' })
+  if (!response.ok) throw new Error(`Failed to fetch action logs (${response.status})`)
+  const data = await response.json()
+  const logs: Array<{
+    id: string
+    actionType: string
+    description: string
+    createdAt?: string
+    user?: { id: string; name: string; imageUrl?: string | null } | null
+  }> = data.logs || []
+
+  const transcripts = logs.filter((log: { actionType: string }) => trackedTranscriptActions.has(log.actionType)).length
+  const pdfs = logs.filter((log: { actionType: string }) => trackedPdfActions.has(log.actionType)).length
+  const grades = logs.filter((log: { actionType: string }) => trackedGradeActions.has(log.actionType)).length
+
+  const chartData = []
+  for (let i = 6; i >= 0; i -= 1) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    const dateStr = date.toISOString().split('T')[0]
+
+    const dayLogs = logs.filter((log: { createdAt?: string }) => log.createdAt?.startsWith(dateStr))
+
+    chartData.push({
+      date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      graded: dayLogs.filter((log: { actionType: string }) => trackedGradeActions.has(log.actionType)).length,
+      pdfs: dayLogs.filter((log: { actionType: string }) => trackedPdfActions.has(log.actionType)).length,
+    })
+  }
+
+  return {
+    totalTranscripts: transcripts,
+    totalPdfs: pdfs,
+    totalGrades: grades,
+    recentActivity: logs.slice(0, 10).map((log) => ({
+      id: log.id,
+      actionType: log.actionType,
+      description: log.description,
+      createdAt: log.createdAt ?? new Date().toISOString(),
+      userName: log.user?.name || undefined,
+      userImageUrl: log.user?.imageUrl ?? null,
+    })),
+    chartData,
+  }
+}
+
+async function fetchAdminUsageData(): Promise<HomeAdminUsageData> {
+  const [usageResult, actionResult] = await Promise.all([
+    getAdminUsageSummary(30),
+    getActionStats(),
+  ])
+
+  return {
+    adminUsage: usageResult.data ?? null,
+    actionStats: actionResult.data ?? null,
+  }
+}
+
 export default function Home({ user, isAdmin }: HomeProps) {
   const navigate = useNavigate()
   const { revealed } = useIntro()
@@ -110,90 +183,24 @@ export default function Home({ user, isAdmin }: HomeProps) {
     pl: false,
   })
 
-  const [stats, setStats] = useState<Stats>({
-    totalTranscripts: 0,
-    totalPdfs: 0,
-    totalGrades: 0,
-    recentActivity: [],
-    chartData: [],
+  const coachStatsQuery = useQuery({
+    queryKey: ['home', 'coach-stats'],
+    queryFn: fetchCoachStats,
+    enabled: !isAdmin,
+    staleTime: 30_000,
   })
-  const [loading, setLoading] = useState(true)
-  const [adminUsage, setAdminUsage] = useState<AdminUsageSummary | null>(null)
-  const [actionStats, setActionStats] = useState<ActionStatsSummary | null>(null)
-  const [adminUsageLoading, setAdminUsageLoading] = useState(false)
+  const adminUsageQuery = useQuery({
+    queryKey: ['home', 'admin-usage'],
+    queryFn: fetchAdminUsageData,
+    enabled: isAdmin,
+    staleTime: 30_000,
+  })
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/actions`, { credentials: 'include' })
-        const data = await response.json()
-        const logs: Array<{
-          id: string
-          actionType: string
-          description: string
-          createdAt?: string
-          user?: { id: string; name: string; imageUrl?: string | null } | null
-        }> = data.logs || []
-
-        const transcripts = logs.filter((log: { actionType: string }) => trackedTranscriptActions.has(log.actionType)).length
-        const pdfs = logs.filter((log: { actionType: string }) => trackedPdfActions.has(log.actionType)).length
-        const grades = logs.filter((log: { actionType: string }) => trackedGradeActions.has(log.actionType)).length
-
-        const chartData = []
-        for (let i = 6; i >= 0; i -= 1) {
-          const date = new Date()
-          date.setDate(date.getDate() - i)
-          const dateStr = date.toISOString().split('T')[0]
-
-          const dayLogs = logs.filter((log: { createdAt?: string }) => log.createdAt?.startsWith(dateStr))
-
-          chartData.push({
-            date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-            graded: dayLogs.filter((log: { actionType: string }) => trackedGradeActions.has(log.actionType)).length,
-            pdfs: dayLogs.filter((log: { actionType: string }) => trackedPdfActions.has(log.actionType)).length,
-          })
-        }
-
-        setStats({
-          totalTranscripts: transcripts,
-          totalPdfs: pdfs,
-          totalGrades: grades,
-          recentActivity: logs.slice(0, 10).map((log) => ({
-            id: log.id,
-            actionType: log.actionType,
-            description: log.description,
-            createdAt: log.createdAt ?? new Date().toISOString(),
-            userName: log.user?.name || undefined,
-            userImageUrl: log.user?.imageUrl ?? null,
-          })),
-          chartData,
-        })
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStats()
-  }, [])
-
-  useEffect(() => {
-    if (!isAdmin) return
-
-    const fetchAdminUsage = async () => {
-      setAdminUsageLoading(true)
-      const [usageResult, actionResult] = await Promise.all([
-        getAdminUsageSummary(30),
-        getActionStats(),
-      ])
-      if (usageResult.data) setAdminUsage(usageResult.data)
-      if (actionResult.data) setActionStats(actionResult.data)
-      setAdminUsageLoading(false)
-    }
-
-    fetchAdminUsage()
-  }, [isAdmin])
+  const stats = coachStatsQuery.data ?? defaultStats
+  const adminUsage = adminUsageQuery.data?.adminUsage ?? null
+  const actionStats = adminUsageQuery.data?.actionStats ?? null
+  const loading = !isAdmin && coachStatsQuery.isLoading
+  const adminUsageLoading = isAdmin && adminUsageQuery.isLoading
 
   useEffect(() => {
     if (isAdmin) {

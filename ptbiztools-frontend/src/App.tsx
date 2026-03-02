@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import IntroVideo, { IntroContext, type RevealedTools } from './components/IntroVideo'
@@ -34,27 +35,25 @@ function forceIntroKey(userId: string) {
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const [introReady, setIntroReady] = useState(false)
   const [showIntro, setShowIntro] = useState(false)
   const [revealed, setRevealed] = useState<RevealedTools>(lockedRevealed)
   const [showOnboardingPrep, setShowOnboardingPrep] = useState(false)
   const [onboardingStepIndex, setOnboardingStepIndex] = useState(0)
+  const queryClient = useQueryClient()
+
+  const meQuery = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: getMe,
+    staleTime: 60_000,
+  })
+  const user = meQuery.data?.user ?? null
+  const loading = meQuery.isLoading
+  const logoutMutation = useMutation({ mutationFn: logout })
 
   const role = useMemo(() => getEffectiveRole(user), [user])
   const isAdmin = useMemo(() => isAdminUser(user), [user])
   const canAccessSalesDiscovery = role === 'admin' || role === 'advisor'
-
-  useEffect(() => {
-    const bootstrap = async () => {
-      const { user: me } = await getMe()
-      setUser(me || null)
-      setLoading(false)
-    }
-
-    bootstrap()
-  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -73,12 +72,14 @@ function App() {
     setShowOnboardingPrep(false)
     setOnboardingStepIndex(0)
     setIntroReady(false)
-    setUser(nextUser)
+    queryClient.setQueryData<{ user?: User; error?: string }>(['auth', 'me'], { user: nextUser })
+    queryClient.removeQueries({ queryKey: ['home'] })
   }
 
   const handleLogout = async () => {
-    await logout()
-    setUser(null)
+    await logoutMutation.mutateAsync()
+    queryClient.setQueryData<{ user?: User; error?: string }>(['auth', 'me'], { error: 'Not authenticated' })
+    queryClient.removeQueries({ queryKey: ['home'] })
     setIntroReady(false)
     setShowOnboardingPrep(false)
     setOnboardingStepIndex(0)
