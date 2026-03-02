@@ -23,7 +23,6 @@
     linear-gradient(90deg, rgba(96, 125, 167, 0.12) 1px, transparent 1px);
   background-size: 56px 56px;
   opacity: 0.16;
-  mask-image: radial-gradient(circle at 50% 34%, black 45%, transparent 85%);
 }
 
 .login-shell::after {
@@ -95,6 +94,7 @@
   display: block;
   width: min(100%, 660px);
   height: clamp(66px, 12vw, 120px);
+  object-fit: contain;
   image-rendering: auto;
   filter:
     saturate(1.04)

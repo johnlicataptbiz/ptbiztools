@@ -76,6 +76,7 @@
   display: block;
   width: 160px;
   height: 36px;
+  object-fit: contain;
 }
 
 .sidebar-nav {

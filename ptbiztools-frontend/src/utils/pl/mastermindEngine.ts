@@ -1,4 +1,14 @@
 import type { ActionItem, GradeBand, GradeLevel, MetricResult, MetricGroup, PLInput, PLResult } from '../plTypes'
+import {
+  GRADE_SCORES,
+  calculateWeightedScore,
+  clampNumber,
+  overallGradeFromScore,
+  percent,
+  resolveGrade,
+  toFiniteNumber,
+} from './scoring'
+import { validateMastermindTimeline } from './validation'
 
 export interface MastermindPeriod {
   id: string
@@ -32,12 +42,6 @@ interface MastermindMetricConfig {
   knowledgeRefSlug: string
   knowledgeRefSection: string
   gradeBands: GradeBand[]
-}
-
-const GRADE_SCORES: Record<GradeLevel, number> = {
-  green: 100,
-  yellow: 72,
-  red: 40,
 }
 
 const CONFIG: Record<MastermindMetricId, MastermindMetricConfig> = {
@@ -230,53 +234,10 @@ const DIAGNOSTICS: Record<MastermindMetricId, Record<GradeLevel, string>> = {
   },
 }
 
-function toNumber(value: number | undefined): number {
-  if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) return 0
-  return value
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
-}
-
-function percent(part: number, total: number): number {
-  if (total <= 0) return 0
-  return (part / total) * 100
-}
-
 function cagr(start: number, end: number, periods: number): number {
   if (start <= 0 || end <= 0 || periods <= 1) return 0
   const years = periods - 1
   return (Math.pow(end / start, 1 / years) - 1) * 100
-}
-
-function resolveGrade(value: number, gradeBands: GradeBand[]): { grade: GradeLevel; label: string } {
-  for (const band of gradeBands) {
-    const minPass = band.min === undefined || value >= band.min
-    const maxPass = band.max === undefined || value <= band.max
-    if (minPass && maxPass) {
-      return { grade: band.grade, label: band.label }
-    }
-  }
-
-  const fallback = gradeBands[gradeBands.length - 1]
-  return { grade: fallback.grade, label: fallback.label }
-}
-
-function calculateScore(metrics: MetricResult[]): number {
-  if (metrics.length === 0) return 0
-
-  const totalWeight = metrics.reduce((sum, metric) => sum + metric.weight, 0)
-  if (totalWeight <= 0) return 0
-
-  const weighted = metrics.reduce((sum, metric) => sum + metric.score * metric.weight, 0)
-  return Math.round(weighted / totalWeight)
-}
-
-function overallGrade(score: number): GradeLevel {
-  if (score >= 85) return 'green'
-  if (score >= 65) return 'yellow'
-  return 'red'
 }
 
 function buildMetric(
@@ -352,15 +313,16 @@ function sortPeriods(periods: MastermindPeriod[]): MastermindPeriod[] {
 export function buildMastermindPLResult(periods: MastermindPeriod[]): PLResult {
   const sorted = sortPeriods(periods)
   const warnings: string[] = []
-
-  if (sorted.length < 2) {
-    warnings.push('Mastermind mode requires at least two periods to calculate trajectory metrics.')
-  }
+  const timelineValidation = validateMastermindTimeline(sorted)
+  warnings.push(...timelineValidation.warnings)
 
   const first = sorted[0]
   const last = sorted[sorted.length - 1]
 
-  if (!first || !last) {
+  if (!first || !last || timelineValidation.hasBlockingErrors) {
+    const errors = timelineValidation.errors.length > 0
+      ? timelineValidation.errors
+      : ['Mastermind mode requires at least two periods to calculate trajectory metrics.']
     return {
       metrics: [],
       coreMetrics: [],
@@ -374,39 +336,39 @@ export function buildMastermindPLResult(periods: MastermindPeriod[]): PLResult {
       overallGrade: 'red',
       benchmarkVersion: 'mastermind-v1.0.0',
       confidence: 35,
-      warnings,
+      warnings: [...warnings, ...errors],
       score: 0,
     }
   }
 
-  const revenueSeries = sorted.map((period) => toNumber(period.input.totalGrossRevenue))
-  const visitsSeries = sorted.map((period) => toNumber(period.input.totalPatientVisits))
+  const revenueSeries = sorted.map((period) => toFiniteNumber(period.input.totalGrossRevenue))
+  const visitsSeries = sorted.map((period) => toFiniteNumber(period.input.totalPatientVisits))
   const arpvSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    const visits = toNumber(period.input.totalPatientVisits)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    const visits = toFiniteNumber(period.input.totalPatientVisits)
     return visits > 0 ? revenue / visits : 0
   })
   const netMarginSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    const netProfit = revenue - toNumber(period.input.totalOperatingExpenses)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    const netProfit = revenue - toFiniteNumber(period.input.totalOperatingExpenses)
     return percent(netProfit, revenue)
   })
   const continuityMixSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    return percent(toNumber(period.input.revenueFromContinuity), revenue)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    return percent(toFiniteNumber(period.input.revenueFromContinuity), revenue)
   })
   const payrollRatioSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    return percent(toNumber(period.input.totalStaffPayroll), revenue)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    return percent(toFiniteNumber(period.input.totalStaffPayroll), revenue)
   })
   const facilityRatioSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    return percent(toNumber(period.input.totalFacilityCosts), revenue)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    return percent(toFiniteNumber(period.input.totalFacilityCosts), revenue)
   })
   const odiSeries = sorted.map((period) => {
-    const revenue = toNumber(period.input.totalGrossRevenue)
-    const netProfit = revenue - toNumber(period.input.totalOperatingExpenses)
-    return netProfit + toNumber(period.input.ownerSalary) + toNumber(period.input.ownerAddBacks)
+    const revenue = toFiniteNumber(period.input.totalGrossRevenue)
+    const netProfit = revenue - toFiniteNumber(period.input.totalOperatingExpenses)
+    return netProfit + toFiniteNumber(period.input.ownerSalary) + toFiniteNumber(period.input.ownerAddBacks)
   })
 
   if (revenueSeries.some((value) => value <= 0)) {
@@ -436,10 +398,10 @@ export function buildMastermindPLResult(periods: MastermindPeriod[]): PLResult {
     buildMetric(CONFIG.odiCagr, odiCagr, odiSeries),
   ]
 
-  const score = calculateScore(metrics)
-  const grade = overallGrade(score)
+  const score = calculateWeightedScore(metrics)
+  const grade = overallGradeFromScore(score)
   const latestOdi = odiSeries[odiSeries.length - 1]
-  const confidence = clamp(62 + sorted.length * 9 - warnings.length * 3, 40, 99)
+  const confidence = clampNumber(62 + sorted.length * 9 - warnings.length * 3, 40, 99)
 
   return {
     metrics,

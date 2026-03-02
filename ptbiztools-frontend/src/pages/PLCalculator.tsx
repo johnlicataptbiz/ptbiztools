@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calculator, Download, DollarSign, TrendingUp, Users, Activity, ArrowRight, ArrowLeft, Sun, Moon, Sparkles, Target, CheckCircle2, Circle, GripVertical, Volume2, VolumeX, FileUp } from 'lucide-react'
 import { NumberFormatBase } from 'react-number-format'
 import { usePLGrader } from '../utils/usePLGrader'
-import type { MetricResult, PLInput } from '../utils/plTypes'
+import type { ActionItem, MetricResult, PLInput } from '../utils/plTypes'
 import { GRADE_COLORS } from '../utils/plTypes'
 import ReactConfetti from 'react-confetti'
 import { DndContext, closestCenter } from '@dnd-kit/core'
@@ -26,6 +26,14 @@ import {
   type PLImportNumericField,
 } from '../services/api'
 import { buildMastermindPLResult, type MastermindPeriod } from '../utils/pl/mastermindEngine'
+import { buildScenarioForecast, buildSensitivityLevers } from '../utils/pl/scenario'
+import {
+  REQUIRED_CORE_FIELDS,
+  validateMastermindTimeline,
+  validateRainmakerInput,
+} from '../utils/pl/validation'
+import { SITE_LOGO_URL } from '../constants/branding'
+import { generatePLReportPDF } from '../utils/plPdfGenerator'
 import './PLCalculator.css'
 
 // Sound effects hook
@@ -108,6 +116,56 @@ const steps = [
   { id: 2, title: 'Financials', icon: DollarSign },
   { id: 3, title: 'Report Card', icon: Target }
 ]
+
+type GuidedSectionId = 'revenue' | 'expenses' | 'owner'
+
+interface GuidedSectionConfig {
+  id: GuidedSectionId
+  title: string
+  description: string
+  fields: (keyof PLInput)[]
+}
+
+interface GuidedSectionProgress extends GuidedSectionConfig {
+  completedCount: number
+  totalCount: number
+  isComplete: boolean
+  isUnlocked: boolean
+  nextField: keyof PLInput | null
+  nextFieldLabel: string | null
+}
+
+const GUIDED_CORE_SECTIONS: GuidedSectionConfig[] = [
+  {
+    id: 'revenue',
+    title: 'Revenue Foundation',
+    description: 'Set baseline revenue, visits, and recurring continuity streams.',
+    fields: ['totalGrossRevenue', 'totalPatientVisits', 'revenueFromContinuity'],
+  },
+  {
+    id: 'expenses',
+    title: 'Expense Structure',
+    description: 'Capture facility, payroll, and operating cost profile.',
+    fields: ['totalFacilityCosts', 'totalStaffPayroll', 'totalOperatingExpenses'],
+  },
+  {
+    id: 'owner',
+    title: 'Owner Economics',
+    description: 'Finalize owner compensation and add-backs for ODI accuracy.',
+    fields: ['ownerSalary', 'ownerAddBacks'],
+  },
+]
+
+const CORE_FIELD_LABELS: Partial<Record<keyof PLInput, string>> = {
+  totalGrossRevenue: 'Total Gross Revenue',
+  totalPatientVisits: 'Patient Visits',
+  revenueFromContinuity: 'Continuity Revenue',
+  totalFacilityCosts: 'Facility Costs',
+  totalStaffPayroll: 'Staff Payroll',
+  totalOperatingExpenses: 'Operating Expenses',
+  ownerSalary: 'Owner Salary',
+  ownerAddBacks: 'Owner Add-Backs',
+}
 
 function buildPLInputFromMappedImport(mappedInput: Partial<Record<PLImportNumericField, number>>): PLInput {
   const nextInput: PLInput = { ...initialInput }
@@ -234,6 +292,7 @@ function calculatePLScore(greenCount: number, yellowCount: number, redCount: num
 export default function PLCalculator() {
   const [input, setInput] = useState<PLInput>(initialInput)
   const [programMode, setProgramMode] = useState<ProgramMode>('rainmaker')
+  const [entryMode, setEntryMode] = useState<'guided' | 'power'>('guided')
   const [mastermindPeriods, setMastermindPeriods] = useState<MastermindPeriod[]>([])
   const [mastermindPeriodLabel, setMastermindPeriodLabel] = useState('')
   const [mastermindNotice, setMastermindNotice] = useState<string | null>(null)
@@ -250,12 +309,11 @@ export default function PLCalculator() {
   const [isExporting, setIsExporting] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
-  const [actionItems, setActionItems] = useState<any[]>([])
+  const [actionItems, setActionItems] = useState<ActionItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [showAdvancedInputs, setShowAdvancedInputs] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
-  const reportRef = useRef<HTMLDivElement>(null)
   const hasLoggedResultRef = useRef(false)
   const [sessionId] = useState(() => crypto.randomUUID())
   const { playEliteSound, playCriticalSound } = useSoundEffects(soundEnabled)
@@ -267,6 +325,63 @@ export default function PLCalculator() {
     () => [...mastermindPeriods].sort((a, b) => a.order - b.order),
     [mastermindPeriods],
   )
+  const currentInputValidation = useMemo(() => validateRainmakerInput(input), [input])
+  const mastermindTimelineValidation = useMemo(
+    () => validateMastermindTimeline(sortedMastermindPeriods),
+    [sortedMastermindPeriods],
+  )
+  const missingRequiredFieldSet = useMemo(
+    () => new Set(currentInputValidation.missingRequiredFields),
+    [currentInputValidation.missingRequiredFields],
+  )
+
+  const formatFieldLabel = useCallback((field: keyof PLInput) => {
+    const mapped = CORE_FIELD_LABELS[field]
+    if (mapped) return mapped
+    return field.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (char) => char.toUpperCase())
+  }, [])
+
+  const nextMissingRequiredField = useMemo(
+    () => currentInputValidation.missingRequiredFields[0] ?? null,
+    [currentInputValidation.missingRequiredFields],
+  )
+
+  const guidedSections = useMemo<GuidedSectionProgress[]>(() => {
+    let previousSectionsComplete = true
+    return GUIDED_CORE_SECTIONS.map((section) => {
+      const completedCount = section.fields.reduce((count, field) => {
+        const hasError = Boolean(currentInputValidation.errorsByField[field]?.length)
+        return !missingRequiredFieldSet.has(field) && !hasError ? count + 1 : count
+      }, 0)
+
+      const nextField = section.fields.find((field) => {
+        const hasError = Boolean(currentInputValidation.errorsByField[field]?.length)
+        return missingRequiredFieldSet.has(field) || hasError
+      }) ?? null
+
+      const isComplete = completedCount === section.fields.length
+      const isUnlocked = previousSectionsComplete
+      if (!isComplete) previousSectionsComplete = false
+
+      return {
+        ...section,
+        completedCount,
+        totalCount: section.fields.length,
+        isComplete,
+        isUnlocked,
+        nextField,
+        nextFieldLabel: nextField ? formatFieldLabel(nextField) : null,
+      }
+    })
+  }, [currentInputValidation.errorsByField, formatFieldLabel, missingRequiredFieldSet])
+
+  const guidedSectionMap = useMemo(() => {
+    const mapped: Partial<Record<GuidedSectionId, GuidedSectionProgress>> = {}
+    for (const section of guidedSections) {
+      mapped[section.id] = section
+    }
+    return mapped as Record<GuidedSectionId, GuidedSectionProgress>
+  }, [guidedSections])
 
   const rainmakerResult = usePLGrader(showResults && programMode === 'rainmaker' ? input : null)
   const mastermindResult = useMemo(() => {
@@ -281,6 +396,45 @@ export default function PLCalculator() {
   const isImportsEnabled = ['true', '1', 'yes', 'on'].includes(
     String(import.meta.env.VITE_PL_IMPORTS_ENABLED || '').toLowerCase().trim(),
   )
+  const validationSummary = programMode === 'mastermind'
+    ? mastermindTimelineValidation
+    : currentInputValidation
+  const isGuidedRainmaker = programMode === 'rainmaker' && entryMode === 'guided'
+  const hasBlockingInputErrors = currentInputValidation.hasBlockingErrors
+  const hasAllRequiredCoreFields = currentInputValidation.missingRequiredFields.length === 0
+  const canRunRainmakerCalculation = !hasBlockingInputErrors
+  const canOpenAdvancedInputs = !isGuidedRainmaker || hasAllRequiredCoreFields
+  const nextRequiredFieldLabel = nextMissingRequiredField ? formatFieldLabel(nextMissingRequiredField) : null
+  const revenueSectionState = guidedSectionMap.revenue
+  const expensesSectionState = guidedSectionMap.expenses
+  const ownerSectionState = guidedSectionMap.owner
+  const isRevenueLocked = isGuidedRainmaker && !revenueSectionState.isUnlocked
+  const isExpensesLocked = isGuidedRainmaker && !expensesSectionState.isUnlocked
+  const isOwnerLocked = isGuidedRainmaker && !ownerSectionState.isUnlocked
+  const mastermindChecklist = useMemo(
+    () => [
+      {
+        id: 'periods',
+        label: 'At least 2 periods saved',
+        done: sortedMastermindPeriods.length >= 2,
+      },
+      {
+        id: 'errors',
+        label: 'No blocking timeline issues',
+        done: !mastermindTimelineValidation.hasBlockingErrors,
+      },
+    ],
+    [mastermindTimelineValidation.hasBlockingErrors, sortedMastermindPeriods.length],
+  )
+  const mastermindNextAction = useMemo(() => {
+    if (sortedMastermindPeriods.length < 2) {
+      return 'Save at least two periods to unlock trajectory scoring.'
+    }
+    if (mastermindTimelineValidation.errors.length > 0) {
+      return mastermindTimelineValidation.errors[0]
+    }
+    return 'Timeline ready. Continue to calculate trajectory.'
+  }, [mastermindTimelineValidation.errors, sortedMastermindPeriods.length])
 
   const hydrateMastermindPeriodsFromBatch = useCallback((detail: PLImportBatchDetailDto) => {
     const periods = detail.items.reduce<MastermindPeriod[]>((acc, item) => {
@@ -429,6 +583,12 @@ export default function PLCalculator() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [toggleCommandPalette])
 
+  useEffect(() => {
+    if (!canOpenAdvancedInputs && showAdvancedInputs) {
+      setShowAdvancedInputs(false)
+    }
+  }, [canOpenAdvancedInputs, showAdvancedInputs])
+
   const handleInputChange = (field: keyof PLInput, value: string | number) => {
     setInput(prev => ({ ...prev, [field]: value }))
     if (programMode === 'mastermind') {
@@ -436,16 +596,10 @@ export default function PLCalculator() {
     }
   }
 
-  const inputHasRequiredCoreValues = useCallback((candidate: PLInput) => (
-    candidate.totalGrossRevenue > 0
-    && candidate.totalPatientVisits > 0
-    && candidate.revenueFromContinuity >= 0
-    && candidate.totalFacilityCosts >= 0
-    && candidate.totalStaffPayroll >= 0
-    && candidate.totalOperatingExpenses >= 0
-    && candidate.ownerSalary >= 0
-    && candidate.ownerAddBacks >= 0
-  ), [])
+  const inputHasRequiredCoreValues = useCallback((candidate: PLInput) => {
+    const candidateValidation = validateRainmakerInput(candidate)
+    return !candidateValidation.missingRequiredFields.length && !candidateValidation.hasBlockingErrors
+  }, [])
 
   const upsertMastermindPeriod = useCallback((
     label: string,
@@ -582,22 +736,41 @@ export default function PLCalculator() {
   ])
 
   const isImportedField = useCallback((field: keyof PLInput) => importedFields.has(field), [importedFields])
+  const isRequiredField = useCallback((field: keyof PLInput) => REQUIRED_CORE_FIELDS.includes(field), [])
+  const getFieldError = useCallback(
+    (field: keyof PLInput) => currentInputValidation.errorsByField[field]?.[0] || null,
+    [currentInputValidation.errorsByField],
+  )
 
   const inputGroupClass = useCallback((field: keyof PLInput) => (
-    `pl-input-group ${isImportedField(field) ? 'pl-input-group-imported' : ''}`
-  ), [isImportedField])
+    `pl-input-group ${isImportedField(field) ? 'pl-input-group-imported' : ''} ${getFieldError(field) ? 'pl-input-group-error' : ''}`
+  ), [getFieldError, isImportedField])
 
   const renderInputLabel = useCallback((field: keyof PLInput, label: string) => (
     <label>
       {label}
-      {isImportedField(field) ? <span className="pl-imported-pill">Imported</span> : null}
+      <span className="pl-input-badges">
+        {isRequiredField(field) ? <span className="pl-required-pill">Required</span> : null}
+        {isImportedField(field) ? <span className="pl-imported-pill">Imported</span> : null}
+      </span>
     </label>
-  ), [isImportedField])
+  ), [isImportedField, isRequiredField])
+  const renderFieldError = useCallback((field: keyof PLInput) => {
+    const message = getFieldError(field)
+    if (!message) return null
+    return <span className="pl-input-error">{message}</span>
+  }, [getFieldError])
 
   const handleNext = async () => {
-    if (currentStep === 2 && programMode === 'mastermind' && sortedMastermindPeriods.length < 2) {
-      setMastermindNotice('Mastermind mode needs at least 2 saved periods before calculating.')
-      return
+    if (currentStep === 2) {
+      if (programMode === 'mastermind') {
+        if (mastermindTimelineValidation.hasBlockingErrors) {
+          setMastermindNotice(mastermindTimelineValidation.errors[0] || 'Resolve timeline issues before calculating.')
+          return
+        }
+      } else if (currentInputValidation.hasBlockingErrors) {
+        return
+      }
     }
 
     if (
@@ -646,76 +819,79 @@ export default function PLCalculator() {
   }
 
   const handleExportPDF = async () => {
-    if (!reportRef.current || !result) return
+    if (!result) return
     setIsExporting(true)
-
-    const html2canvas = (await import('html2canvas')).default
-    const { jsPDF } = await import('jspdf')
-
-    const canvas = await html2canvas(reportRef.current, {
-      scale: 2,
-      backgroundColor: theme === 'dark' ? '#0a0a0f' : '#ffffff',
-      logging: false
-    })
-
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save(`PT-Biz-PL-Report-${clientName || 'Client'}.pdf`)
 
     const greenCount = result.metrics.filter((metric) => metric.grade === 'green').length
     const yellowCount = result.metrics.filter((metric) => metric.grade === 'yellow').length
     const redCount = result.metrics.filter((metric) => metric.grade === 'red').length
     const score = typeof result.score === 'number' ? result.score : calculatePLScore(greenCount, yellowCount, redCount)
+    const exportDate = new Date().toISOString().slice(0, 10)
 
-    await Promise.all([
-      logAction({
-        actionType: 'pl_pdf_generated',
-        description: `P&L PDF generated for ${clientName || 'Client'}`,
-        sessionId,
-        metadata: {
-          score,
-          overallGrade: result.overallGrade,
-          coachName: coachName || null,
-          clientName: clientName || null,
-          benchmarkVersion: result.benchmarkVersion,
-          confidence: result.confidence,
-          calculatorMode: programMode,
-          periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
-          warnings: result.warnings,
-        },
-      }),
-      savePdfExport({
-        sessionId,
+    try {
+      await generatePLReportPDF({
+        result,
         coachName,
         clientName: clientName || 'Client',
-        callDate: new Date().toLocaleDateString(),
-        score,
-        metadata: {
-          tool: 'pl_calculator',
-          overallGrade: result.overallGrade,
-          odi: result.odi,
-          enterpriseValueLow: result.enterpriseValueLow,
-          enterpriseValueHigh: result.enterpriseValueHigh,
-          cashFlowSummary: result.cashFlowSummary,
-          metrics: result.metrics,
-          actionPlan: actionItems,
-          benchmarkVersion: result.benchmarkVersion,
-          confidence: result.confidence,
-          calculatorMode: programMode,
-          periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
-          mastermindPeriods: programMode === 'mastermind' ? sortedMastermindPeriods : undefined,
-          warnings: result.warnings,
-          input,
-        },
-      }),
-    ])
+        generatedOn: exportDate,
+        programMode,
+        scenarioRows,
+        sensitivityRows,
+        actionItems,
+        input,
+        mastermindPeriods: programMode === 'mastermind' ? sortedMastermindPeriods : undefined,
+      })
 
-    setIsExporting(false)
-    setShowExportModal(false)
+      await Promise.all([
+        logAction({
+          actionType: 'pl_pdf_generated',
+          description: `P&L PDF generated for ${clientName || 'Client'}`,
+          sessionId,
+          metadata: {
+            score,
+            overallGrade: result.overallGrade,
+            coachName: coachName || null,
+            clientName: clientName || null,
+            benchmarkVersion: result.benchmarkVersion,
+            confidence: result.confidence,
+            calculatorMode: programMode,
+            periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
+            warnings: result.warnings,
+          },
+        }),
+        savePdfExport({
+          sessionId,
+          coachName,
+          clientName: clientName || 'Client',
+          callDate: new Date().toLocaleDateString(),
+          score,
+          metadata: {
+            tool: 'pl_calculator',
+            exportStyle: 'structured_jspdf',
+            overallGrade: result.overallGrade,
+            odi: result.odi,
+            enterpriseValueLow: result.enterpriseValueLow,
+            enterpriseValueHigh: result.enterpriseValueHigh,
+            cashFlowSummary: result.cashFlowSummary,
+            metrics: result.metrics,
+            actionPlan: actionItems,
+            benchmarkVersion: result.benchmarkVersion,
+            confidence: result.confidence,
+            calculatorMode: programMode,
+            periodCount: programMode === 'mastermind' ? sortedMastermindPeriods.length : 1,
+            mastermindPeriods: programMode === 'mastermind' ? sortedMastermindPeriods : undefined,
+            warnings: result.warnings,
+            input,
+          },
+        }),
+      ])
+
+      setShowExportModal(false)
+    } catch (error) {
+      console.error('Failed to generate structured P&L PDF:', error)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -762,13 +938,21 @@ export default function PLCalculator() {
     return Math.max(100, metric.value)
   }
 
-  const hasRequiredCoreFields = inputHasRequiredCoreValues(input)
+  const scenarioRows = useMemo(() => {
+    if (!showResults || programMode !== 'rainmaker' || !isV2Enabled || !result) return []
+    return buildScenarioForecast(input)
+  }, [input, isV2Enabled, programMode, result, showResults])
+
+  const sensitivityRows = useMemo(() => {
+    if (!showResults || programMode !== 'rainmaker' || !isV2Enabled || !result) return []
+    return buildSensitivityLevers(input)
+  }, [input, isV2Enabled, programMode, result, showResults])
 
   const canProceed = () => {
     if (currentStep === 1) return true
     if (currentStep === 2) {
-      if (programMode === 'mastermind') return sortedMastermindPeriods.length >= 2
-      return hasRequiredCoreFields
+      if (programMode === 'mastermind') return mastermindTimelineValidation.isReady
+      return canRunRainmakerCalculation
     }
     return true
   }
@@ -1035,112 +1219,278 @@ export default function PLCalculator() {
                 </div>
               ) : null}
 
+              <div className="pl-validation-panel">
+                <div className="pl-validation-header">
+                  <strong>
+                    {programMode === 'mastermind' ? 'Timeline Readiness' : 'Input Readiness'}
+                  </strong>
+                  <span>{currentInputValidation.requiredCompletion}% required core fields complete</span>
+                </div>
+                <div className="pl-validation-track" aria-hidden="true">
+                  <span
+                    className="pl-validation-fill"
+                    style={{ width: `${currentInputValidation.requiredCompletion}%` }}
+                  />
+                </div>
+                {programMode === 'mastermind' ? (
+                  <p className="pl-input-hint">
+                    {sortedMastermindPeriods.length} periods saved · {mastermindTimelineValidation.errors.length} blocking issue{mastermindTimelineValidation.errors.length === 1 ? '' : 's'}
+                  </p>
+                ) : null}
+                {validationSummary.errors.length > 0 ? (
+                  <ul className="pl-validation-list pl-validation-list-errors">
+                    {validationSummary.errors.slice(0, 4).map((error) => (
+                      <li key={error}>{error}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {validationSummary.warnings.length > 0 ? (
+                  <ul className="pl-validation-list pl-validation-list-warnings">
+                    {validationSummary.warnings.slice(0, 3).map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+
+              {programMode === 'rainmaker' ? (
+                <div className="pl-guided-panel">
+                  <div className="pl-guided-panel-header">
+                    <div>
+                      <strong>Data Entry Mode</strong>
+                      <p className="pl-input-hint">
+                        Guided flow unlocks sections in sequence. Power input keeps all fields editable.
+                      </p>
+                    </div>
+                    <div className="pl-entry-mode-toggle" role="tablist" aria-label="Entry mode">
+                      <button
+                        type="button"
+                        className={`pl-entry-mode-btn ${entryMode === 'guided' ? 'active' : ''}`}
+                        onClick={() => setEntryMode('guided')}
+                        role="tab"
+                        aria-selected={entryMode === 'guided'}
+                      >
+                        Guided
+                      </button>
+                      <button
+                        type="button"
+                        className={`pl-entry-mode-btn ${entryMode === 'power' ? 'active' : ''}`}
+                        onClick={() => setEntryMode('power')}
+                        role="tab"
+                        aria-selected={entryMode === 'power'}
+                      >
+                        Power
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pl-guided-next-step" data-ready={canRunRainmakerCalculation ? 'ready' : 'pending'}>
+                    <span className="pl-guided-next-label">
+                      {canRunRainmakerCalculation ? 'Ready to calculate' : 'Next required input'}
+                    </span>
+                    <strong>
+                      {canRunRainmakerCalculation
+                        ? 'Core input checks are clear.'
+                        : (nextRequiredFieldLabel || 'Resolve blocking inputs to continue.')}
+                    </strong>
+                    {!canRunRainmakerCalculation && validationSummary.errors.length > 0 ? (
+                      <em>{validationSummary.errors[0]}</em>
+                    ) : null}
+                  </div>
+
+                  {entryMode === 'guided' ? (
+                    <div className="pl-guided-checklist">
+                      {guidedSections.map((section) => (
+                        <div
+                          key={section.id}
+                          className={`pl-guided-check-item ${section.isComplete ? 'complete' : ''} ${section.isUnlocked ? 'open' : 'locked'}`}
+                        >
+                          <div className="pl-guided-check-title">
+                            {section.isComplete ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                            <span>{section.title}</span>
+                            <strong>{section.completedCount}/{section.totalCount}</strong>
+                          </div>
+                          <p>{section.description}</p>
+                          {!section.isComplete && section.isUnlocked && section.nextFieldLabel ? (
+                            <em>Next: {section.nextFieldLabel}</em>
+                          ) : null}
+                          {!section.isUnlocked ? (
+                            <em>Unlocks after the previous section is complete.</em>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="pl-input-hint">Power mode is best for rapid paste-in and reconciliation workflows.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="pl-mastermind-checklist">
+                  <div className="pl-guided-check-title">
+                    <strong>Timeline checklist</strong>
+                  </div>
+                  <ul>
+                    {mastermindChecklist.map((item) => (
+                      <li key={item.id}>
+                        {item.done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                        <span>{item.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p>{mastermindNextAction}</p>
+                </div>
+              )}
+
               <div className="pl-financials-grid">
-                <div className="pl-input-section">
-                  <h4><TrendingUp size={16} /> Revenue</h4>
-                  <div className="pl-inputs-row">
-                    <div className={inputGroupClass('totalGrossRevenue')}>
-                      {renderInputLabel('totalGrossRevenue', 'Total Gross Revenue')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="500,000"
-                          value={input.totalGrossRevenue || ''}
-                          onValueChange={(values) => handleInputChange('totalGrossRevenue', values.floatValue || 0)}
+                <div className={`pl-input-section ${isRevenueLocked ? 'is-locked' : ''}`}>
+                  <h4>
+                    <TrendingUp size={16} /> Revenue
+                    {isGuidedRainmaker ? (
+                      <span className={`pl-guided-section-pill ${revenueSectionState.isComplete ? 'complete' : 'active'}`}>
+                        {revenueSectionState.isComplete ? 'Complete' : 'In Progress'}
+                      </span>
+                    ) : null}
+                  </h4>
+                  <fieldset className="pl-inputs-fieldset" disabled={isRevenueLocked}>
+                    <div className="pl-inputs-row">
+                      <div className={inputGroupClass('totalGrossRevenue')}>
+                        {renderInputLabel('totalGrossRevenue', 'Total Gross Revenue')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="500,000"
+                            value={input.totalGrossRevenue || ''}
+                            onValueChange={(values) => handleInputChange('totalGrossRevenue', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('totalGrossRevenue')}
+                      </div>
+                      <div className={inputGroupClass('totalPatientVisits')}>
+                        {renderInputLabel('totalPatientVisits', 'Patient Visits')}
+                        <input 
+                          type="number" 
+                          placeholder="2,500"
+                          value={input.totalPatientVisits || ''}
+                          onChange={(e) => handleInputChange('totalPatientVisits', Number(e.target.value))}
                         />
+                        {renderFieldError('totalPatientVisits')}
+                      </div>
+                      <div className={inputGroupClass('revenueFromContinuity')}>
+                        {renderInputLabel('revenueFromContinuity', 'Continuity Revenue')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="150,000"
+                            value={input.revenueFromContinuity || ''}
+                            onValueChange={(values) => handleInputChange('revenueFromContinuity', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('revenueFromContinuity')}
+                        <span className="pl-input-hint">Memberships, remote coaching, small group</span>
                       </div>
                     </div>
-                    <div className={inputGroupClass('totalPatientVisits')}>
-                      {renderInputLabel('totalPatientVisits', 'Patient Visits')}
-                      <input 
-                        type="number" 
-                        placeholder="2,500"
-                        value={input.totalPatientVisits || ''}
-                        onChange={(e) => handleInputChange('totalPatientVisits', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className={inputGroupClass('revenueFromContinuity')}>
-                      {renderInputLabel('revenueFromContinuity', 'Continuity Revenue')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="150,000"
-                          value={input.revenueFromContinuity || ''}
-                          onValueChange={(values) => handleInputChange('revenueFromContinuity', values.floatValue || 0)}
-                        />
-                      </div>
-                      <span className="pl-input-hint">Memberships, remote coaching, small group</span>
-                    </div>
-                  </div>
+                  </fieldset>
+                  {isRevenueLocked ? (
+                    <span className="pl-section-lock-copy">Complete the previous section to unlock revenue inputs.</span>
+                  ) : null}
                 </div>
 
-                <div className="pl-input-section">
-                  <h4><Users size={16} /> Expenses</h4>
-                  <div className="pl-inputs-row">
-                    <div className={inputGroupClass('totalFacilityCosts')}>
-                      {renderInputLabel('totalFacilityCosts', 'Facility Costs')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="40,000"
-                          value={input.totalFacilityCosts || ''}
-                          onValueChange={(values) => handleInputChange('totalFacilityCosts', values.floatValue || 0)}
-                        />
+                <div className={`pl-input-section ${isExpensesLocked ? 'is-locked' : ''}`}>
+                  <h4>
+                    <Users size={16} /> Expenses
+                    {isGuidedRainmaker ? (
+                      <span className={`pl-guided-section-pill ${isExpensesLocked ? 'locked' : expensesSectionState.isComplete ? 'complete' : 'active'}`}>
+                        {isExpensesLocked ? 'Locked' : expensesSectionState.isComplete ? 'Complete' : 'In Progress'}
+                      </span>
+                    ) : null}
+                  </h4>
+                  <fieldset className="pl-inputs-fieldset" disabled={isExpensesLocked}>
+                    <div className="pl-inputs-row">
+                      <div className={inputGroupClass('totalFacilityCosts')}>
+                        {renderInputLabel('totalFacilityCosts', 'Facility Costs')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="40,000"
+                            value={input.totalFacilityCosts || ''}
+                            onValueChange={(values) => handleInputChange('totalFacilityCosts', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('totalFacilityCosts')}
+                      </div>
+                      <div className={inputGroupClass('totalStaffPayroll')}>
+                        {renderInputLabel('totalStaffPayroll', 'Staff Payroll')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="180,000"
+                            value={input.totalStaffPayroll || ''}
+                            onValueChange={(values) => handleInputChange('totalStaffPayroll', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('totalStaffPayroll')}
+                        <span className="pl-input-hint">Excluding owner</span>
+                      </div>
+                      <div className={inputGroupClass('totalOperatingExpenses')}>
+                        {renderInputLabel('totalOperatingExpenses', 'Operating Expenses')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="350,000"
+                            value={input.totalOperatingExpenses || ''}
+                            onValueChange={(values) => handleInputChange('totalOperatingExpenses', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('totalOperatingExpenses')}
                       </div>
                     </div>
-                    <div className={inputGroupClass('totalStaffPayroll')}>
-                      {renderInputLabel('totalStaffPayroll', 'Staff Payroll')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="180,000"
-                          value={input.totalStaffPayroll || ''}
-                          onValueChange={(values) => handleInputChange('totalStaffPayroll', values.floatValue || 0)}
-                        />
-                      </div>
-                      <span className="pl-input-hint">Excluding owner</span>
-                    </div>
-                    <div className={inputGroupClass('totalOperatingExpenses')}>
-                      {renderInputLabel('totalOperatingExpenses', 'Operating Expenses')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="350,000"
-                          value={input.totalOperatingExpenses || ''}
-                          onValueChange={(values) => handleInputChange('totalOperatingExpenses', values.floatValue || 0)}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  </fieldset>
+                  {isExpensesLocked ? (
+                    <span className="pl-section-lock-copy">Finish Revenue Foundation to unlock expenses.</span>
+                  ) : null}
                 </div>
 
-                <div className="pl-input-section">
-                  <h4><Sparkles size={16} /> Owner</h4>
-                  <div className="pl-inputs-row">
-                    <div className={inputGroupClass('ownerSalary')}>
-                      {renderInputLabel('ownerSalary', 'Owner Salary')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="100,000"
-                          value={input.ownerSalary || ''}
-                          onValueChange={(values) => handleInputChange('ownerSalary', values.floatValue || 0)}
-                        />
+                <div className={`pl-input-section ${isOwnerLocked ? 'is-locked' : ''}`}>
+                  <h4>
+                    <Sparkles size={16} /> Owner
+                    {isGuidedRainmaker ? (
+                      <span className={`pl-guided-section-pill ${isOwnerLocked ? 'locked' : ownerSectionState.isComplete ? 'complete' : 'active'}`}>
+                        {isOwnerLocked ? 'Locked' : ownerSectionState.isComplete ? 'Complete' : 'In Progress'}
+                      </span>
+                    ) : null}
+                  </h4>
+                  <fieldset className="pl-inputs-fieldset" disabled={isOwnerLocked}>
+                    <div className="pl-inputs-row">
+                      <div className={inputGroupClass('ownerSalary')}>
+                        {renderInputLabel('ownerSalary', 'Owner Salary')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="100,000"
+                            value={input.ownerSalary || ''}
+                            onValueChange={(values) => handleInputChange('ownerSalary', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('ownerSalary')}
+                      </div>
+                      <div className={inputGroupClass('ownerAddBacks')}>
+                        {renderInputLabel('ownerAddBacks', 'Add-Backs')}
+                        <div className="pl-currency-input">
+                          <span>$</span>
+                          <NumberFormatBase
+                            placeholder="20,000"
+                            value={input.ownerAddBacks || ''}
+                            onValueChange={(values) => handleInputChange('ownerAddBacks', values.floatValue || 0)}
+                          />
+                        </div>
+                        {renderFieldError('ownerAddBacks')}
+                        <span className="pl-input-hint">Vehicle, insurance, CE, etc.</span>
                       </div>
                     </div>
-                    <div className={inputGroupClass('ownerAddBacks')}>
-                      {renderInputLabel('ownerAddBacks', 'Add-Backs')}
-                      <div className="pl-currency-input">
-                        <span>$</span>
-                        <NumberFormatBase
-                          placeholder="20,000"
-                          value={input.ownerAddBacks || ''}
-                          onValueChange={(values) => handleInputChange('ownerAddBacks', values.floatValue || 0)}
-                        />
-                      </div>
-                      <span className="pl-input-hint">Vehicle, insurance, CE, etc.</span>
-                    </div>
-                  </div>
+                  </fieldset>
+                  {isOwnerLocked ? (
+                    <span className="pl-section-lock-copy">Finish Expense Structure to unlock owner economics.</span>
+                  ) : null}
                 </div>
 
                 <div className="pl-advanced-section">
@@ -1148,10 +1498,17 @@ export default function PLCalculator() {
                     type="button"
                     className="pl-advanced-toggle"
                     onClick={() => setShowAdvancedInputs((open) => !open)}
+                    disabled={!canOpenAdvancedInputs}
                   >
                     <span>Advanced Inputs (Optional)</span>
                     <span>{showAdvancedInputs ? 'Hide' : 'Show'}</span>
                   </button>
+
+                  {!canOpenAdvancedInputs ? (
+                    <span className="pl-input-hint">
+                      Complete all required core fields to unlock advanced inputs in guided mode.
+                    </span>
+                  ) : null}
 
                   {showAdvancedInputs && (
                     <div className="pl-advanced-grid">
@@ -1358,9 +1715,11 @@ export default function PLCalculator() {
                 </div>
 
                 {/* Report Card */}
-                <div className="pl-report" ref={reportRef}>
+                <div className="pl-report">
                   <div className="pl-report-header">
-                    <div className="pl-report-logo">PT Biz</div>
+                    <div className="pl-report-logo">
+                      <img src={SITE_LOGO_URL} alt="PT Biz" />
+                    </div>
                     <div className="pl-report-meta">
                       {coachName && <span>Coach: {coachName}</span>}
                       {clientName && <span>Client: {clientName}</span>}
@@ -1396,6 +1755,37 @@ export default function PLCalculator() {
                           <li key={warning}>{warning}</li>
                         ))}
                       </ul>
+                    </div>
+                  ) : null}
+
+                  {scenarioRows.length > 0 ? (
+                    <div className="pl-scenario-section">
+                      <h3>Scenario Forecast</h3>
+                      <div className="pl-scenario-grid">
+                        {scenarioRows.map((scenario) => (
+                          <div key={scenario.name} className="pl-scenario-card" data-grade={scenario.grade}>
+                            <span>{scenario.name}</span>
+                            <strong>Score {scenario.score}</strong>
+                            <em>ODI {formatCurrency(scenario.odi)}</em>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {sensitivityRows.length > 0 ? (
+                    <div className="pl-sensitivity-section">
+                      <h3>Highest-Impact Levers</h3>
+                      <div className="pl-sensitivity-list">
+                        {sensitivityRows.map((entry) => (
+                          <div key={entry.label} className="pl-sensitivity-row">
+                            <span>{entry.label}</span>
+                            <strong className={entry.scoreDelta >= 0 ? 'positive' : 'negative'}>
+                              {entry.scoreDelta >= 0 ? '+' : ''}{entry.scoreDelta} score
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : null}
 

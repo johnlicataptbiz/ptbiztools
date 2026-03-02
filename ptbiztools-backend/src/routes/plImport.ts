@@ -15,6 +15,7 @@ import {
   serializeMappedInput,
   validateUpload,
 } from '../pl-import/service.js'
+import { validateMappedInputForApproval } from '../pl-import/sanity.js'
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -510,10 +511,17 @@ plImportRouter.post('/batches/:batchId/items', requireAuth, assertBatchOwnerAcce
     const existingItems = await prisma.pLImportBatchItem.findMany({
       where: { batchId },
       orderBy: { periodOrder: 'asc' },
-      select: { id: true, importSessionId: true, periodOrder: true },
+      select: { id: true, importSessionId: true, periodOrder: true, periodLabel: true },
     })
 
     const existingForSession = existingItems.find((item) => item.importSessionId === importSessionId)
+    const duplicateLabel = existingItems.find(
+      (item) => item.id !== existingForSession?.id && item.periodLabel.trim().toLowerCase() === periodLabel.toLowerCase(),
+    )
+    if (duplicateLabel) {
+      res.status(400).json({ error: `periodLabel "${periodLabel}" is already used in this batch` })
+      return
+    }
 
     let periodOrder: number
     if (typeof periodOrderRaw === 'number' && Number.isFinite(periodOrderRaw) && periodOrderRaw > 0) {
@@ -605,6 +613,21 @@ plImportRouter.patch('/batches/:batchId/items/:itemId', requireAuth, assertBatch
     if (periodLabel === undefined && periodOrder === undefined) {
       res.status(400).json({ error: 'Nothing to update' })
       return
+    }
+
+    if (periodLabel !== undefined) {
+      const siblings = await prisma.pLImportBatchItem.findMany({
+        where: {
+          batchId,
+          NOT: { id: itemId },
+        },
+        select: { periodLabel: true },
+      })
+
+      if (siblings.some((entry) => entry.periodLabel.trim().toLowerCase() === periodLabel.toLowerCase())) {
+        res.status(400).json({ error: `periodLabel "${periodLabel}" is already used in this batch` })
+        return
+      }
     }
 
     if (periodOrder !== undefined) {
@@ -760,14 +783,26 @@ plImportRouter.post('/batches/:batchId/approve', requireAuth, assertBatchOwnerAc
     }
 
     const invalidMappings = batch.items
-      .filter((item) => !item.importSession.mapping || !item.importSession.requiredFieldsComplete)
-      .map((item) => ({
-        itemId: item.id,
-        importSessionId: item.importSession.id,
-        periodLabel: item.periodLabel,
-        requiredFieldsComplete: item.importSession.requiredFieldsComplete,
-        hasMapping: Boolean(item.importSession.mapping),
-      }))
+      .map((item) => {
+        const mappingIssues = item.importSession.mapping
+          ? validateMappedInputForApproval(item.importSession.mapping.mappedInput)
+          : ['mapping missing']
+        const isInvalid = !item.importSession.mapping
+          || !item.importSession.requiredFieldsComplete
+          || mappingIssues.length > 0
+
+        return isInvalid
+          ? {
+            itemId: item.id,
+            importSessionId: item.importSession.id,
+            periodLabel: item.periodLabel,
+            requiredFieldsComplete: item.importSession.requiredFieldsComplete,
+            hasMapping: Boolean(item.importSession.mapping),
+            mappingIssues,
+          }
+          : null
+      })
+      .filter((item) => item !== null)
 
     if (invalidMappings.length > 0) {
       res.status(400).json({
@@ -955,6 +990,15 @@ plImportRouter.post('/:id/approve', requireAuth, assertOwnerAccess, async (req: 
       res.status(400).json({
         error: 'Required fields are incomplete',
         requiredFieldsComplete: false,
+      })
+      return
+    }
+
+    const mappingIssues = validateMappedInputForApproval(loaded.mapping.mappedInput)
+    if (mappingIssues.length > 0) {
+      res.status(400).json({
+        error: 'Mapped input failed sanity checks',
+        mappingIssues,
       })
       return
     }

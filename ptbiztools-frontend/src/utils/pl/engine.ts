@@ -1,12 +1,16 @@
-import type { GradeBand, GradeLevel, MetricResult, PLInput, PLResult } from '../plTypes'
+import type { GradeLevel, MetricResult, PLInput, PLResult } from '../plTypes'
 import { buildActionPlan } from './actionLibrary'
 import { DEFAULT_BENCHMARK_PROFILE, type BenchmarkMetricProfile, type MetricId } from './benchmarkProfiles'
-
-const GRADE_SCORES: Record<GradeLevel, number> = {
-  green: 100,
-  yellow: 72,
-  red: 40,
-}
+import {
+  GRADE_SCORES,
+  calculateWeightedScore,
+  clampNumber,
+  overallGradeFromScore,
+  percent,
+  resolveGrade,
+  toFiniteNumber,
+} from './scoring'
+import { validateRainmakerInput } from './validation'
 
 const DIAGNOSTIC_MESSAGES: Record<MetricId, Record<GradeLevel, string>> = {
   arpv: {
@@ -76,20 +80,6 @@ const DIAGNOSTIC_MESSAGES: Record<MetricId, Record<GradeLevel, string>> = {
   },
 }
 
-function toNumber(value: number | undefined): number {
-  if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) return 0
-  return value
-}
-
-function percent(part: number, total: number): number {
-  if (total <= 0) return 0
-  return (part / total) * 100
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
-}
-
 function hashSeed(input: string): number {
   let hash = 2166136261
   for (let i = 0; i < input.length; i += 1) {
@@ -120,20 +110,6 @@ function generateDeterministicTrend(metricId: string, value: number, grade: Grad
 
     return Math.round(nextValue)
   })
-}
-
-function resolveGrade(value: number, bands: GradeBand[]): { grade: GradeLevel; label: string } {
-  for (const band of bands) {
-    const minPass = band.min === undefined || value >= band.min
-    const maxPass = band.max === undefined || value <= band.max
-
-    if (minPass && maxPass) {
-      return { grade: band.grade, label: band.label }
-    }
-  }
-
-  const fallback = bands[bands.length - 1]
-  return { grade: fallback.grade, label: fallback.label }
 }
 
 function getDisplayType(metricId: MetricId): MetricResult['displayType'] {
@@ -182,30 +158,14 @@ function scoreRevenueStratification(input: {
 
   const scoreBand = (value: number, min: number, max: number) => {
     if (value >= min && value <= max) return 100
-    if (value < min) return clamp(100 - (min - value) * 3.5, 0, 100)
-    return clamp(100 - (value - max) * 3.5, 0, 100)
+    if (value < min) return clampNumber(100 - (min - value) * 3.5, 0, 100)
+    return clampNumber(100 - (value - max) * 3.5, 0, 100)
   }
 
   const weighted =
     scoreBand(front, 45, 60) * 0.4 + scoreBand(continuity, 30, 50) * 0.4 + scoreBand(tertiary, 5, 15) * 0.2
 
   return Number(weighted.toFixed(2))
-}
-
-function calculateScore(metrics: MetricResult[]): number {
-  if (metrics.length === 0) return 0
-
-  const weightTotal = metrics.reduce((sum, metric) => sum + metric.weight, 0)
-  if (weightTotal === 0) return 0
-
-  const weightedScore = metrics.reduce((sum, metric) => sum + metric.score * metric.weight, 0)
-  return Math.round(weightedScore / weightTotal)
-}
-
-function getOverallGrade(score: number): GradeLevel {
-  if (score >= 85) return 'green'
-  if (score >= 65) return 'yellow'
-  return 'red'
 }
 
 function buildCashFlowSummary(netMargin: number, recurringRatio: number, score: number): string {
@@ -225,35 +185,40 @@ export function buildPLResult(input: PLInput): PLResult {
   // the benchmark profile is static in code. We do not load scoring logic from knowledge docs.
   const profile = DEFAULT_BENCHMARK_PROFILE
   const warnings: string[] = []
+  const validation = validateRainmakerInput(input)
+  warnings.push(...validation.warnings)
+  if (validation.hasBlockingErrors) {
+    warnings.push(...validation.errors.map((error) => `Input error: ${error}`))
+  }
 
-  const totalGrossRevenue = toNumber(input.totalGrossRevenue)
-  const totalPatientVisits = toNumber(input.totalPatientVisits)
-  const continuityRevenue = toNumber(input.revenueFromContinuity)
-  const totalFacilityCosts = toNumber(input.totalFacilityCosts)
-  const totalStaffPayroll = toNumber(input.totalStaffPayroll)
-  const totalOperatingExpenses = toNumber(input.totalOperatingExpenses)
-  const ownerSalary = toNumber(input.ownerSalary)
-  const ownerAddBacks = toNumber(input.ownerAddBacks)
+  const totalGrossRevenue = toFiniteNumber(input.totalGrossRevenue)
+  const totalPatientVisits = toFiniteNumber(input.totalPatientVisits)
+  const continuityRevenue = toFiniteNumber(input.revenueFromContinuity)
+  const totalFacilityCosts = toFiniteNumber(input.totalFacilityCosts)
+  const totalStaffPayroll = toFiniteNumber(input.totalStaffPayroll)
+  const totalOperatingExpenses = toFiniteNumber(input.totalOperatingExpenses)
+  const ownerSalary = toFiniteNumber(input.ownerSalary)
+  const ownerAddBacks = toFiniteNumber(input.ownerAddBacks)
 
   const frontEndRevenue =
     input.frontEndRevenue !== undefined
-      ? toNumber(input.frontEndRevenue)
-      : Math.max(0, totalGrossRevenue - continuityRevenue - toNumber(input.tertiaryRevenue))
-  const tertiaryRevenue = toNumber(input.tertiaryRevenue)
-  const marketingSpend = input.marketingSpend !== undefined ? toNumber(input.marketingSpend) : undefined
-  const techAdminSpend = input.techAdminSpend !== undefined ? toNumber(input.techAdminSpend) : undefined
-  const merchantFees = input.merchantFees !== undefined ? toNumber(input.merchantFees) : undefined
-  const retailCOGS = input.retailCOGS !== undefined ? toNumber(input.retailCOGS) : undefined
+      ? toFiniteNumber(input.frontEndRevenue)
+      : Math.max(0, totalGrossRevenue - continuityRevenue - toFiniteNumber(input.tertiaryRevenue))
+  const tertiaryRevenue = toFiniteNumber(input.tertiaryRevenue)
+  const marketingSpend = input.marketingSpend !== undefined ? toFiniteNumber(input.marketingSpend) : undefined
+  const techAdminSpend = input.techAdminSpend !== undefined ? toFiniteNumber(input.techAdminSpend) : undefined
+  const merchantFees = input.merchantFees !== undefined ? toFiniteNumber(input.merchantFees) : undefined
+  const retailCOGS = input.retailCOGS !== undefined ? toFiniteNumber(input.retailCOGS) : undefined
 
-  const leadCount = input.leadCount !== undefined ? toNumber(input.leadCount) : undefined
-  const evaluationsBooked = input.evaluationsBooked !== undefined ? toNumber(input.evaluationsBooked) : undefined
-  const packagesClosed = input.packagesClosed !== undefined ? toNumber(input.packagesClosed) : undefined
+  const leadCount = input.leadCount !== undefined ? toFiniteNumber(input.leadCount) : undefined
+  const evaluationsBooked = input.evaluationsBooked !== undefined ? toFiniteNumber(input.evaluationsBooked) : undefined
+  const packagesClosed = input.packagesClosed !== undefined ? toFiniteNumber(input.packagesClosed) : undefined
   const activeContinuityMembers =
-    input.activeContinuityMembers !== undefined ? toNumber(input.activeContinuityMembers) : undefined
-  const npsScore = input.npsScore !== undefined ? toNumber(input.npsScore) : undefined
-  const patientLTV = input.patientLTV !== undefined ? toNumber(input.patientLTV) : undefined
+    input.activeContinuityMembers !== undefined ? toFiniteNumber(input.activeContinuityMembers) : undefined
+  const npsScore = input.npsScore !== undefined ? toFiniteNumber(input.npsScore) : undefined
+  const patientLTV = input.patientLTV !== undefined ? toFiniteNumber(input.patientLTV) : undefined
   const patientAcquisitionCost =
-    input.patientAcquisitionCost !== undefined ? toNumber(input.patientAcquisitionCost) : undefined
+    input.patientAcquisitionCost !== undefined ? toFiniteNumber(input.patientAcquisitionCost) : undefined
 
   if (totalGrossRevenue <= 0) {
     warnings.push('Total gross revenue must be greater than zero for meaningful benchmarking.')
@@ -375,8 +340,8 @@ export function buildPLResult(input: PLInput): PLResult {
     warnings.push('NPS metric skipped: add NPS score.')
   }
 
-  const score = calculateScore(metrics)
-  const overallGrade = getOverallGrade(score)
+  const score = calculateWeightedScore(metrics)
+  const overallGrade = overallGradeFromScore(score)
 
   const coreMetrics = metrics.filter((metric) => metric.group === 'core')
   const growthMetrics = metrics.filter((metric) => metric.group === 'growth')
@@ -385,8 +350,8 @@ export function buildPLResult(input: PLInput): PLResult {
   const advancedMetricsAvailable = metrics.filter((metric) => metric.source === 'advanced').length
   const advancedMetricsTotal = Object.values(profile.metrics).filter((metric) => metric.source === 'advanced').length
   const completeness = advancedMetricsTotal > 0 ? advancedMetricsAvailable / advancedMetricsTotal : 0
-  const warningPenalty = clamp(warnings.length * 3, 0, 28)
-  const confidence = clamp(Math.round(62 + completeness * 35 - warningPenalty), 35, 99)
+  const warningPenalty = clampNumber(warnings.length * 3, 0, 28)
+  const confidence = clampNumber(Math.round(62 + completeness * 35 - warningPenalty), 35, 99)
 
   const odi = netProfit + ownerSalary + ownerAddBacks
   const enterpriseValueLow = odi * 3

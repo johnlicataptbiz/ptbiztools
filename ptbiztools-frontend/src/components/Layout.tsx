@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { BarChart3, ClipboardList, Calculator, Film, BookOpenText, ScrollText, LogOut, Menu, PhoneCall, X } from 'lucide-react'
 import type { User } from '../services/api'
@@ -58,10 +58,6 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
     .toUpperCase()
 
   const [avatarDidError, setAvatarDidError] = useState(false)
-  const logoMaskStyle = useMemo(
-    () => ({ '--logo-mask-url': `url(${SITE_LOGO_URL})` } as CSSProperties),
-    [],
-  )
 
   return (
     <div className="layout">
@@ -74,7 +70,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link to="/" className="sidebar-logo" onClick={() => setMenuOpen(false)}>
-            <span className="logo-img logo-mask" role="img" aria-label="PT Biz" style={logoMaskStyle} />
+            <img className="logo-img" src={SITE_LOGO_URL} alt="BizCoach Suite" />
           </Link>
 
           <button className="sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">

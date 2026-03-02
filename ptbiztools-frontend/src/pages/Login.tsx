@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from 'lucide-react'
@@ -34,6 +34,12 @@ function getMemberSortPriority(member: TeamMember) {
   if (section.includes('coach') || title.includes('coach') || role === 'coach') return 0
   if (section.includes('partner') || title.includes('partner')) return 1
   return 2
+}
+
+function isBoardMember(member: TeamMember) {
+  const section = normalizeText(member.teamSection)
+  const title = normalizeText(member.title)
+  return section.includes('board') || title.includes('board')
 }
 
 function getInitials(name: string) {
@@ -100,10 +106,11 @@ export default function Login({ onAuthenticated }: LoginProps) {
   useEffect(() => {
     const bootstrap = async () => {
       const members = await getTeamMembers()
-      setTeamMembers(members)
+      const visibleMembers = members.filter((member) => !isBoardMember(member))
+      setTeamMembers(visibleMembers)
 
       const remembered = localStorage.getItem(rememberedUserKey)
-      if (remembered && members.some((member) => member.id === remembered)) {
+      if (remembered && visibleMembers.some((member) => member.id === remembered)) {
         setSelectedUserId(remembered)
       }
 
@@ -128,10 +135,6 @@ export default function Login({ onAuthenticated }: LoginProps) {
   )
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false
-  const loginLogoMaskStyle = useMemo(
-    () => ({ '--logo-mask-url': `url(${LOGIN_LOGO_URL})` } as CSSProperties),
-    [],
-  )
 
   const resetInputs = () => {
     setPassword('')
@@ -240,7 +243,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
       >
         <header className="login-header">
           <div className="login-logo-hero">
-            <span className="login-logo-image logo-mask" role="img" aria-label="BizCoach Suite" style={loginLogoMaskStyle} />
+            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="BizCoach Suite" />
           </div>
           <span className="login-header-kicker">Private Platform Access</span>
           <h1>PT Biz Team Login</h1>

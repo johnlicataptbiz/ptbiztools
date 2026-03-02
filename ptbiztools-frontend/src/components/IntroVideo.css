@@ -97,8 +97,10 @@
 }
 
 .intro-start-logo {
+  display: block;
   width: min(220px, 60vw);
   height: clamp(50px, 10vw, 86px);
+  object-fit: contain;
 }
 
 .intro-play-btn {
@@ -188,6 +190,7 @@
 .app-loader-logo {
   width: min(320px, 72vw);
   height: clamp(58px, 10vw, 92px);
+  object-fit: contain;
   opacity: 0.95;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.5));
 }
