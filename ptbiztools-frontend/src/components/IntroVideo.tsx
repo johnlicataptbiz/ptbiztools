@@ -2,8 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { AnimatePresence, motion } from 'framer-motion'
 import { Calculator, CheckCircle2, ClipboardList, Lock } from 'lucide-react'
 import { SITE_LOGO_URL } from '../constants/branding'
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api'
+import { API_BASE } from '../config/apiBase'
 
 export interface RevealedTools {
   discovery: boolean
@@ -45,7 +44,7 @@ export default function IntroVideo({ onComplete, onRevealChange }: IntroVideoPro
       const objectUrls: string[] = []
 
       try {
-        const response = await fetch(`${API_URL}/videos/intro-combined`)
+        const response = await fetch(`${API_BASE}/videos/intro-combined`, { credentials: 'include' })
 
         if (response.ok) {
           const blob = await response.blob()

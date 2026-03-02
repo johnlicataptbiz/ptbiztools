@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api'
+import { API_BASE } from '../config/apiBase'
 
 export interface ActionLogInput {
   actionType: string

@@ -1,8 +1,8 @@
 import type { PLInput } from '../utils/plTypes';
+import { API_BASE } from '../config/apiBase';
+export { API_BASE };
 
 export type PLImportNumericField = Exclude<keyof PLInput, 'clinicSize' | 'clinicModel' | 'businessStage'>;
-
-export const API_BASE = import.meta.env.VITE_API_URL || 'https://ptbiz-backend-production.up.railway.app/api';
 
 // Authentication & Team Types
 export interface TeamMember {
