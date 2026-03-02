@@ -651,6 +651,65 @@ export async function extractTranscriptFromFile(file: File): Promise<{
   }
 }
 
+export async function gradeDannySalesCall(input: {
+  transcript: string;
+  closer: string;
+  outcome: string;
+  program: string;
+}): Promise<{ result?: Record<string, unknown>; model?: string; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/danny-tools/sales-grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(input),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { error: data.error || 'Failed to grade sales call' };
+    }
+
+    return {
+      result: data.result as Record<string, unknown>,
+      model: data.model as string,
+    };
+  } catch (error) {
+    console.error('Failed to grade Danny sales call:', error);
+    return { error: 'Network error' };
+  }
+}
+
+export async function extractDannyPLFromPdf(file: File): Promise<{
+  extracted?: Record<string, unknown>;
+  model?: string;
+  error?: string;
+}> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    const response = await fetch(`${API_BASE}/danny-tools/pl-extract`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { error: data.error || 'Failed to extract P&L fields from PDF' };
+    }
+
+    return {
+      extracted: data.extracted as Record<string, unknown>,
+      model: data.model as string,
+    };
+  } catch (error) {
+    console.error('Failed to extract Danny P&L PDF:', error);
+    return { error: 'Network error' };
+  }
+}
+
 export async function createPLImport(formData: FormData): Promise<{
   importId?: string;
   status?: PLImportStatus;

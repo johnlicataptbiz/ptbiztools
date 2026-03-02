@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useCallback } from "react";
-import { extractTranscriptFromFile, logAction, ActionTypes, saveCoachingAnalysis, savePdfExport } from "../../services/api";
-import { gradeTranscript } from "../../utils/grader";
+import { extractTranscriptFromFile, logAction, ActionTypes, saveCoachingAnalysis, savePdfExport, gradeDannySalesCall } from "../../services/api";
 
 const STORAGE_KEY = "ptbiz-call-grades";
 
@@ -23,78 +22,6 @@ const CRITICAL_BEHAVIORS = [
   { id: "personal_story", name: "Story Deployment", description: "Used personal or client transformation story effectively" },
 ];
 
-const SYSTEM_PROMPT = `You are a sales call analyst for PT Biz, a physical therapy business coaching company. You grade sales call transcripts against a specific 7-phase framework.
-
-SCORING FRAMEWORK (each phase scored 0-100):
-
-1. CONNECTION & AGENDA (Weight: 10%)
-- Did the closer build genuine rapport in 3-5 minutes?
-- Was the agenda clearly set?
-- Did the prospect feel comfortable and heard from the start?
-
-2. DISCOVERY (Weight: 25%) — THIS IS THE MOST IMPORTANT PHASE
-- Did they get the FACTS? (revenue, sessions, evals, overhead, team size, years in business)
-- Did they get the FEELINGS? When the prospect shared stress, fear, overwhelm — did the closer go DEEPER or move on? Saying "sure" or "yeah" and moving to the next question = low score. Asking "what does that look like day to day?" or "how is that affecting things at home?" = high score.
-- Did they explore the FUTURE? What does the prospect want? Why does it matter to them personally?
-- A closer who gets all the numbers but misses the emotion scores no higher than 60 here.
-
-3. GAP CREATION (Weight: 20%)
-- Did they help the prospect see the gap between where they are and where they want to be?
-- Did they quantify the cost of staying stuck? (Math exercise: "If you stay at $15K/mo for another year, that's $180K you're leaving on the table")
-- Did they identify skill gaps the prospect can't solve alone?
-
-4. TEMPERATURE CHECK (Weight: 10%)
-- Did they explicitly or clearly gauge the prospect's readiness/interest level?
-- If the prospect was cold (below 5/10), did they adjust strategy or wrap up?
-- If no temperature check happened, this scores low automatically.
-
-5. SOLUTION PRESENTATION (Weight: 15%)
-- Was the presentation calibrated to the prospect's specific situation, or generic?
-- Did they deploy a personal ownership story or relevant client transformation story?
-- Did they focus on outcomes and transformation, or just features and platform demos?
-- A walkthrough of the platform/course without tying it to the prospect's specific pain = low score.
-
-6. INVESTMENT & CLOSE (Weight: 15%)
-- Was the price presented confidently?
-- How was objection handling? (Acknowledge → Isolate → Resolve → Re-ask)
-- DISCOUNT DISCIPLINE: Did they offer unprompted discounts? Did they cave at first pushback? Offering a discount to someone who was already buying = major deduction.
-- Did they actually ASK for the sale clearly?
-
-7. FOLLOW-UP / WRAP (Weight: 5%)
-- If the prospect said yes: clean onboarding, next steps
-- If the prospect said no: did they schedule a specific follow-up or just let them drift?
-- CRITICAL: Did they give away free consulting AFTER the prospect declined? (e.g., hiring advice, marketing tips, Amazon links for equipment). This is a major negative.
-
-CRITICAL BEHAVIORS (Pass/Fail):
-- No Free Consulting: Did they avoid giving actionable business advice before or after the prospect committed? Diagnosing the problem is fine. Handing over the solution is not.
-- Discount Discipline: No unprompted concessions. Structured incentives (workshop waiver, etc.) are fine if presented early as a benefit, not reactively.
-- Emotional Depth: Did they go below the surface when prospects shared feelings?
-- Time Management: Call under 60 minutes. Did not spend 20+ minutes after a clear "no."
-- Story Deployment: Used a personal or client transformation story effectively.
-
-RESPONSE FORMAT — You MUST respond in valid JSON only, no other text:
-{
-  "phases": {
-    "connection": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "discovery": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "gap_creation": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "temp_check": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "solution": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "close": { "score": 0-100, "summary": "2-3 sentence assessment" },
-    "followup": { "score": 0-100, "summary": "2-3 sentence assessment" }
-  },
-  "critical_behaviors": {
-    "free_consulting": { "pass": true/false, "note": "brief explanation" },
-    "discount_discipline": { "pass": true/false, "note": "brief explanation" },
-    "emotional_depth": { "pass": true/false, "note": "brief explanation" },
-    "time_management": { "pass": true/false, "note": "brief explanation" },
-    "personal_story": { "pass": true/false, "note": "brief explanation" }
-  },
-  "overall_score": 0-100,
-  "top_strength": "One sentence — the single best thing they did on this call",
-  "top_improvement": "One sentence — the single highest-leverage thing to fix",
-  "prospect_summary": "Brief: prospect name, business stage, revenue, program discussed"
-}`;
 
 function ScoreBar({ score, size = "md" }) {
   const getColor = (s) => {
@@ -136,102 +63,6 @@ function PassFail({ pass }) {
       {pass ? "✓ PASS" : "✗ FAIL"}
     </span>
   );
-}
-
-function normalizePhaseScore(phase) {
-  if (!phase || !phase.maxScore) return 0;
-  return Math.max(0, Math.min(100, Math.round((phase.score / phase.maxScore) * 100)));
-}
-
-function mapGradeToDannySchema(grade, transcriptText, meta) {
-  const lookup = {};
-  (grade.phaseScores || []).forEach((phase) => {
-    lookup[phase.name] = normalizePhaseScore(phase);
-  });
-
-  const lower = (transcriptText || "").toLowerCase();
-  const connection = Math.round(((lookup["Opening & Rapport"] || 0) + (lookup["Set the Scene / Take Control"] || 0)) / 2);
-  const discovery = Math.round(((lookup["Discovery — Current State"] || 0) + (lookup["Discovery — Goals & Why"] || 0)) / 2);
-  const solution = lookup["Value Presentation"] || 0;
-  const close = lookup["The Close"] || 0;
-  const objection = lookup["Objection Handling"] || 0;
-
-  const tempCheck = /temperature|readiness|on a scale|1 to 10|out of ten/.test(lower) ? 80 : 45;
-  const followup = /(next step|follow up|follow-up|scheduled|calendar|booked|check in)/.test(lower) ? 78 : 46;
-  const gapCreation = Math.round((discovery + solution + objection) / 3);
-
-  const phases = {
-    connection: {
-      score: connection,
-      summary: connection >= 70 ? "Strong rapport and clear agenda control were demonstrated." : "Rapport or agenda control was inconsistent and needs tightening early in the call.",
-    },
-    discovery: {
-      score: discovery,
-      summary: discovery >= 70 ? "Discovery covered both facts and motivations with useful depth." : "Discovery stayed too surface-level and should go deeper on emotional stakes and urgency.",
-    },
-    gap_creation: {
-      score: gapCreation,
-      summary: gapCreation >= 70 ? "The conversation built a clear gap between current state and desired outcome." : "Gap creation was light; quantify cost of inaction and sharpen consequences.",
-    },
-    temp_check: {
-      score: tempCheck,
-      summary: tempCheck >= 70 ? "Readiness checks were present and handled appropriately." : "A clear readiness/temperature check was missing or underused.",
-    },
-    solution: {
-      score: solution,
-      summary: solution >= 70 ? "Solution framing was tied to the prospect’s specific context." : "Solution delivery felt generic and needs tighter personalization to stated pain/goals.",
-    },
-    close: {
-      score: close,
-      summary: close >= 70 ? "Close sequence was confident with clear next-step asks." : "Closing sequence needs a stronger ask and tighter objection resolution flow.",
-    },
-    followup: {
-      score: followup,
-      summary: followup >= 70 ? "Wrap-up and next-step commitments were cleanly handled." : "Follow-up commitments were weak or unclear at the end of the call.",
-    },
-  };
-
-  const critical_behaviors = {
-    free_consulting: {
-      pass: !/(you should just|free advice|just do this|go do this)/.test(lower),
-      note: /(you should just|free advice|just do this|go do this)/.test(lower)
-        ? "Call included potential free-consulting language before commitment."
-        : "No clear free-consulting behavior detected.",
-    },
-    discount_discipline: {
-      pass: !/(discount|lower the price|special deal|cheaper|price cut)/.test(lower),
-      note: /(discount|lower the price|special deal|cheaper|price cut)/.test(lower)
-        ? "Discount language was detected and should be used with stricter guardrails."
-        : "No obvious discount-discipline violations detected.",
-    },
-    emotional_depth: {
-      pass: discovery >= 65,
-      note: discovery >= 65
-        ? "Discovery likely reached emotional context beyond surface facts."
-        : "Emotional depth appears limited; add follow-up questions on impact and stakes.",
-    },
-    time_management: {
-      pass: (transcriptText || "").split(/\s+/).length < 9000,
-      note: (transcriptText || "").split(/\s+/).length < 9000
-        ? "Transcript length suggests reasonable pacing."
-        : "Transcript appears very long; tighten pacing and avoid over-extending low-intent calls.",
-    },
-    personal_story: {
-      pass: /(story|client story|one of our clients|i went through|i had a client)/.test(lower),
-      note: /(story|client story|one of our clients|i went through|i had a client)/.test(lower)
-        ? "Personal/client story language was detected."
-        : "No obvious personal story deployment detected.",
-    },
-  };
-
-  return {
-    phases,
-    critical_behaviors,
-    overall_score: grade.score,
-    top_strength: grade.strengths?.[0] || "Solid foundation in key call flow elements.",
-    top_improvement: grade.improvements?.[0] || "Tighten discovery and close sequencing.",
-    prospect_summary: `${meta.prospectName || "Unknown Prospect"} | Program: ${meta.program} | Outcome: ${meta.outcome}`,
-  };
 }
 
 export default function SalesCallGrader() {
@@ -431,13 +262,20 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         sessionId,
       });
 
-      const grade = gradeTranscript(transcriptText);
-      const parsed = mapGradeToDannySchema(grade, transcriptText, {
+      const graded = await gradeDannySalesCall({
+        transcript: transcriptText,
         closer,
         outcome,
         program,
-        prospectName: prospectName.trim(),
       });
+      if (graded.error || !graded.result) {
+        throw new Error(graded.error || "Failed to grade transcript.");
+      }
+
+      const parsed = graded.result;
+      if (typeof parsed?.overall_score !== "number" || !parsed?.phases || !parsed?.critical_behaviors) {
+        throw new Error("Grading response was incomplete.");
+      }
 
       const entry = {
         id: Date.now(),
@@ -461,7 +299,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
       await logAction({
         actionType: ActionTypes.GRADE_GENERATED,
         description: `Danny sales grade generated: ${parsed.overall_score}/100`,
-        metadata: { score: parsed.overall_score, tool: "sales_discovery_grader_danny" },
+        metadata: { score: parsed.overall_score, tool: "sales_discovery_grader_danny", model: graded.model },
         sessionId,
       });
 
@@ -471,14 +309,16 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         clientName: prospectName.trim() || "Unknown",
         callDate: new Date().toISOString().slice(0, 10),
         grade: {
-          score: grade.score,
-          outcome: grade.outcome,
-          summary: grade.summary,
-          phaseScores: grade.phaseScores,
-          strengths: grade.strengths,
-          improvements: grade.improvements,
-          redFlags: grade.redFlags,
-          deidentifiedTranscript: grade.deidentifiedTranscript,
+          score: parsed.overall_score,
+          outcome,
+          summary: `${parsed.top_strength || ""} ${parsed.top_improvement || ""}`.trim(),
+          phaseScores: parsed.phases,
+          strengths: parsed.top_strength ? [parsed.top_strength] : [],
+          improvements: parsed.top_improvement ? [parsed.top_improvement] : [],
+          redFlags: Object.entries(parsed.critical_behaviors || {})
+            .filter(([, value]) => value && value.pass === false)
+            .map(([key]) => key),
+          deidentifiedTranscript: transcriptText.slice(0, 20000),
         },
       });
 

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useCallback } from "react";
-import { approvePLImport, createPLImport, getPLImport } from "../../services/api";
+import { extractDannyPLFromPdf } from "../../services/api";
 
 const B = { blue:"#2E86F5", blueLt:"#5BA0F7", blueDk:"#1A6AD4", glow:"rgba(46,134,245,0.25)", dark:"#1A1A1E", surf:"#242428", bdr:"#35353A", bdrLt:"#45454B", wht:"#F5F5F7", gray:"#9A9AA0", grayDk:"#6A6A70", grayXDk:"#4A4A50" };
 const REF = { rev:961260, rent:46807, util:4909, staff:278433, ptax:25785, ben:15596, owner:61539, mkt:58137, merch:28764, sw:11489, dues:15967, oSup:10109, ptSup:7172, med:0, prof:16874, cont:0, ins:5092, ce:3170, meal:5157, trav:5348, int:2095, oth:8721 };
@@ -94,38 +94,23 @@ const EMPTY_FORM = {
   interest:"", depreciation:"", other:"",
 };
 
-function mapImportToDannyForm(mappedInput) {
+function mapExtractedToDannyForm(extracted) {
   const next = { ...EMPTY_FORM };
   let mappedCount = 0;
   const apply = (field, value) => {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      next[field] = Math.round(Math.abs(value)).toString();
+    const numeric = typeof value === "number" ? value : Number(value);
+    if (Number.isFinite(numeric)) {
+      next[field] = Math.round(Math.abs(numeric)).toString();
       mappedCount += 1;
     }
   };
 
-  apply("revenue", mappedInput?.totalGrossRevenue);
-  apply("rent", mappedInput?.totalFacilityCosts);
-  apply("staffWages", mappedInput?.totalStaffPayroll);
-  apply("ownerComp", mappedInput?.ownerSalary);
-  apply("depreciation", mappedInput?.ownerAddBacks);
-  apply("marketing", mappedInput?.marketingSpend);
-  apply("merchantFees", mappedInput?.merchantFees);
-  apply("software", mappedInput?.techAdminSpend);
-  apply("ptSupplies", mappedInput?.retailCOGS);
-
-  const totalOperatingExpenses = mappedInput?.totalOperatingExpenses;
-  if (typeof totalOperatingExpenses === "number" && Number.isFinite(totalOperatingExpenses)) {
-    const known = Object.entries(next).reduce((sum, [key, value]) => {
-      if (key === "other" || !value) return sum;
-      return sum + (parseFloat(value) || 0);
-    }, 0);
-    const remainder = Math.max(0, Math.round(Math.abs(totalOperatingExpenses) - known));
-    if (remainder > 0) {
-      next.other = remainder.toString();
-      mappedCount += 1;
-    }
-  }
+  [
+    "revenue", "rent", "utilities", "staffWages", "contractLabor", "payrollTaxes", "payrollFees", "benefits",
+    "ownerComp", "marketing", "merchantFees", "software", "duesSubs", "officeSupplies", "ptSupplies",
+    "medBilling", "profFees", "contractedSvcs", "insurance", "ce", "mealsEnt", "travelAuto", "interest",
+    "depreciation", "other",
+  ].forEach((field) => apply(field, extracted?.[field]));
 
   return { next, mappedCount };
 }
@@ -496,43 +481,22 @@ export default function App() {
     setUL(true);
     setUM(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-      formData.append("sourceLabel", "Danny Financial Audit Upload");
-
-      const created = await createPLImport(formData);
-      if (created.error || !created.importId) {
-        throw new Error(created.error || "Failed to start import.");
+      const extracted = await extractDannyPLFromPdf(file);
+      if (extracted.error || !extracted.extracted) {
+        throw new Error(extracted.error || "Could not parse that PDF.");
       }
 
-      let mappedInput = null;
-      let confidence = created.overallConfidence || 0;
-      let warnings = Array.isArray(created.warnings) ? created.warnings : [];
-
-      const approved = await approvePLImport(created.importId, true);
-      if (approved.approval?.mappedInput) {
-        mappedInput = approved.approval.mappedInput;
-        confidence = approved.approval.overallConfidence ?? confidence;
-        warnings = approved.approval.warnings || warnings;
-      } else {
-        const detail = await getPLImport(created.importId);
-        if (detail.detail?.mapping?.mappedInput) {
-          mappedInput = detail.detail.mapping.mappedInput;
-          confidence = detail.detail.import?.overallConfidence ?? confidence;
-          warnings = detail.detail.warnings || warnings;
-        }
-      }
-
-      if (!mappedInput) {
-        throw new Error("Parser returned no mapped fields.");
-      }
-
-      const { next, mappedCount } = mapImportToDannyForm(mappedInput);
+      const { next, mappedCount } = mapExtractedToDannyForm(extracted.extracted);
       setF(next);
-      const warningText = warnings.length ? ` Warnings: ${warnings.slice(0, 2).join(" | ")}` : "";
+      if (typeof extracted.extracted?.clinicName === "string" && extracted.extracted.clinicName.trim()) {
+        setCN(extracted.extracted.clinicName.trim());
+      }
+      if (typeof extracted.extracted?.period === "string" && extracted.extracted.period.trim()) {
+        setPer(extracted.extracted.period.trim());
+      }
       setUM({
         ok:true,
-        text:`Imported ${mappedCount} fields from ${file.name} (${Math.round(confidence)}% confidence). Review and adjust below.${warningText}`,
+        text:`Imported ${mappedCount} fields from ${file.name}. Review and adjust below.`,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not parse that PDF.";
@@ -913,9 +877,6 @@ export default function App() {
     </div>
   );
 }
-
-
-
 
 
 
