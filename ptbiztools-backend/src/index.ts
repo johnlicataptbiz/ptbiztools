@@ -16,6 +16,8 @@ const configuredOrigins = [
   process.env.FRONTEND_URL,
   ...(process.env.FRONTEND_URLS || '').split(','),
   'https://ptbiztools-frontend.vercel.app',
+  'https://ptbizcoach.com',
+  'https://www.ptbizcoach.com',
 ].map((origin) => origin?.trim()).filter(Boolean) as string[];
 
 function isAllowedOrigin(origin: string) {
