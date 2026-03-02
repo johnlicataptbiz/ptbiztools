@@ -1,8 +1,22 @@
 // @ts-nocheck
-import { useState, useEffect, useCallback } from "react";
-import { extractTranscriptFromFile, logAction, ActionTypes, saveCoachingAnalysis, savePdfExport, gradeDannySalesCall } from "../../services/api";
+import { useState, useEffect } from "react";
+import {
+  extractTranscriptFromFile,
+  logAction,
+  ActionTypes,
+  saveCoachingAnalysis,
+  savePdfExport,
+  gradeDannySalesCallV2,
+} from "../../services/api";
+import {
+  canSubmitByWordCount,
+  getWordGateMessage,
+  normalizeBehaviorStatus,
+  normalizeV2Result,
+} from "./graderV2Helpers";
 
 const STORAGE_KEY = "ptbiz-call-grades";
+const MIN_WORDS_REQUIRED = 120;
 
 const PHASES = [
   { id: "connection", name: "Connection & Agenda", weight: 10, description: "Rapport building, agenda setting, tone establishment" },
@@ -21,6 +35,8 @@ const CRITICAL_BEHAVIORS = [
   { id: "time_management", name: "Time Management", description: "Call stayed under 60 min, didn't linger after clear 'no'" },
   { id: "personal_story", name: "Story Deployment", description: "Used personal or client transformation story effectively" },
 ];
+
+const scoreColorValue = (score) => (score >= 65 ? "#22c55e" : score >= 50 ? "#eab308" : "#ef4444");
 
 
 function ScoreBar({ score, size = "md" }) {
@@ -50,17 +66,24 @@ function ScoreBar({ score, size = "md" }) {
   );
 }
 
-function PassFail({ pass }) {
+function PassFail({ status }) {
+  const normalized = status === "pass" || status === "fail" || status === "unknown" ? status : "unknown";
+  const isPass = normalized === "pass";
+  const isUnknown = normalized === "unknown";
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: "4px",
       padding: "2px 8px", borderRadius: "3px", fontSize: "11px", fontWeight: 700,
       letterSpacing: "0.05em", textTransform: "uppercase",
-      background: pass ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-      color: pass ? "#22c55e" : "#ef4444",
-      border: `1px solid ${pass ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`
+      background: isUnknown
+        ? "rgba(148,163,184,0.12)"
+        : isPass
+          ? "rgba(34,197,94,0.12)"
+          : "rgba(239,68,68,0.12)",
+      color: isUnknown ? "#94a3b8" : isPass ? "#22c55e" : "#ef4444",
+      border: `1px solid ${isUnknown ? "rgba(148,163,184,0.25)" : isPass ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`
     }}>
-      {pass ? "✓ PASS" : "✗ FAIL"}
+      {isUnknown ? "? UNKNOWN" : isPass ? "✓ PASS" : "✗ FAIL"}
     </span>
   );
 }
@@ -92,7 +115,14 @@ export default function SalesCallGrader() {
   const loadHistory = () => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setHistory(JSON.parse(raw));
+      if (raw) {
+        const parsedHistory = JSON.parse(raw);
+        const normalizedHistory = parsedHistory.map((entry) => ({
+          ...entry,
+          result: normalizeV2Result(entry.result),
+        }));
+        setHistory(normalizedHistory);
+      }
     } catch (e) {
       console.error("Storage read error:", e);
     }
@@ -100,9 +130,13 @@ export default function SalesCallGrader() {
   };
 
   const saveHistory = (newHistory) => {
-    setHistory(newHistory);
+    const normalizedHistory = newHistory.map((entry) => ({
+      ...entry,
+      result: normalizeV2Result(entry.result),
+    }));
+    setHistory(normalizedHistory);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedHistory));
     } catch (e) { console.error("Storage error:", e); }
   };
 
@@ -171,7 +205,9 @@ export default function SalesCallGrader() {
   };
 
   const fullTranscript = getFullTranscript();
-  const totalWords = fullTranscript ? fullTranscript.split(/\\s+/).length : 0;
+  const transcriptForValidation = uploadedFile?.text || fullTranscript;
+  const totalWords = transcriptForValidation ? transcriptForValidation.split(/\s+/).filter(Boolean).length : 0;
+  const meetsWordThreshold = canSubmitByWordCount(totalWords, MIN_WORDS_REQUIRED);
 
   const getTimeBoundary = (period) => {
     const now = new Date();
@@ -209,9 +245,12 @@ export default function SalesCallGrader() {
     const behaviorRows = CRITICAL_BEHAVIORS.map((b, i) => {
       const cb = d.critical_behaviors[b.id];
       if (!cb) return "";
+      const status = normalizeBehaviorStatus(cb);
+      const statusColor = status === "pass" ? "#16a34a" : status === "unknown" ? "#64748b" : "#dc2626";
+      const statusText = status === "pass" ? "PASS" : status === "unknown" ? "UNKNOWN" : "FAIL";
       return `<tr style="border-bottom:1px solid #e5e7eb;background:${i % 2 === 0 ? "transparent" : "#f9fafb"}">
         <td style="padding:10px 4px;font-weight:600;font-family:system-ui,sans-serif;width:160px;vertical-align:top">${b.name}</td>
-        <td style="padding:10px 4px;width:50px;vertical-align:top"><span style="font-family:system-ui,sans-serif;font-weight:800;font-size:12px;color:${cb.pass ? "#16a34a" : "#dc2626"}">${cb.pass ? "PASS" : "FAIL"}</span></td>
+        <td style="padding:10px 4px;width:50px;vertical-align:top"><span style="font-family:system-ui,sans-serif;font-weight:800;font-size:12px;color:${statusColor}">${statusText}</span></td>
         <td style="padding:10px 4px;color:#6b7280;vertical-align:top">${cb.note}</td>
       </tr>`;
     }).join("");
@@ -249,12 +288,17 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
   };
 
   const analyzeCall = async () => {
-    const hasContent = (fullTranscript && fullTranscript.trim()) || uploadedFile;
+    const hasContent = transcriptForValidation && transcriptForValidation.trim();
     if (!hasContent) return;
+    if (!meetsWordThreshold) {
+      setError(`Transcript must be at least ${MIN_WORDS_REQUIRED} words before grading.`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const transcriptText = uploadedFile?.text || fullTranscript;
+      const transcriptText = transcriptForValidation;
       await logAction({
         actionType: ActionTypes.TRANSCRIPT_PASTED,
         description: "Prepared transcript for Danny sales call grading",
@@ -262,17 +306,20 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         sessionId,
       });
 
-      const graded = await gradeDannySalesCall({
+      const graded = await gradeDannySalesCallV2({
         transcript: transcriptText,
         closer,
         outcome,
         program,
+        prospectName: prospectName.trim() || undefined,
       });
-      if (graded.error || !graded.result) {
-        throw new Error(graded.error || "Failed to grade transcript.");
+
+      if (graded.error || !graded.data) {
+        const reasonSuffix = graded.reasons?.length ? ` ${graded.reasons.join(" | ")}` : "";
+        throw new Error((graded.error || "Failed to grade transcript.") + reasonSuffix);
       }
 
-      const parsed = graded.result;
+      const parsed = normalizeV2Result(graded.data);
       if (typeof parsed?.overall_score !== "number" || !parsed?.phases || !parsed?.critical_behaviors) {
         throw new Error("Grading response was incomplete.");
       }
@@ -299,7 +346,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
       await logAction({
         actionType: ActionTypes.GRADE_GENERATED,
         description: `Danny sales grade generated: ${parsed.overall_score}/100`,
-        metadata: { score: parsed.overall_score, tool: "sales_discovery_grader_danny", model: graded.model },
+        metadata: { score: parsed.overall_score, tool: "sales_discovery_grader_danny_v2", model: parsed?.metadata?.model || "unknown" },
         sessionId,
       });
 
@@ -316,9 +363,20 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           strengths: parsed.top_strength ? [parsed.top_strength] : [],
           improvements: parsed.top_improvement ? [parsed.top_improvement] : [],
           redFlags: Object.entries(parsed.critical_behaviors || {})
-            .filter(([, value]) => value && value.pass === false)
+            .filter(([, value]) => value && value.status === "fail")
             .map(([key]) => key),
-          deidentifiedTranscript: transcriptText.slice(0, 20000),
+          transcript: transcriptText,
+          deidentifiedTranscript: parsed.storage?.redactedTranscript || transcriptText.slice(0, 20000),
+          gradingVersion: "v2",
+          deterministic: parsed.deterministic,
+          criticalBehaviors: parsed.critical_behaviors,
+          confidence: parsed.confidence?.score,
+          qualityGate: parsed.qualityGate,
+          evidence: {
+            phases: parsed.phases,
+            criticalBehaviors: parsed.critical_behaviors,
+          },
+          transcriptHash: parsed.storage?.transcriptHash,
         },
       });
 
@@ -330,14 +388,16 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         callDate: new Date().toISOString().slice(0, 10),
         score: parsed.overall_score,
         metadata: {
-          tool: "sales_discovery_grader_danny",
+          tool: "sales_discovery_grader_danny_v2",
           outcome,
           program,
+          confidence: parsed.confidence?.score ?? null,
         },
       });
     } catch (e) {
       console.error(e);
-      setError("Analysis failed. Check that the transcript is readable and try again.");
+      const message = e instanceof Error ? e.message : "Analysis failed. Check that the transcript is readable and try again.";
+      setError(message);
     }
     setLoading(false);
   };
@@ -410,6 +470,17 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
               </div>
             </div>
           ))}
+        </div>
+        <div style={{
+          marginBottom: "12px",
+          padding: "8px 10px",
+          border: `1px solid ${border}`,
+          borderRadius: "5px",
+          fontSize: "11px",
+          color: textSecondary,
+          background: "rgba(88,166,255,0.04)",
+        }}>
+          Closer and outcome are metadata only. Scoring is determined by transcript evidence and selected program profile.
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
           <span style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Prospect</span>
@@ -494,6 +565,13 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
             <span style={{ fontSize: "12px", color: textSecondary }}>
               {uploadedFile ? "File ready" : totalWords > 0 ? `${totalWords.toLocaleString()} total words` : "Waiting for transcript..."}
             </span>
+            <span style={{
+              fontSize: "12px",
+              color: meetsWordThreshold ? "#22c55e" : "#f59e0b",
+              fontWeight: 600,
+            }}>
+              {getWordGateMessage(totalWords, MIN_WORDS_REQUIRED)}
+            </span>
             {!uploadedFile && transcript.trim() && (
               <button onClick={addChunk} style={{ ...btnBase, padding: "6px 14px", fontSize: "12px", background: "rgba(88,166,255,0.12)", color: accent, border: `1px solid rgba(88,166,255,0.25)` }}>
                 + Add Part
@@ -502,11 +580,11 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           </div>
           <button
             onClick={analyzeCall}
-            disabled={loading || (!uploadedFile && totalWords === 0)}
+            disabled={loading || !meetsWordThreshold}
             style={{
               ...btnBase, padding: "12px 32px", fontSize: "14px",
-              background: loading || (!uploadedFile && totalWords === 0) ? "#21262d" : accent,
-              color: loading || (!uploadedFile && totalWords === 0) ? textSecondary : "#0d1117",
+              background: loading || !meetsWordThreshold ? "#21262d" : accent,
+              color: loading || !meetsWordThreshold ? textSecondary : "#0d1117",
             }}
           >
             {loading ? "Analyzing..." : "Grade This Call"}
@@ -539,7 +617,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         <div style={{
           width: "88px", height: "88px", borderRadius: "50%",
           display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          background: `conic-gradient(${data.overall_score >= 65 ? "#22c55e" : data.overall_score >= 50 ? "#eab308" : "#ef4444"} ${data.overall_score * 3.6}deg, #1a1f2e ${data.overall_score * 3.6}deg)`,
+          background: `conic-gradient(${scoreColorValue(data.overall_score)} ${data.overall_score * 3.6}deg, #1a1f2e ${data.overall_score * 3.6}deg)`,
         }}>
           <div style={{
             width: "72px", height: "72px", borderRadius: "50%", background: card,
@@ -563,6 +641,31 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
         </div>
       </div>
 
+      {(data.deterministic || data.confidence) && (
+        <div style={{ ...cardStyle, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+          {data.deterministic && (
+            <div style={{ padding: "12px", background: "#0d1117", borderRadius: "6px", border: `1px solid ${border}` }}>
+              <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Deterministic Breakdown</div>
+              <div style={{ fontSize: "13px", color: textPrimary }}>Weighted phase score: <strong>{data.deterministic.weightedPhaseScore}</strong></div>
+              <div style={{ fontSize: "13px", color: textPrimary }}>Penalty points: <strong>{data.deterministic.penaltyPoints}</strong></div>
+              <div style={{ fontSize: "13px", color: textPrimary }}>Unknown penalty: <strong>{data.deterministic.unknownPenalty}</strong></div>
+              <div style={{ fontSize: "13px", color: textPrimary }}>Overall score: <strong>{data.deterministic.overallScore}</strong></div>
+            </div>
+          )}
+          {data.confidence && (
+            <div style={{ padding: "12px", background: "#0d1117", borderRadius: "6px", border: `1px solid ${border}` }}>
+              <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Confidence</div>
+              <div style={{ fontSize: "18px", color: textPrimary, fontWeight: 800, marginBottom: "6px" }}>{data.confidence.score}/100</div>
+              <div style={{ fontSize: "12px", color: textSecondary }}>
+                Evidence coverage {Math.round((data.confidence.evidenceCoverage || 0) * 100)}% ·
+                Quote verification {Math.round((data.confidence.quoteVerificationRate || 0) * 100)}% ·
+                Transcript quality {Math.round((data.confidence.transcriptQuality || 0) * 100)}%
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Phase Scores */}
       <div style={cardStyle}>
         <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "16px" }}>Phase Breakdown</div>
@@ -578,6 +681,15 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                 </div>
                 <ScoreBar score={p.score} />
                 <div style={{ fontSize: "12px", color: textSecondary, marginTop: "4px", lineHeight: 1.5 }}>{p.summary}</div>
+                {Array.isArray(p.evidence) && p.evidence.length > 0 && (
+                  <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                    {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
+                      <div key={`${phase.id}-${quoteIndex}`} style={{ fontSize: "11px", color: "#9ca3af", borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
+                        "{quote}"
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -591,12 +703,22 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           {CRITICAL_BEHAVIORS.map(b => {
             const cb = data.critical_behaviors[b.id];
             if (!cb) return null;
+            const status = normalizeBehaviorStatus(cb);
             return (
               <div key={b.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 12px", background: "#0d1117", borderRadius: "5px" }}>
-                <div style={{ minWidth: "70px", paddingTop: "2px" }}><PassFail pass={cb.pass} /></div>
+                <div style={{ minWidth: "90px", paddingTop: "2px" }}><PassFail status={status} /></div>
                 <div>
                   <div style={{ fontSize: "13px", color: textPrimary, fontWeight: 600 }}>{b.name}</div>
                   <div style={{ fontSize: "12px", color: textSecondary, marginTop: "2px" }}>{cb.note}</div>
+                  {Array.isArray(cb.evidence) && cb.evidence.length > 0 && (
+                    <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {cb.evidence.slice(0, 2).map((quote, quoteIndex) => (
+                        <div key={`${b.id}-${quoteIndex}`} style={{ fontSize: "11px", color: "#9ca3af", borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
+                          "{quote}"
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -851,14 +973,15 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                 {CRITICAL_BEHAVIORS.map((b, i) => {
                   const cb = d.critical_behaviors[b.id];
                   if (!cb) return null;
+                  const status = normalizeBehaviorStatus(cb);
                   return (
                     <tr key={b.id} style={{ borderBottom: `1px solid ${rpt.border}`, background: i % 2 === 0 ? "transparent" : rpt.lightBg }}>
                       <td style={{ padding: "10px 4px", fontWeight: 600, fontFamily: "system-ui, sans-serif", width: "160px", verticalAlign: "top" }}>{b.name}</td>
                       <td style={{ padding: "10px 4px", width: "50px", verticalAlign: "top" }}>
                         <span style={{
                           fontFamily: "system-ui, sans-serif", fontWeight: 800, fontSize: "12px",
-                          color: cb.pass ? rpt.green : rpt.red,
-                        }}>{cb.pass ? "PASS" : "FAIL"}</span>
+                          color: status === "pass" ? rpt.green : status === "unknown" ? rpt.muted : rpt.red,
+                        }}>{status === "pass" ? "PASS" : status === "unknown" ? "UNKNOWN" : "FAIL"}</span>
                       </td>
                       <td style={{ padding: "10px 4px", color: rpt.muted, verticalAlign: "top" }}>{cb.note}</td>
                     </tr>

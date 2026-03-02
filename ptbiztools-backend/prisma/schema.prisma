@@ -103,6 +103,13 @@ model CoachingAnalysis {
   strengths             Json
   improvements          Json
   redFlags              Json
+  gradingVersion        String   @default("v1")
+  deterministic         Json?
+  criticalBehaviors     Json?
+  confidence            Int?
+  qualityGate           Json?
+  evidence              Json?
+  transcriptHash        String?
   deidentifiedTranscript String  @db.Text
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

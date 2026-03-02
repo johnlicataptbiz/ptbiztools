@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { NextFunction, Request, Response, Router } from 'express';
+import { buildTranscriptPrivacyArtifacts } from '../scoring/redaction.js';
 import { prisma } from '../services/prisma.js';
 
 interface SessionRequest extends Request {
@@ -16,7 +17,15 @@ interface GradePayload {
   strengths: unknown;
   improvements: unknown;
   redFlags: unknown;
-  deidentifiedTranscript: string;
+  deidentifiedTranscript?: string;
+  transcript?: string;
+  gradingVersion?: string;
+  deterministic?: unknown;
+  criticalBehaviors?: unknown;
+  confidence?: number;
+  qualityGate?: unknown;
+  evidence?: unknown;
+  transcriptHash?: string;
 }
 
 interface CoachingAnalysisBody {
@@ -46,6 +55,24 @@ function toDayKey(date: Date) {
 function safeJson(value: unknown): Prisma.InputJsonValue {
   if (value === undefined) return {};
   return value as Prisma.InputJsonValue;
+}
+
+function extractEvidencePayload(grade: GradePayload): Prisma.InputJsonValue {
+  if (grade.evidence !== undefined) return safeJson(grade.evidence);
+
+  const phaseScores = grade.phaseScores as
+    | Record<string, { evidence?: string[] }>
+    | undefined;
+  const criticalBehaviors = grade.criticalBehaviors as
+    | Record<string, { evidence?: string[] }>
+    | undefined;
+
+  if (!phaseScores && !criticalBehaviors) return safeJson({});
+
+  return safeJson({
+    phases: phaseScores || {},
+    criticalBehaviors: criticalBehaviors || {},
+  });
 }
 
 function getClientIp(req: Request) {
@@ -121,10 +148,20 @@ analyticsRouter.post('/coaching-analyses', requireAuth, async (req: SessionReque
       return;
     }
 
-    if (typeof grade.score !== 'number' || !grade.summary || !grade.deidentifiedTranscript) {
+    if (typeof grade.score !== 'number' || !grade.summary) {
       res.status(400).json({ error: 'Invalid grade payload' });
       return;
     }
+
+    const transcriptSource = typeof grade.transcript === 'string'
+      ? grade.transcript
+      : grade.deidentifiedTranscript;
+    if (!transcriptSource || transcriptSource.trim().length === 0) {
+      res.status(400).json({ error: 'Transcript content is required in grade payload' });
+      return;
+    }
+
+    const privacy = buildTranscriptPrivacyArtifacts(transcriptSource);
 
     const analysis = await prisma.coachingAnalysis.create({
       data: {
@@ -140,7 +177,14 @@ analyticsRouter.post('/coaching-analyses', requireAuth, async (req: SessionReque
         strengths: safeJson(grade.strengths),
         improvements: safeJson(grade.improvements),
         redFlags: safeJson(grade.redFlags),
-        deidentifiedTranscript: grade.deidentifiedTranscript,
+        gradingVersion: grade.gradingVersion || 'v1',
+        deterministic: grade.deterministic !== undefined ? safeJson(grade.deterministic) : undefined,
+        criticalBehaviors: grade.criticalBehaviors !== undefined ? safeJson(grade.criticalBehaviors) : undefined,
+        confidence: typeof grade.confidence === 'number' ? grade.confidence : null,
+        qualityGate: grade.qualityGate !== undefined ? safeJson(grade.qualityGate) : undefined,
+        evidence: extractEvidencePayload(grade),
+        transcriptHash: grade.transcriptHash || privacy.transcriptHash,
+        deidentifiedTranscript: privacy.redactedTranscript,
       },
     });
 

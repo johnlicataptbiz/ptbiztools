@@ -11,14 +11,60 @@ import {
   Upload,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { gradeTranscript, type GradeResult } from '../utils/grader'
+import type { GradeResult } from '../utils/grader'
 import { generatePDF } from '../utils/pdfGenerator'
-import { logAction, ActionTypes, extractTranscriptFromFile, saveCoachingAnalysis, savePdfExport } from '../services/api'
+import {
+  logAction,
+  ActionTypes,
+  extractTranscriptFromFile,
+  saveCoachingAnalysis,
+  savePdfExport,
+  gradeDannySalesCallV2,
+  type SalesGradeV2Response,
+} from '../services/api'
 import { GradePreview } from '../components/grader/GradePreview'
 import { GradeModal } from '../components/grader/GradeModal'
 import './DiscoveryCallGrader.css'
 
-const MIN_WORDS = 80
+const MIN_WORDS = 120
+
+const LEGACY_PHASE_MAP = [
+  { id: 'connection', name: 'Opening & Rapport' },
+  { id: 'discovery', name: 'Discovery — Current State' },
+  { id: 'gap_creation', name: 'Discovery — Goals & Why' },
+  { id: 'solution', name: 'Value Presentation' },
+  { id: 'temp_check', name: 'Objection Handling' },
+  { id: 'close', name: 'The Close' },
+  { id: 'followup', name: 'Follow-up / Wrap' },
+] as const
+
+function mapOutcome(outcome?: string): GradeResult['outcome'] {
+  if (outcome === 'Won') return 'BOOKED'
+  if (outcome === 'Lost') return 'NOT BOOKED'
+  return 'UNKNOWN'
+}
+
+function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
+  const phaseScores = LEGACY_PHASE_MAP.map((phase) => ({
+    name: phase.name,
+    score: v2.phaseScores[phase.id].score,
+    maxScore: 100,
+  }))
+  const redFlags = Object.entries(v2.criticalBehaviors)
+    .filter(([, value]) => value.status === 'fail')
+    .map(([key]) => key)
+
+  return {
+    score: v2.deterministic.overallScore,
+    outcome: mapOutcome(v2.metadata.outcome),
+    summary: `Deterministic score ${v2.deterministic.overallScore}/100. Confidence ${v2.confidence.score}/100.`,
+    phaseScores,
+    strengths: [v2.highlights.topStrength].filter(Boolean),
+    improvements: [v2.highlights.topImprovement].filter(Boolean),
+    redFlags,
+    deidentifiedTranscript: v2.storage?.redactedTranscript || '',
+  }
+}
 
 const transcriptTemplate = `Clinician: Thanks for taking the call. What made you reach out now?
 Prospect: I have chronic back pain and want to get back to lifting.
@@ -60,6 +106,7 @@ export default function DiscoveryCallGrader() {
   const checklist = useMemo(
     () => [
       { label: `Transcript has at least ${MIN_WORDS} words`, ok: stats.wordCount >= MIN_WORDS },
+      { label: 'Evidence quotes will be required for each scoring phase', ok: stats.wordCount >= MIN_WORDS },
       { label: 'Coach and client names are set', ok: coachName.trim().length > 0 && clientName.trim().length > 0 },
       { label: 'Call date is set', ok: callDate.trim().length > 0 },
     ],
@@ -136,7 +183,19 @@ export default function DiscoveryCallGrader() {
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
-      const result = gradeTranscript(transcript)
+      const response = await gradeDannySalesCallV2({
+        transcript,
+        program: 'Rainmaker',
+        closer: coachName.trim() || 'Unknown',
+        prospectName: clientName.trim() || undefined,
+      })
+
+      if (response.error || !response.data) {
+        const reasonSuffix = response.reasons?.length ? ` ${response.reasons.join(' | ')}` : ''
+        throw new Error((response.error || 'Failed to grade transcript') + reasonSuffix)
+      }
+
+      const result = adaptV2ToGradeResult(response.data)
       setGrade(result)
       setIsModalOpen(true)
       toast.success(`Grade complete: ${result.score}/100`, { id: 'grading' })
@@ -157,11 +216,22 @@ export default function DiscoveryCallGrader() {
           score: result.score,
           outcome: result.outcome,
           summary: result.summary,
-          phaseScores: result.phaseScores,
+          phaseScores: response.data.phaseScores,
           strengths: result.strengths,
           improvements: result.improvements,
           redFlags: result.redFlags,
-          deidentifiedTranscript: result.deidentifiedTranscript,
+          transcript,
+          deidentifiedTranscript: response.data.storage?.redactedTranscript || result.deidentifiedTranscript,
+          gradingVersion: 'v2',
+          deterministic: response.data.deterministic,
+          criticalBehaviors: response.data.criticalBehaviors,
+          confidence: response.data.confidence.score,
+          qualityGate: response.data.qualityGate,
+          evidence: {
+            phases: response.data.phaseScores,
+            criticalBehaviors: response.data.criticalBehaviors,
+          },
+          transcriptHash: response.data.storage?.transcriptHash,
         },
       })
 

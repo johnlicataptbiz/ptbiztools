@@ -300,7 +300,15 @@ export interface GradeStoragePayload {
   strengths: string[];
   improvements: string[];
   redFlags: string[];
-  deidentifiedTranscript: string;
+  deidentifiedTranscript?: string;
+  transcript?: string;
+  gradingVersion?: string;
+  deterministic?: unknown;
+  criticalBehaviors?: unknown;
+  confidence?: number;
+  qualityGate?: unknown;
+  evidence?: unknown;
+  transcriptHash?: string;
 }
 
 export interface CoachingAnalysisSaveInput {
@@ -319,6 +327,77 @@ export interface PdfExportSaveInput {
   callDate?: string;
   score?: number;
   metadata?: Record<string, unknown>;
+}
+
+export type SalesGradeProgramProfile = 'Rainmaker' | 'Mastermind';
+export type SalesGradeBehaviorStatus = 'pass' | 'fail' | 'unknown';
+
+export interface SalesGradeV2Phase {
+  score: number;
+  summary: string;
+  evidence: string[];
+}
+
+export interface SalesGradeV2Behavior {
+  status: SalesGradeBehaviorStatus;
+  note: string;
+  evidence: string[];
+}
+
+export interface SalesGradeV2Response {
+  version: 'v2';
+  programProfile: SalesGradeProgramProfile;
+  phaseScores: {
+    connection: SalesGradeV2Phase;
+    discovery: SalesGradeV2Phase;
+    gap_creation: SalesGradeV2Phase;
+    temp_check: SalesGradeV2Phase;
+    solution: SalesGradeV2Phase;
+    close: SalesGradeV2Phase;
+    followup: SalesGradeV2Phase;
+  };
+  criticalBehaviors: {
+    free_consulting: SalesGradeV2Behavior;
+    discount_discipline: SalesGradeV2Behavior;
+    emotional_depth: SalesGradeV2Behavior;
+    time_management: SalesGradeV2Behavior;
+    personal_story: SalesGradeV2Behavior;
+  };
+  deterministic: {
+    weightedPhaseScore: number;
+    penaltyPoints: number;
+    unknownPenalty: number;
+    overallScore: number;
+  };
+  confidence: {
+    score: number;
+    evidenceCoverage: number;
+    quoteVerificationRate: number;
+    transcriptQuality: number;
+  };
+  qualityGate: {
+    accepted: boolean;
+    reasons: string[];
+  };
+  highlights: {
+    topStrength: string;
+    topImprovement: string;
+    prospectSummary: string;
+  };
+  metadata: {
+    closer: string;
+    outcome?: string;
+    model: string;
+  };
+  diagnostics?: {
+    verifiedQuotes: number;
+    totalQuotes: number;
+    unverifiedQuotes: string[];
+  };
+  storage?: {
+    redactedTranscript: string;
+    transcriptHash: string;
+  };
 }
 
 export interface AdminUsageSummary {
@@ -677,6 +756,41 @@ export async function gradeDannySalesCall(input: {
   } catch (error) {
     console.error('Failed to grade Danny sales call:', error);
     return { error: 'Network error' };
+  }
+}
+
+export async function gradeDannySalesCallV2(input: {
+  transcript: string;
+  closer: string;
+  outcome?: 'Won' | 'Lost';
+  program: SalesGradeProgramProfile;
+  prospectName?: string;
+  callMeta?: {
+    durationMinutes?: number;
+  };
+}): Promise<{ data?: SalesGradeV2Response; error?: string; reasons?: string[] }> {
+  try {
+    const response = await fetch(`${API_BASE}/danny-tools/sales-grade-v2`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(input),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return {
+        error: data.error || 'Failed to grade sales call',
+        reasons: Array.isArray(data.reasons) ? data.reasons : [],
+      };
+    }
+
+    return {
+      data: data as SalesGradeV2Response,
+    };
+  } catch (error) {
+    console.error('Failed to grade Danny sales call v2:', error);
+    return { error: 'Network error', reasons: [] };
   }
 }
 
