@@ -58,55 +58,14 @@ function App() {
   useEffect(() => {
     if (!user) return
 
-    let stepTimer: ReturnType<typeof setInterval> | undefined
-    let completeTimer: ReturnType<typeof setTimeout> | undefined
-    const hasSeenIntro = localStorage.getItem(introSeenKey(user.id))
-    const forceIntro = localStorage.getItem(forceIntroKey(user.id)) === 'true'
-
-    if (isAdminUser(user) && !forceIntro) {
-      setShowOnboardingPrep(false)
-      setShowIntro(false)
-      setRevealed(defaultRevealed)
-      setIntroReady(true)
-      return
-    }
-
-    if (hasSeenIntro && !forceIntro) {
-      setShowOnboardingPrep(false)
-      setShowIntro(false)
-      setRevealed(defaultRevealed)
-      setIntroReady(true)
-      return
-    }
-
-    if (isAdminUser(user) && forceIntro) {
-      setShowOnboardingPrep(false)
-      setShowIntro(true)
-      setRevealed(lockedRevealed)
-      setIntroReady(true)
-      return
-    }
-
-    setShowOnboardingPrep(true)
+    // Intro video has been retired; unlock tools immediately after login.
+    localStorage.setItem(introSeenKey(user.id), 'true')
+    localStorage.removeItem(forceIntroKey(user.id))
     setOnboardingStepIndex(0)
     setShowIntro(false)
-    setRevealed(lockedRevealed)
-    setIntroReady(false)
-
-    stepTimer = setInterval(() => {
-      setOnboardingStepIndex((prev) => Math.min(prev + 1, onboardingSteps.length - 1))
-    }, 780)
-
-    completeTimer = setTimeout(() => {
-      setShowOnboardingPrep(false)
-      setShowIntro(true)
-      setIntroReady(true)
-    }, 2350)
-
-    return () => {
-      if (stepTimer) clearInterval(stepTimer)
-      if (completeTimer) clearTimeout(completeTimer)
-    }
+    setShowOnboardingPrep(false)
+    setRevealed(defaultRevealed)
+    setIntroReady(true)
   }, [user])
 
   const handleAuthenticated = (nextUser: User) => {

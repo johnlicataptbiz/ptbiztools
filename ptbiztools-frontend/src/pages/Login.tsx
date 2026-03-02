@@ -19,6 +19,7 @@ interface LoginProps {
 
 const rememberedUserKey = 'ptbiz_selected_user_id'
 const JACK_NAME = 'jack licata'
+const PT_BADGE_NAME_ALLOWLIST = new Set(['danny matta', 'yves gege', 'toni counts'])
 
 function introSeenKey(userId: string) {
   return `ptbiz_intro_seen:${userId}`
@@ -50,6 +51,19 @@ function isBoardMember(member: TeamMember) {
   return section.includes('board') || title.includes('board')
 }
 
+function isCoachMember(member: TeamMember) {
+  const section = normalizeText(member.teamSection)
+  const title = normalizeText(member.title)
+  const role = normalizeText(member.role)
+  return section.includes('coach') || title.includes('coach') || role.includes('coach')
+}
+
+function shouldShowPtBadge(member: TeamMember) {
+  const normalizedName = normalizeText(member.name)
+  if (PT_BADGE_NAME_ALLOWLIST.has(normalizedName)) return true
+  return isCoachMember(member)
+}
+
 function getInitials(name: string) {
   return name
     .split(' ')
@@ -62,11 +76,13 @@ function getInitials(name: string) {
 function TeamAvatar({
   name,
   imageUrl,
+  showPtBadge,
   className,
   fallbackClassName,
 }: {
   name: string
   imageUrl?: string | null
+  showPtBadge: boolean
   className: string
   fallbackClassName: string
 }) {
@@ -84,7 +100,7 @@ function TeamAvatar({
           loading="lazy"
           onError={() => setDidError(true)}
         />
-        <span className="team-avatar-badge" aria-hidden="true">PT</span>
+        {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
       </div>
     )
   }
@@ -94,7 +110,7 @@ function TeamAvatar({
       <div className={`${className} ${fallbackClassName}`} aria-label={name}>
         {getInitials(name)}
       </div>
-      <span className="team-avatar-badge" aria-hidden="true">PT</span>
+      {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
     </div>
   )
 }
@@ -277,6 +293,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   <TeamAvatar
                     name={member.name}
                     imageUrl={member.imageUrl}
+                    showPtBadge={shouldShowPtBadge(member)}
                     className="member-list-photo"
                     fallbackClassName="member-list-photo-fallback"
                   />
@@ -305,6 +322,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
               <TeamAvatar
                 name={selectedUser.name}
                 imageUrl={selectedUser.imageUrl}
+                showPtBadge={shouldShowPtBadge(selectedUser)}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />

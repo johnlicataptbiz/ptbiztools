@@ -583,15 +583,19 @@ export async function seedKnowledgeDocs(): Promise<{ ok: boolean; error?: string
 
 export async function uploadVideoAsset(
   name: string,
-  base64Data: string,
+  file: File,
   mimeType = 'video/mp4',
 ): Promise<{ ok: boolean; error?: string }> {
   try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('mimeType', mimeType);
+    formData.append('file', file, file.name);
+
     const response = await fetch(`${API_BASE}/videos/upload`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ name, data: base64Data, mimeType }),
+      body: formData,
     });
     const data = await response.json();
     if (!response.ok) return { ok: false, error: data.error || 'Failed to upload video' };
@@ -608,6 +612,42 @@ export async function getVideoAssetStatus(name: string): Promise<{ exists: boole
     return { exists: response.ok, status: response.status };
   } catch {
     return { exists: false, status: 0 };
+  }
+}
+
+export async function extractTranscriptFromFile(file: File): Promise<{
+  text?: string;
+  sourceType?: 'pdf' | 'text';
+  filename?: string;
+  wordCount?: number;
+  charCount?: number;
+  error?: string;
+}> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    const response = await fetch(`${API_BASE}/transcripts/extract`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { error: data.error || 'Failed to extract transcript text' };
+    }
+
+    return {
+      text: data.text,
+      sourceType: data.sourceType,
+      filename: data.filename,
+      wordCount: data.wordCount,
+      charCount: data.charCount,
+    };
+  } catch (error) {
+    console.error('Failed to extract transcript file:', error);
+    return { error: 'Network error' };
   }
 }
 

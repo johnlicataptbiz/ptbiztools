@@ -13,7 +13,7 @@ import {
 import { toast } from 'sonner'
 import { gradeTranscript, type GradeResult } from '../utils/grader'
 import { generatePDF } from '../utils/pdfGenerator'
-import { logAction, ActionTypes, saveCoachingAnalysis, savePdfExport } from '../services/api'
+import { logAction, ActionTypes, extractTranscriptFromFile, saveCoachingAnalysis, savePdfExport } from '../services/api'
 import { GradePreview } from '../components/grader/GradePreview'
 import { GradeModal } from '../components/grader/GradeModal'
 import './DiscoveryCallGrader.css'
@@ -82,12 +82,17 @@ export default function DiscoveryCallGrader() {
     if (!file) return
 
     try {
-      const content = await file.text()
-      setTranscript(content)
-      toast.success(`Loaded transcript from ${file.name}`)
+      const extracted = await extractTranscriptFromFile(file)
+      if (extracted.error || !extracted.text) {
+        toast.error(extracted.error || 'Could not read transcript file')
+        return
+      }
+
+      setTranscript(extracted.text)
+      toast.success(`Loaded transcript from ${file.name}${extracted.sourceType === 'pdf' ? ' (PDF)' : ''}`)
     } catch (error) {
       console.error(error)
-      toast.error('Could not read transcript file. Use TXT/MD/CSV.')
+      toast.error('Could not read transcript file. Use TXT/MD/CSV/JSON/PDF.')
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -285,7 +290,7 @@ export default function DiscoveryCallGrader() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".txt,.md,.csv,.json"
+                  accept=".txt,.md,.csv,.json,.pdf"
                   className="grader-file-input"
                   onChange={handleFileUpload}
                 />

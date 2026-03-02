@@ -6,21 +6,10 @@ const MANAGED_ASSETS = [
   { key: 'intro-combined', label: 'Combined Intro Video', accept: 'video/mp4' },
 ] as const
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = String(reader.result || '')
-      const commaIndex = result.indexOf(',')
-      if (commaIndex === -1) {
-        reject(new Error('Unable to encode file'))
-        return
-      }
-      resolve(result.slice(commaIndex + 1))
-    }
-    reader.onerror = () => reject(new Error('Failed reading file'))
-    reader.readAsDataURL(file)
-  })
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+  return `${Math.round(bytes / 1024)} KB`
 }
 
 export default function MediaManager() {
@@ -54,8 +43,7 @@ export default function MediaManager() {
     setUploading(true)
     setMessage('')
     try {
-      const base64 = await fileToBase64(selectedFile)
-      const result = await uploadVideoAsset(selectedName, base64, selectedFile.type || 'video/mp4')
+      const result = await uploadVideoAsset(selectedName, selectedFile, selectedFile.type || 'video/mp4')
 
       if (!result.ok) {
         setMessage(result.error || 'Upload failed')
@@ -77,7 +65,7 @@ export default function MediaManager() {
     <div className="media-manager">
       <div className="media-header">
         <h1>Media Manager</h1>
-        <p>Connected to backend `/api/videos/upload` and `/api/videos/:name` for intro onboarding media.</p>
+        <p>Uploads stream as multipart form-data to object storage for high-resolution media assets.</p>
       </div>
 
       <div className="media-grid">
@@ -107,7 +95,7 @@ export default function MediaManager() {
 
           {selectedFile && (
             <p className="media-file-meta">
-              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+              Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
             </p>
           )}
         </section>
