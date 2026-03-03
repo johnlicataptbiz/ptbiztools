@@ -11,7 +11,6 @@ import {
   ScrollText,
   Menu,
   X,
-  Sparkles,
   LogOut,
 } from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
@@ -153,16 +152,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-
-        <div className="app-shell-lab mt-8 rounded-xl border border-border bg-white/80 p-3.5">
-          <p className="flex items-center gap-1.5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            <Sparkles size={12} />
-            Migration Lab
-          </p>
-          <Link href="/stack-lab" className="mt-2 inline-block text-sm font-semibold text-accent hover:text-accent-strong">
-            View New Stack Controls
-          </Link>
-        </div>
 
         <div className="mt-auto pt-8">
           <div className="app-shell-user-card rounded-xl border border-border bg-white p-3">

@@ -18,8 +18,8 @@ const brandMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PT Biz Tools",
-  description: "PT Biz Coach workspace powered by Next.js 16 migration architecture.",
+  title: "PTBizCoach Workspace",
+  description: "PTBizCoach workspace for discovery grading, sales call analysis, and P&L operations.",
 };
 
 export default function RootLayout({
