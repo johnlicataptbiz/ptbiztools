@@ -59,7 +59,7 @@ function ScoreBar({ score, size = "md" }) {
   const height = size === "lg" ? "10px" : "6px";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-      <div style={{ flex: 1, background: "#1a1f2e", borderRadius: "4px", height, overflow: "hidden" }}>
+      <div style={{ flex: 1, background: "var(--color-bg-secondary)", borderRadius: "4px", height, overflow: "hidden" }}>
         <div style={{ width: `${score}%`, height: "100%", background: getColor(score), borderRadius: "4px", transition: "width 0.8s ease" }} />
       </div>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: size === "lg" ? "18px" : "13px", fontWeight: 700, color: getColor(score), minWidth: "32px" }}>{score}</span>
@@ -434,12 +434,14 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
   const closerNames = [...new Set(filteredHistory.map(h => h.closer))];
 
   // Styles
-  const bg = "#f2ecdf";
-  const card = "#fffdf9";
-  const border = "#d9ccb8";
-  const textPrimary = "#1a1612";
-  const textSecondary = "#655c50";
-  const accent = "#1e768f";
+  const bg = "var(--color-bg)";
+  const card = "var(--color-card)";
+  const cardSoft = "var(--color-bg-secondary)";
+  const border = "var(--color-border)";
+  const textPrimary = "var(--color-text)";
+  const textSecondary = "var(--color-text-secondary)";
+  const textMuted = "var(--color-text-muted)";
+  const accent = "var(--accent)";
 
   const cardStyle = {
     background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "20px",
@@ -461,7 +463,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           ].map(([label, val, setter, opts]) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>{label}</span>
-              <div style={{ display: "flex", gap: "2px", background: "#f5ecdf", borderRadius: "5px", padding: "2px" }}>
+              <div style={{ display: "flex", gap: "2px", background: cardSoft, borderRadius: "5px", padding: "2px" }}>
                 {opts.map(o => (
                   <button key={o} onClick={() => setter(o)} style={{
                     ...btnBase, padding: "6px 14px", fontSize: "12px",
@@ -492,7 +494,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
             onChange={e => setProspectName(e.target.value)}
             placeholder="Prospect name (optional)"
             style={{
-              background: "#f7efe3", border: `1px solid ${border}`, borderRadius: "5px",
+                background: cardSoft, border: `1px solid ${border}`, borderRadius: "5px",
               padding: "6px 12px", color: textPrimary, fontSize: "12px",
               fontFamily: "'JetBrains Mono', monospace", outline: "none", width: "220px",
             }}
@@ -554,7 +556,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
               onChange={e => setTranscript(e.target.value)}
               placeholder={chunks.length > 0 ? "Paste the next part of the transcript..." : "Or paste the transcript here..."}
               style={{
-                width: "100%", minHeight: "180px", background: "#fffdfa", border: `1px solid ${border}`,
+                width: "100%", minHeight: "180px", background: card, border: `1px solid ${border}`,
                 borderRadius: "6px", padding: "16px", color: textPrimary, fontSize: "13px",
                 fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.6, resize: "vertical", outline: "none",
                 boxSizing: "border-box",
@@ -646,7 +648,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
       {(data.deterministic || data.confidence) && (
         <div style={{ ...cardStyle, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
           {data.deterministic && (
-            <div style={{ padding: "12px", background: "#f8f2e8", borderRadius: "6px", border: `1px solid ${border}` }}>
+            <div style={{ padding: "12px", background: cardSoft, borderRadius: "6px", border: `1px solid ${border}` }}>
               <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Deterministic Breakdown</div>
               <div style={{ fontSize: "13px", color: textPrimary }}>Weighted phase score: <strong>{data.deterministic.weightedPhaseScore}</strong></div>
               <div style={{ fontSize: "13px", color: textPrimary }}>Penalty points: <strong>{data.deterministic.penaltyPoints}</strong></div>
@@ -655,7 +657,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
             </div>
           )}
           {data.confidence && (
-            <div style={{ padding: "12px", background: "#f8f2e8", borderRadius: "6px", border: `1px solid ${border}` }}>
+            <div style={{ padding: "12px", background: cardSoft, borderRadius: "6px", border: `1px solid ${border}` }}>
               <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Confidence</div>
               <div style={{ fontSize: "18px", color: textPrimary, fontWeight: 800, marginBottom: "6px" }}>{data.confidence.score}/100</div>
               <div style={{ fontSize: "12px", color: textSecondary }}>
@@ -686,7 +688,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                 {Array.isArray(p.evidence) && p.evidence.length > 0 && (
                   <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
                     {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
-                      <div key={`${phase.id}-${quoteIndex}`} style={{ fontSize: "11px", color: "#9ca3af", borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
+                      <div key={`${phase.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
                         "{quote}"
                       </div>
                     ))}
@@ -707,7 +709,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
             if (!cb) return null;
             const status = normalizeBehaviorStatus(cb);
             return (
-              <div key={b.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 12px", background: "#f8f2e8", borderRadius: "5px" }}>
+              <div key={b.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 12px", background: cardSoft, borderRadius: "5px" }}>
                 <div style={{ minWidth: "90px", paddingTop: "2px" }}><PassFail status={status} /></div>
                 <div>
                   <div style={{ fontSize: "13px", color: textPrimary, fontWeight: 600 }}>{b.name}</div>
@@ -715,7 +717,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                   {Array.isArray(cb.evidence) && cb.evidence.length > 0 && (
                     <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
                       {cb.evidence.slice(0, 2).map((quote, quoteIndex) => (
-                        <div key={`${b.id}-${quoteIndex}`} style={{ fontSize: "11px", color: "#9ca3af", borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
+                        <div key={`${b.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
                           "{quote}"
                         </div>
                       ))}
@@ -1040,7 +1042,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
               style={{
                 ...btnBase, padding: "8px 18px", fontSize: "12px",
                 background: view === v ? accent : "transparent",
-                color: view === v ? "#ffffff" : ((v === "results" && !result) || (v === "report" && !reportData)) ? "#9f9586" : textSecondary,
+                color: view === v ? "#ffffff" : ((v === "results" && !result) || (v === "report" && !reportData)) ? textMuted : textSecondary,
               }}
             >{label}</button>
           ))}
