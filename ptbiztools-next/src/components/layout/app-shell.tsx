@@ -115,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`app-shell-sidebar fixed inset-y-0 left-0 z-40 w-[296px] border-r border-border bg-surface p-5 transition-transform lg:static lg:translate-x-0 ${
+        className={`app-shell-sidebar fixed inset-y-0 left-0 z-40 w-[296px] p-5 transition-transform lg:static lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="app-shell-main min-h-screen">
-        <header className="app-shell-header sticky top-0 z-20 border-b border-border bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
+        <header className="app-shell-header sticky top-0 z-20 border-b border-border px-4 py-3 lg:px-8">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
             <button
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm shadow-sm lg:hidden"
@@ -202,6 +202,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="mx-auto max-w-6xl px-4 py-8 lg:px-8">{children}</main>
+
+        <footer className="app-shell-footer border-t border-border px-4 py-4 lg:px-8">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+            <p>PT Biz Tools</p>
+            <p className="app-shell-footer-tag">Built for coaching execution</p>
+          </div>
+        </footer>
       </div>
     </div>
   );

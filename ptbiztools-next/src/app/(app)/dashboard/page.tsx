@@ -1,9 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Activity, ChartNoAxesColumn, FileText, LogIn, Medal, Users } from "lucide-react";
+import { useMemo, type ComponentType, type CSSProperties } from "react";
+import {
+  Activity,
+  BarChart3,
+  Calculator,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  FileText,
+  LogIn,
+  Medal,
+  Phone,
+  PhoneCall,
+  ScrollText,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import {
@@ -24,16 +40,39 @@ interface ActivityFeedItem {
   userImageUrl?: string | null;
 }
 
+interface DailyChartPoint {
+  date: string;
+  graded: number;
+  pdfs: number;
+  logins: number;
+}
+
+interface ActionBreakdownEntry {
+  actionType: string;
+  count: number;
+}
+
 interface CoachStats {
   totalTranscripts: number;
   totalPdfs: number;
   totalGrades: number;
+  actionBreakdown: ActionBreakdownEntry[];
   recentActivity: ActivityFeedItem[];
+  chartData: DailyChartPoint[];
 }
 
 interface HomeAdminUsageData {
   adminUsage: AdminUsageSummary | null;
   actionStats: ActionStatsSummary | null;
+}
+
+interface ToolCard {
+  title: string;
+  description: string;
+  href: string;
+  icon: ComponentType<{ size?: number; className?: string; style?: CSSProperties }>;
+  color: string;
+  adminsAndAdvisorsOnly?: boolean;
 }
 
 const trackedGradeActions = new Set([
@@ -43,19 +82,76 @@ const trackedGradeActions = new Set([
   "TRANSCRIPT_GRADED",
   "pl_report_generated",
 ]);
+
 const trackedTranscriptActions = new Set([
   "transcript_uploaded",
   "transcript_pasted",
   "TRANSCRIPT_UPLOADED",
   "TRANSCRIPT_PASTED",
 ]);
+
 const trackedPdfActions = new Set(["pdf_generated", "PDF_GENERATED", "pl_pdf_generated"]);
+const trackedLoginActions = new Set(["login_success", "LOGIN_SUCCESS"]);
+
+const TOOL_CARDS: ToolCard[] = [
+  {
+    title: "Discovery Call Grader",
+    description: "Grade and analyze discovery call transcripts with immediate coaching feedback.",
+    href: "/discovery-call-grader",
+    icon: Phone,
+    color: "var(--accent)",
+  },
+  {
+    title: "P&L Calculator",
+    description: "Analyze clinic financial performance with benchmarks and action steps.",
+    href: "/pl-calculator",
+    icon: TrendingUp,
+    color: "var(--success)",
+  },
+  {
+    title: "Comp Calculator",
+    description: "Model compensation structures and targets with PT Biz assumptions.",
+    href: "/compensation-calculator",
+    icon: Calculator,
+    color: "var(--warning)",
+  },
+  {
+    title: "Sales Grader",
+    description: "Run the deterministic sales discovery grading system for closer calls.",
+    href: "/sales-discovery-grader",
+    icon: PhoneCall,
+    color: "#1f6f8b",
+    adminsAndAdvisorsOnly: true,
+  },
+  {
+    title: "Analyses",
+    description: "Review saved grading records, P&L audits, and generated exports.",
+    href: "/analyses",
+    icon: ScrollText,
+    color: "#5b7fa6",
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 const defaultStats: CoachStats = {
   totalTranscripts: 0,
   totalPdfs: 0,
   totalGrades: 0,
+  actionBreakdown: [],
   recentActivity: [],
+  chartData: [],
 };
 
 async function fetchCoachStats(): Promise<CoachStats> {
@@ -67,11 +163,37 @@ async function fetchCoachStats(): Promise<CoachStats> {
   const transcripts = logs.filter((log) => trackedTranscriptActions.has(log.actionType)).length;
   const pdfs = logs.filter((log) => trackedPdfActions.has(log.actionType)).length;
   const grades = logs.filter((log) => trackedGradeActions.has(log.actionType)).length;
+  const actionBreakdown = Array.from(
+    logs.reduce((acc, log) => {
+      const key = (log.actionType || "activity").trim() || "activity";
+      acc.set(key, (acc.get(key) || 0) + 1);
+      return acc;
+    }, new Map<string, number>()),
+  )
+    .map(([actionType, count]) => ({ actionType, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const chartData: DailyChartPoint[] = [];
+  for (let i = 6; i >= 0; i -= 1) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0] || "";
+
+    const dayLogs = logs.filter((log) => (log.createdAt || "").startsWith(dateStr));
+
+    chartData.push({
+      date: date.toLocaleDateString("en-US", { weekday: "short" }),
+      graded: dayLogs.filter((log) => trackedGradeActions.has(log.actionType)).length,
+      pdfs: dayLogs.filter((log) => trackedPdfActions.has(log.actionType)).length,
+      logins: dayLogs.filter((log) => trackedLoginActions.has(log.actionType)).length,
+    });
+  }
 
   return {
     totalTranscripts: transcripts,
     totalPdfs: pdfs,
     totalGrades: grades,
+    actionBreakdown,
     recentActivity: logs.slice(0, 20).map((log) => ({
       id: log.id,
       actionType: log.actionType,
@@ -80,6 +202,7 @@ async function fetchCoachStats(): Promise<CoachStats> {
       userName: log.user?.name || undefined,
       userImageUrl: log.user?.imageUrl ?? null,
     })),
+    chartData,
   };
 }
 
@@ -109,17 +232,32 @@ function formatDate(dateStr: string) {
   return `${days}d ago`;
 }
 
-function statTone(value: number | null | undefined) {
-  if (value === null || value === undefined) return "neutral";
-  if (value >= 80) return "strong";
-  if (value >= 40) return "steady";
-  return "watch";
-}
-
 function coerceCount(value: unknown) {
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric) || numeric < 0) return 0;
   return Math.round(numeric);
+}
+
+function getActionIcon(type: string) {
+  if (type === "login_success") return <Users size={16} />;
+  if (type === "coaching_analysis_saved") return <ClipboardList size={16} />;
+  if (type === "pdf_export_saved") return <FileText size={16} />;
+  if (type === "pl_report_generated") return <Calculator size={16} />;
+  if (type === "pl_pdf_generated") return <FileText size={16} />;
+  if (trackedTranscriptActions.has(type)) return <FileText size={16} />;
+  if (trackedPdfActions.has(type)) return <ClipboardList size={16} />;
+  if (trackedGradeActions.has(type)) return <ClipboardList size={16} />;
+  return <Clock size={16} />;
+}
+
+function getInitials(name?: string) {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((part) => part[0] || "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 export default function DashboardPage() {
@@ -127,6 +265,7 @@ export default function DashboardPage() {
 
   const role = getEffectiveRole(user);
   const isAdmin = role === "admin";
+  const isAdvisor = role === "advisor";
 
   const coachStatsQuery = useQuery({
     queryKey: ["home", "coach-stats"],
@@ -145,11 +284,25 @@ export default function DashboardPage() {
   const coachStats = coachStatsQuery.data ?? defaultStats;
   const adminUsage = adminUsageQuery.data?.adminUsage ?? null;
   const actionStats = adminUsageQuery.data?.actionStats ?? null;
+  const coachActionStats = coachStats.actionBreakdown;
 
   const greeting = useMemo(() => {
     const firstName = user?.name.split(" ")[0] || "Coach";
     return isAdmin ? `Welcome back, ${firstName}` : `Coach Dashboard, ${firstName}`;
   }, [isAdmin, user?.name]);
+
+  const adminChartData = useMemo<DailyChartPoint[]>(() => {
+    return (adminUsage?.byDay || []).map((day) => ({
+      date: day.label,
+      graded: day.analyses,
+      pdfs: day.pdfs,
+      logins: day.logins,
+    }));
+  }, [adminUsage?.byDay]);
+
+  const toolCards = useMemo(() => {
+    return TOOL_CARDS.filter((tool) => !tool.adminsAndAdvisorsOnly || isAdmin || isAdvisor);
+  }, [isAdmin, isAdvisor]);
 
   const adminActivityFeed = useMemo<ActivityFeedItem[]>(() => {
     if (!adminUsage) return [];
@@ -196,179 +349,291 @@ export default function DashboardPage() {
   }, [adminUsage]);
 
   const activityFeed = isAdmin ? adminActivityFeed : coachStats.recentActivity;
+  const chartData = isAdmin ? adminChartData : coachStats.chartData;
   const isLoading = isAdmin ? adminUsageQuery.isLoading : coachStatsQuery.isLoading;
-  const isError = isAdmin ? adminUsageQuery.isError : coachStatsQuery.isError;
 
-  const topActionTotal = useMemo(
-    () => (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + coerceCount(row?._count?.actionType), 0),
-    [actionStats?.stats],
-  );
+  const topActionTotal = useMemo(() => {
+    if (isAdmin) {
+      return (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + coerceCount(row?._count?.actionType), 0);
+    }
+    return coachActionStats.slice(0, 8).reduce((sum, row) => sum + coerceCount(row.count), 0);
+  }, [actionStats?.stats, coachActionStats, isAdmin]);
+
+  const chartMax = useMemo(() => {
+    const values = chartData.flatMap((row) => [row.graded, row.pdfs, row.logins]);
+    return Math.max(1, ...values);
+  }, [chartData]);
 
   return (
-    <section className="dashboard-v2 space-y-6">
-      <motion.header
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.28 }}
-        className="dashboard-v2-hero rounded-(--radius-2xl) border border-border bg-surface p-6 shadow-sm"
-      >
-        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Dashboard</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{greeting}</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Live usage data is now connected in the Next.js stack with role-aware access controls.
-        </p>
-      </motion.header>
+    <div className="home">
+      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
+        <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
+          <h1>{greeting}</h1>
+          <p>{isAdmin ? "Admin usage dashboard" : "Your coaching tools are ready."}</p>
+        </motion.section>
 
-      {isError && (
-        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger shadow-sm">
-          Failed to load usage metrics. Confirm backend availability and refresh.
-        </div>
-      )}
+        <motion.section variants={itemVariants} className="stats-grid">
+          <article className="stat-card">
+            <div className="stat-icon" style={{ background: "rgba(233, 69, 96, 0.15)" }}>
+              <Medal size={22} style={{ color: "var(--accent)" }} />
+            </div>
+            <div className="stat-content">
+              <span className="stat-value">
+                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.coachingAnalyses ?? 0) : coachStats.totalGrades}
+              </span>
+              <span className="stat-label">Coaching Analyses</span>
+            </div>
+          </article>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          {
-            label: "Logins (30d)",
-            value: isAdmin ? adminUsage?.totals.successfulLogins ?? null : null,
-            icon: LogIn,
-            helper: isAdmin ? "Successful authenticated entries" : "Admin metric",
-          },
-          {
-            label: "Coaching Analyses",
-            value: isAdmin ? adminUsage?.totals.coachingAnalyses ?? null : coachStats.totalGrades,
-            icon: Medal,
-            helper: "Saved grading outputs",
-          },
-          {
-            label: "PDF Exports",
-            value: isAdmin ? adminUsage?.totals.pdfExports ?? null : coachStats.totalPdfs,
-            icon: FileText,
-            helper: "Generated downloadable reports",
-          },
-          {
-            label: "Active Users",
-            value: isAdmin ? adminUsage?.totals.activeUsers ?? null : coachStats.totalTranscripts,
-            icon: Users,
-            helper: isAdmin ? "Users active in selected window" : "Transcripts uploaded by you",
-          },
-        ].map((card, index) => {
-          const tone = statTone(card.value);
-          const Icon = card.icon;
-          return (
-            <motion.article
-              key={card.label}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.24, delay: 0.03 * index }}
-              className={`dashboard-v2-stat dashboard-v2-stat-${tone} rounded-xl border border-border bg-surface p-4`}
-            >
-              <div className="flex items-start justify-between">
-                <p className="text-xs text-muted-foreground">{card.label}</p>
-                <Icon size={16} className="dashboard-v2-stat-icon" />
+          <article className="stat-card">
+            <div className="stat-icon" style={{ background: "rgba(45, 138, 78, 0.15)" }}>
+              <FileText size={22} style={{ color: "var(--success)" }} />
+            </div>
+            <div className="stat-content">
+              <span className="stat-value">
+                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.pdfExports ?? 0) : coachStats.totalPdfs}
+              </span>
+              <span className="stat-label">PDF Exports</span>
+            </div>
+          </article>
+
+          <article className="stat-card">
+            <div className="stat-icon" style={{ background: "rgba(15, 52, 96, 0.25)" }}>
+              {isAdmin ? <LogIn size={22} style={{ color: "var(--info)" }} /> : <ClipboardList size={22} style={{ color: "var(--info)" }} />}
+            </div>
+            <div className="stat-content">
+              <span className="stat-value">
+                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.successfulLogins ?? 0) : coachStats.totalTranscripts}
+              </span>
+              <span className="stat-label">{isAdmin ? "Successful Logins" : "Transcripts Uploaded"}</span>
+            </div>
+          </article>
+
+          <article className="stat-card">
+            <div className="stat-icon" style={{ background: "rgba(196, 127, 23, 0.15)" }}>
+              <Users size={22} style={{ color: "var(--warning)" }} />
+            </div>
+            <div className="stat-content">
+              <span className="stat-value">{isLoading ? "..." : isAdmin ? (adminUsage?.totals.activeUsers ?? 0) : activityFeed.length}</span>
+              <span className="stat-label">{isAdmin ? "Active Users" : "Recent Activities"}</span>
+            </div>
+          </article>
+        </motion.section>
+
+        <motion.section variants={itemVariants} className="chart-section">
+          <div className="chart-card">
+            <div className="chart-header">
+              <div className="chart-title">
+                <BarChart3 size={20} />
+                <h3>Activity Overview</h3>
               </div>
-              <p className="mt-2 text-3xl font-semibold tracking-tight">{card.value ?? "-"}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
-            </motion.article>
-          );
-        })}
-      </div>
+              <div className="chart-legend">
+                <span className="legend-item">
+                  <span className="legend-dot" style={{ background: "var(--accent)" }} />
+                  Analyses
+                </span>
+                <span className="legend-item">
+                  <span className="legend-dot" style={{ background: "var(--success)" }} />
+                  PDF Exports
+                </span>
+                <span className="legend-item">
+                  <span className="legend-dot" style={{ background: "var(--warning)" }} />
+                  Logins
+                </span>
+              </div>
+            </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="dashboard-v2-panel rounded-xl border border-border bg-surface p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <Activity size={15} />
-              Recent Activity
-            </h2>
-            {isLoading && <span className="text-xs text-muted-foreground">Refreshing...</span>}
-          </div>
-          <div className="space-y-2">
-            {!activityFeed.length && !isLoading && (
-              <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                No activity captured yet.
-              </p>
-            )}
-            {activityFeed.map((item) => (
-              <article key={item.id} className="dashboard-v2-activity-item rounded-lg border border-border bg-white px-3 py-2">
-                <div className="flex items-start gap-3">
-                  {item.userImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="mt-0.5 h-7 w-7 rounded-full object-cover" src={item.userImageUrl} alt={item.userName || "User"} />
-                  ) : (
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-background text-[10px] font-semibold text-muted-foreground">
-                      {(item.userName || "?").slice(0, 1).toUpperCase()}
+            {chartData.length === 0 ? (
+              <div className="activity-empty">
+                <p>No chart data yet.</p>
+              </div>
+            ) : (
+              <div className="overview-rows">
+                {chartData.map((row) => (
+                  <div key={row.date} className="overview-row">
+                    <span className="overview-date">{row.date}</span>
+                    <div className="overview-bars">
+                      <div className="overview-bar overview-bar-analyses" style={{ width: `${(row.graded / chartMax) * 100}%` }} />
+                      <div className="overview-bar overview-bar-pdfs" style={{ width: `${(row.pdfs / chartMax) * 100}%` }} />
+                      <div className="overview-bar overview-bar-logins" style={{ width: `${(row.logins / chartMax) * 100}%` }} />
                     </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm">{item.description}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {item.userName ? `${item.userName} · ` : ""}
-                      {formatDate(item.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="dashboard-v2-panel rounded-xl border border-border bg-surface p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <ChartNoAxesColumn size={15} />
-              Top Action Types
-            </h2>
-            <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-              Total {topActionTotal}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {(actionStats?.stats || []).slice(0, 8).map((item) => {
-              const itemCount = coerceCount(item?._count?.actionType);
-              return (
-                <div key={item.actionType} className="rounded-lg border border-border bg-white px-3 py-2">
-                  <div className="mb-1 flex items-center justify-between">
-                    <p className="truncate pr-3 text-sm">{item.actionType}</p>
-                    <p className="text-sm font-semibold">{itemCount}</p>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-background">
-                    <div
-                      className="h-1.5 rounded-full bg-accent transition-all"
-                      style={{
-                        width: `${topActionTotal > 0 ? Math.max((itemCount / topActionTotal) * 100, 6) : 0}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {!actionStats?.stats?.length && (
-              <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                Action statistics will appear once tracked events are generated.
-              </p>
-            )}
-          </div>
-
-          {Boolean(adminUsage?.topUsers.length) && (
-            <>
-              <h3 className="mb-2 mt-6 flex items-center gap-2 text-sm font-semibold">
-                <Users size={14} />
-                Top Users
-              </h3>
-              <div className="space-y-2">
-                {(adminUsage?.topUsers || []).slice(0, 5).map((userRow) => (
-                  <div key={userRow.userId} className="rounded-lg border border-border bg-white px-3 py-2">
-                    <p className="text-sm font-medium">{userRow.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {userRow.logins} logins · {userRow.analyses} analyses · {userRow.pdfs} PDFs
-                    </p>
+                    <span className="overview-total">{row.graded + row.pdfs + row.logins}</span>
                   </div>
                 ))}
               </div>
-            </>
+            )}
+          </div>
+        </motion.section>
+
+        <motion.section variants={itemVariants} className="tools-section">
+          <h2>{isAdmin ? "Coach & Advisor Tools" : "Your Coaching Tools"}</h2>
+          <div className="tools-grid">
+            {toolCards.map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
+                  <div className="tool-icon" style={{ background: `${tool.color}20` }}>
+                    <Icon size={24} style={{ color: tool.color }} />
+                  </div>
+                  <div className="tool-content">
+                    <h3>{tool.title}</h3>
+                    <p>{tool.description}</p>
+                  </div>
+                  <div className="tool-ready-chip">
+                    <CheckCircle2 size={13} />
+                    <span>Ready</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        <div className="dashboard-v2-grid-2">
+          {isAdmin && (
+            <motion.section variants={itemVariants} className="chart-section">
+              <div className="chart-card">
+                <div className="chart-header">
+                  <div className="chart-title">
+                    <Users size={20} />
+                    <h3>Top User Activity</h3>
+                  </div>
+                </div>
+                <div className="top-users-list">
+                  {(adminUsage?.topUsers || []).slice(0, 8).map((entry) => (
+                    <div key={entry.userId} className="top-user-row">
+                      <div className="top-user-left">
+                        <strong>{entry.name}</strong>
+                        <span>{entry.title || "Team Member"}</span>
+                      </div>
+                      <div className="top-user-right">
+                        <span>L {entry.logins}</span>
+                        <span>A {entry.analyses}</span>
+                        <span>P {entry.pdfs}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {(!adminUsage?.topUsers || adminUsage.topUsers.length === 0) && (
+                    <div className="activity-empty">
+                      <p>No usage records yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.section>
           )}
-        </section>
-      </div>
-    </section>
+
+          {isAdmin && (
+            <motion.section variants={itemVariants} className="chart-section">
+              <div className="chart-card">
+                <div className="chart-header">
+                  <div className="chart-title">
+                    <Activity size={20} />
+                    <h3>Top Event Types</h3>
+                  </div>
+                </div>
+                <div className="top-users-list">
+                  {(actionStats?.stats || []).slice(0, 8).map((entry) => (
+                    <div key={entry.actionType} className="top-user-row">
+                      <div className="top-user-left">
+                        <strong>{entry.actionType}</strong>
+                        <span>Action log event type</span>
+                      </div>
+                      <div className="top-user-right">
+                        <span>{coerceCount(entry._count.actionType)}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {(!actionStats?.stats || actionStats.stats.length === 0) && (
+                    <div className="activity-empty">
+                      <p>No action stats found yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.section>
+          )}
+        </div>
+
+        {!isAdmin && (
+          <motion.section variants={itemVariants} className="chart-section">
+            <div className="chart-card">
+              <div className="chart-header">
+                <div className="chart-title">
+                  <Activity size={20} />
+                  <h3>Top Action Types</h3>
+                </div>
+              </div>
+              <div className="top-users-list">
+                {coachActionStats.slice(0, 8).map((entry) => (
+                  <div key={entry.actionType} className="top-user-row">
+                    <div className="top-user-left">
+                      <strong>{entry.actionType}</strong>
+                      <span>Action log event type</span>
+                    </div>
+                    <div className="top-user-right">
+                      <span>{coerceCount(entry.count)}</span>
+                    </div>
+                  </div>
+                ))}
+                {coachActionStats.length === 0 && (
+                  <div className="activity-empty">
+                    <p>No action stats found yet.</p>
+                  </div>
+                )}
+              </div>
+              <p className="top-action-total">Total {topActionTotal}</p>
+            </div>
+          </motion.section>
+        )}
+
+        <motion.section variants={itemVariants} className="activity-section">
+          <h2>{isAdmin ? "Recent App Activity" : "Your Team Activity Feed"}</h2>
+          <div className="activity-list">
+            {isLoading ? (
+              <div className="activity-loading">Loading activity…</div>
+            ) : activityFeed.length === 0 ? (
+              <div className="activity-empty">
+                <Activity size={40} strokeWidth={1} />
+                <p>No activity yet.</p>
+              </div>
+            ) : (
+              activityFeed.map((item) => {
+                const initials = getInitials(item.userName);
+                return (
+                  <div key={item.id} className="activity-item">
+                    <div className="activity-user-avatar">
+                      {item.userImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.userImageUrl}
+                          alt={item.userName || "User"}
+                          className="activity-avatar-img"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                            const sibling = e.currentTarget.nextSibling as HTMLElement | null;
+                            if (sibling) sibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div className="activity-avatar-fallback" style={{ display: item.userImageUrl ? "none" : "flex" }}>
+                        {item.userName ? initials : getActionIcon(item.actionType)}
+                      </div>
+                    </div>
+                    <div className="activity-content">
+                      <span className="activity-desc">{item.description}</span>
+                      <span className="activity-time">
+                        <Clock size={12} />
+                        {formatDate(item.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </motion.section>
+      </motion.div>
+    </div>
   );
 }
