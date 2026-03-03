@@ -27,6 +27,9 @@ export interface User {
   teamSection?: string | null;
   imageUrl?: string | null;
   role?: string;
+  onboardingTourVersion?: string | null;
+  onboardingTourCompletedAt?: string | null;
+  onboardingToolIntros?: Record<string, { version: string; seenAt: string }> | null;
 }
 
 export interface UsageUserLite {
@@ -368,6 +371,46 @@ export async function getMe(): Promise<{ user?: User; error?: string }> {
     return { user: data.user };
   } catch {
     return { error: "Not authenticated" };
+  }
+}
+
+export interface UpdateOnboardingStateInput {
+  completedVersion?: string;
+  toolIntroSeen?: {
+    route: string;
+    version: string;
+  };
+}
+
+export async function updateOnboardingState(
+  input: UpdateOnboardingStateInput,
+): Promise<{
+  ok?: boolean;
+  userOnboarding?: {
+    onboardingTourVersion?: string | null;
+    onboardingTourCompletedAt?: string | null;
+    onboardingToolIntros?: Record<string, { version: string; seenAt: string }> | null;
+  };
+  error?: string;
+}> {
+  try {
+    const data = await requestJson<{
+      ok: boolean;
+      userOnboarding: {
+        onboardingTourVersion?: string | null;
+        onboardingTourCompletedAt?: string | null;
+        onboardingToolIntros?: Record<string, { version: string; seenAt: string }> | null;
+      };
+    }>("/auth/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return data;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update onboarding";
+    return { error: message };
   }
 }
 

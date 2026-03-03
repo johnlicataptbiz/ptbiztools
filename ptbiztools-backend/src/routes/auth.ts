@@ -17,6 +17,67 @@ function getCookieOptions(maxAge?: number): CookieOptions {
   };
 }
 
+const TOUR_VERSION_PATTERN = /^\d{4}\.\d{2}(?:\.\d+)?$/;
+const ALLOWED_TOOL_INTRO_ROUTES = new Set([
+  '/discovery-call-grader',
+  '/sales-discovery-grader',
+  '/pl-calculator',
+  '/compensation-calculator',
+  '/analyses',
+]);
+
+type ToolIntroValue = {
+  version: string;
+  seenAt: string;
+};
+
+type ToolIntroMap = Record<string, ToolIntroValue>;
+
+function parseToolIntroMap(value: unknown): ToolIntroMap {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const entries = Object.entries(value as Record<string, unknown>);
+  const parsed: ToolIntroMap = {};
+
+  for (const [route, raw] of entries) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+    const intro = raw as { version?: unknown; seenAt?: unknown };
+    if (typeof intro.version !== 'string' || typeof intro.seenAt !== 'string') continue;
+    parsed[route] = { version: intro.version, seenAt: intro.seenAt };
+  }
+
+  return parsed;
+}
+
+function sanitizeVersion(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return TOUR_VERSION_PATTERN.test(trimmed) ? trimmed : null;
+}
+
+function mapUserForClient(user: {
+  id: string;
+  name: string;
+  title?: string | null;
+  teamSection?: string | null;
+  imageUrl?: string | null;
+  role: string;
+  onboardingTourVersion?: string | null;
+  onboardingTourCompletedAt?: Date | null;
+  onboardingToolIntros?: unknown;
+}) {
+  return {
+    id: user.id,
+    name: user.name,
+    title: user.title,
+    teamSection: user.teamSection,
+    imageUrl: user.imageUrl,
+    role: user.role,
+    onboardingTourVersion: user.onboardingTourVersion,
+    onboardingTourCompletedAt: user.onboardingTourCompletedAt?.toISOString() || null,
+    onboardingToolIntros: parseToolIntroMap(user.onboardingToolIntros),
+  };
+}
+
 function getRoleForMember(member: { teamSection?: string | null; title?: string | null; name: string }) {
   const section = member.teamSection || '';
   const title = member.title?.toLowerCase() || '';
@@ -214,14 +275,7 @@ router.post('/setup-password', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     res.json({ 
       message: 'Password set successfully',
-      user: {
-        id: user?.id,
-        name: user?.name,
-        title: user?.title,
-        teamSection: user?.teamSection,
-        imageUrl: user?.imageUrl,
-        role: user?.role,
-      }
+      user: user ? mapUserForClient(user) : null,
     });
   } catch (error) {
     console.error('Setup password error:', error);
@@ -264,14 +318,7 @@ router.post('/login', async (req, res) => {
     await recordLoginEvent({ req, userId: user.id, rememberMe: rememberMe ?? null, sessionId: sessionId || null, success: true });
 
     res.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        title: user.title,
-        teamSection: user.teamSection,
-        imageUrl: user.imageUrl,
-        role: user.role,
-      }
+      user: mapUserForClient(user),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -301,18 +348,87 @@ router.get('/me', async (req, res) => {
     }
 
     res.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        title: user.title,
-        teamSection: user.teamSection,
-        imageUrl: user.imageUrl,
-        role: user.role,
-      }
+      user: mapUserForClient(user),
     });
   } catch (error) {
     console.error('Get me error:', error);
     res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+router.post('/onboarding', async (req, res) => {
+  try {
+    await ensureTeamMembersSeeded();
+
+    const userId = req.cookies?.ptbiz_user;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const completedVersion = sanitizeVersion(req.body?.completedVersion);
+    const rawToolIntro = req.body?.toolIntroSeen as { route?: unknown; version?: unknown } | undefined;
+
+    if (!completedVersion && !rawToolIntro) {
+      return res.status(400).json({ error: 'Provide completedVersion and/or toolIntroSeen' });
+    }
+
+    const toolIntroRoute = typeof rawToolIntro?.route === 'string' ? rawToolIntro.route.trim() : null;
+    const toolIntroVersion = sanitizeVersion(rawToolIntro?.version);
+
+    if (rawToolIntro) {
+      if (!toolIntroRoute || !ALLOWED_TOOL_INTRO_ROUTES.has(toolIntroRoute)) {
+        return res.status(400).json({ error: 'Invalid tool intro route' });
+      }
+      if (!toolIntroVersion) {
+        return res.status(400).json({ error: 'Invalid tool intro version' });
+      }
+    }
+
+    const existing = await (prisma.user as any).findUnique({
+      where: { id: userId },
+    });
+    if (!existing) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const updateData: {
+      onboardingTourVersion?: string | null;
+      onboardingTourCompletedAt?: Date | null;
+      onboardingToolIntros?: ToolIntroMap;
+    } = {};
+
+    if (completedVersion) {
+      updateData.onboardingTourVersion = completedVersion;
+      updateData.onboardingTourCompletedAt = new Date();
+    }
+
+    if (toolIntroRoute && toolIntroVersion) {
+      const current = parseToolIntroMap(existing.onboardingToolIntros);
+      updateData.onboardingToolIntros = {
+        ...current,
+        [toolIntroRoute]: {
+          version: toolIntroVersion,
+          seenAt: new Date().toISOString(),
+        },
+      };
+    }
+
+    const updated = await (prisma.user as any).update({
+      where: { id: userId },
+      data: updateData,
+    });
+
+    return res.json({
+      ok: true,
+      userOnboarding: {
+        onboardingTourVersion: updated.onboardingTourVersion,
+        onboardingTourCompletedAt: updated.onboardingTourCompletedAt?.toISOString() || null,
+        onboardingToolIntros: parseToolIntroMap(updated.onboardingToolIntros),
+      },
+    });
+  } catch (error) {
+    console.error('Update onboarding error:', error);
+    return res.status(500).json({ error: 'Failed to update onboarding state' });
   }
 });
 

@@ -1,0 +1,130 @@
+.tour-overlay-root {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+}
+
+.tour-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 12, 24, 0.58);
+  backdrop-filter: blur(1.5px);
+}
+
+.tour-overlay-highlight {
+  position: fixed;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 9999px rgba(6, 12, 24, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset,
+    0 12px 42px rgba(8, 20, 40, 0.35);
+  pointer-events: none;
+}
+
+.tour-popover {
+  position: fixed;
+  width: min(360px, calc(100vw - 20px));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+  box-shadow: 0 20px 48px rgba(8, 20, 40, 0.35);
+  pointer-events: auto;
+}
+
+.tour-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tour-progress {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tour-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted-foreground);
+}
+
+.tour-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.tour-description {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.tour-actions {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tour-actions-left,
+.tour-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tour-btn {
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.tour-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tour-btn-secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.tour-btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .tour-popover {
+    width: calc(100vw - 18px);
+    left: 9px !important;
+    right: 9px;
+    transform: none !important;
+    top: auto !important;
+    bottom: 12px;
+  }
+}

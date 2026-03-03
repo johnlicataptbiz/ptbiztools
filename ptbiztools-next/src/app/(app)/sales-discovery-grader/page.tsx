@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import DannyCloserCallGrader from "@/components/danny/DannyCloserCallGrader";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
+import { TourAnchors } from "@/lib/tour/anchors";
 
 export default function SalesDiscoveryGraderPage() {
   const router = useRouter();
@@ -20,5 +21,9 @@ export default function SalesDiscoveryGraderPage() {
 
   if (!canAccess) return null;
 
-  return <DannyCloserCallGrader />;
+  return (
+    <div data-tour={TourAnchors.routes.sales}>
+      <DannyCloserCallGrader />
+    </div>
+  );
 }

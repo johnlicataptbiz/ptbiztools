@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
+import { TourAnchors } from "@/lib/tour/anchors";
 import {
   getActionLogs,
   getActionStats,
@@ -465,7 +466,7 @@ export default function DashboardPage() {
           </div>
         </motion.section>
 
-        <motion.section variants={itemVariants} className="tools-section">
+        <motion.section variants={itemVariants} className="tools-section" data-tour={TourAnchors.dashboard.tools}>
           <h2>{isAdmin ? "Coach & Advisor Tools" : "Your Coaching Tools"}</h2>
           <div className="tools-grid">
             {toolCards.map((tool) => {
@@ -587,7 +588,7 @@ export default function DashboardPage() {
           </motion.section>
         )}
 
-        <motion.section variants={itemVariants} className="activity-section">
+        <motion.section variants={itemVariants} className="activity-section" data-tour={TourAnchors.dashboard.activity}>
           <h2>{isAdmin ? "Recent App Activity" : "Your Team Activity Feed"}</h2>
           <div className="activity-list">
             {isLoading ? (
