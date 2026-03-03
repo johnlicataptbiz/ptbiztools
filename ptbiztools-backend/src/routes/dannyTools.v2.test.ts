@@ -177,6 +177,8 @@ test('sales-grade-v2 normalizes empty evidence fields from model output', async 
   brokenExtraction.phases.discovery.evidence = ['']
   brokenExtraction.critical_behaviors.time_management.evidence = ['']
   brokenExtraction.critical_behaviors.time_management.note = ''
+  brokenExtraction.critical_behaviors.discount_discipline.evidence = []
+  brokenExtraction.critical_behaviors.personal_story.evidence = []
 
   global.fetch = async () => {
     return {
@@ -200,4 +202,8 @@ test('sales-grade-v2 normalizes empty evidence fields from model output', async 
   assert.ok(Array.isArray(response.body.criticalBehaviors.time_management.evidence))
   assert.ok(response.body.criticalBehaviors.time_management.evidence[0].length > 0)
   assert.ok(response.body.criticalBehaviors.time_management.note.length >= 3)
+  assert.ok(Array.isArray(response.body.criticalBehaviors.discount_discipline.evidence))
+  assert.ok(response.body.criticalBehaviors.discount_discipline.evidence[0].length > 0)
+  assert.ok(Array.isArray(response.body.criticalBehaviors.personal_story.evidence))
+  assert.ok(response.body.criticalBehaviors.personal_story.evidence[0].length > 0)
 })

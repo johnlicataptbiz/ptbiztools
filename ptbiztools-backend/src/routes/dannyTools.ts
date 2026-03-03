@@ -344,11 +344,8 @@ dannyToolsRouter.post('/sales-grade-v2', requireAuth, async (req: SessionRequest
     return
   }
 
-  let parsedExtraction = extractionResultSchema.safeParse(rawExtraction)
-  if (!parsedExtraction.success) {
-    const normalizedExtraction = normalizeExtractionContract(rawExtraction, transcript)
-    parsedExtraction = extractionResultSchema.safeParse(normalizedExtraction)
-  }
+  const normalizedExtraction = normalizeExtractionContract(rawExtraction, transcript)
+  const parsedExtraction = extractionResultSchema.safeParse(normalizedExtraction)
 
   if (!parsedExtraction.success) {
     res.status(422).json({
