@@ -4,20 +4,25 @@
 
 .page-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin: 0 auto 42px;
+  max-width: 1040px;
 }
 
 .header-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, rgba(91, 127, 166, 0.12) 0%, rgba(91, 127, 166, 0.04) 100%);
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 15%, transparent) 0%,
+    color-mix(in oklab, var(--accent) 6%, transparent) 100%
+  );
   border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
   color: var(--color-accent);
-  border: 1px solid rgba(91, 127, 166, 0.2);
+  border: 1px solid color-mix(in oklab, var(--accent) 26%, transparent);
 }
 
 .header-icon svg {
@@ -26,13 +31,17 @@
 }
 
 .page-header h1 {
-  margin-bottom: 10px;
-  font-size: 32px;
-  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  font-size: clamp(34px, 4.2vw, 50px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 .page-header p {
-  font-size: 15px;
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.45;
   color: var(--color-text-secondary);
 }
 

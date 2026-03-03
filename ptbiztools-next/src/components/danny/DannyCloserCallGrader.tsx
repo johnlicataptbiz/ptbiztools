@@ -442,6 +442,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
   const textSecondary = "var(--color-text-secondary)";
   const textMuted = "var(--color-text-muted)";
   const accent = "var(--accent)";
+  const fontSans = "var(--font-brand-sans), system-ui, sans-serif";
 
   const cardStyle = {
     background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "20px",
@@ -449,8 +450,8 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
 
   const btnBase = {
     border: "none", borderRadius: "6px", padding: "10px 20px", fontSize: "13px",
-    fontWeight: 600, cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
-    letterSpacing: "0.02em", transition: "all 0.15s ease",
+    fontWeight: 600, cursor: "pointer", fontFamily: fontSans,
+    letterSpacing: "0.01em", transition: "all 0.15s ease",
   };
 
   const renderGradeView = () => (
@@ -1008,9 +1009,8 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
   return (
     <div style={{
       background: bg, minHeight: "100vh", color: textPrimary,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+      fontFamily: fontSans,
     }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -1018,24 +1018,34 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           #printable-report { box-shadow: none !important; border-radius: 0 !important; padding: 20px !important; }
         }
       `}</style>
-      <div style={{ maxWidth: "860px", margin: "0 auto", padding: "24px 20px" }}>
+      <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
-        <div className="no-print" style={{ marginBottom: "24px" }}>
+        <div
+          className="no-print"
+          style={{
+            marginBottom: "20px",
+            padding: "18px 20px",
+            border: `1px solid ${border}`,
+            borderRadius: "16px",
+            background: `linear-gradient(180deg, ${card}, ${cardSoft})`,
+            boxShadow: "0 10px 24px color-mix(in oklab, var(--color-text) 10%, transparent)",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-            <h1 style={{ margin: 0, fontSize: "20px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "-0.02em" }}>
+            <h1 style={{ margin: 0, fontSize: "clamp(34px, 4.6vw, 52px)", lineHeight: 1.04, fontWeight: 700, fontFamily: fontSans, letterSpacing: "-0.03em" }}>
               PT Biz Call Grader
             </h1>
-            <span style={{ fontSize: "10px", padding: "2px 8px", background: accent, color: "#ffffff", borderRadius: "3px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+            <span style={{ fontSize: "11px", padding: "4px 10px", background: accent, color: "#ffffff", borderRadius: "999px", fontWeight: 700, fontFamily: fontSans }}>
               v1.0
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: "13px", color: textSecondary }}>
+          <p style={{ margin: 0, fontSize: "16px", lineHeight: 1.45, color: textSecondary }}>
             Score calls against the 7-phase framework. Track closer performance over time.
           </p>
         </div>
 
         {/* Nav */}
-        <div className="no-print" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: card, borderRadius: "6px", padding: "3px", width: "fit-content" }}>
+        <div className="no-print" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: card, borderRadius: "10px", padding: "4px", width: "fit-content", border: `1px solid ${border}` }}>
           {[["grade", "Grade Call"], ["results", "Last Result"], ["history", "Dashboard"], ["report", "Report"]].map(([v, label]) => (
             <button key={v} onClick={() => setView(v)}
               disabled={(v === "results" && !result) || (v === "report" && !reportData)}

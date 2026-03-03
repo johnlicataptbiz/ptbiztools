@@ -24,6 +24,18 @@
   height: 68px;
   width: auto;
   object-fit: contain;
+  filter: var(--logo-filter);
+  -webkit-mask-image: var(--logo-mask);
+  mask-image: var(--logo-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.app-shell-logo-link:hover .app-shell-logo-image {
+  transform: translateY(-1px) scale(1.015);
 }
 
 .app-shell-logo-copy {
