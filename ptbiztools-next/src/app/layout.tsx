@@ -5,6 +5,7 @@ import "./globals.css";
 import "@/styles/corex-compat.css";
 import "@/styles/discovery-call-grader.css";
 import "@/styles/analysis-history.css";
+import "@/styles/login.css";
 
 const brandSans = Space_Grotesk({
   variable: "--font-brand-sans",

@@ -1,23 +1,21 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { LOGIN_LOGO_URL } from "@/constants/branding";
+import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
+const PT_BADGE_NAME_ALLOWLIST = new Set(["danny matta", "yves gege", "toni counts"]);
 
 function normalizeText(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
-}
-
-function isBoardMember(member: TeamMember) {
-  const section = normalizeText(member.teamSection);
-  const title = normalizeText(member.title);
-  return section.includes("board") || title.includes("board");
 }
 
 function getMemberSortPriority(member: TeamMember) {
@@ -32,6 +30,25 @@ function getMemberSortPriority(member: TeamMember) {
   return 2;
 }
 
+function isBoardMember(member: TeamMember) {
+  const section = normalizeText(member.teamSection);
+  const title = normalizeText(member.title);
+  return section.includes("board") || title.includes("board");
+}
+
+function isCoachMember(member: TeamMember) {
+  const section = normalizeText(member.teamSection);
+  const title = normalizeText(member.title);
+  const role = normalizeText(member.role);
+  return section.includes("coach") || title.includes("coach") || role.includes("coach");
+}
+
+function shouldShowPtBadge(member: TeamMember) {
+  const normalizedName = normalizeText(member.name);
+  if (PT_BADGE_NAME_ALLOWLIST.has(normalizedName)) return true;
+  return isCoachMember(member);
+}
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -41,24 +58,45 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function TeamAvatar({ member }: { member: TeamMember }) {
+function TeamAvatar({
+  name,
+  imageUrl,
+  showPtBadge,
+  className,
+  fallbackClassName,
+}: {
+  name: string;
+  imageUrl?: string | null;
+  showPtBadge: boolean;
+  className: string;
+  fallbackClassName: string;
+}) {
   const [didError, setDidError] = useState(false);
+  const isJack = normalizeText(name) === JACK_NAME;
+  const imageClassName = `${className}${isJack ? " jack-headshot-tight" : ""}`;
 
-  if (member.imageUrl && !didError) {
+  if (imageUrl && !didError) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={member.imageUrl}
-        alt={member.name}
-        className="h-10 w-10 rounded-full object-cover"
-        onError={() => setDidError(true)}
-      />
+      <div className={`team-avatar-shell ${className}-shell`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt={name}
+          className={imageClassName}
+          loading="lazy"
+          onError={() => setDidError(true)}
+        />
+        {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
+      </div>
     );
   }
 
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
-      {getInitials(member.name)}
+    <div className={`team-avatar-shell ${className}-shell`}>
+      <div className={`${className} ${fallbackClassName}`} aria-label={name}>
+        {getInitials(name)}
+      </div>
+      {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
     </div>
   );
 }
@@ -124,7 +162,7 @@ export default function LoginPage() {
     resetInputs();
   };
 
-  const handleBack = () => {
+  const handleBackToSelection = () => {
     setSelectedUserId(null);
     localStorage.removeItem(REMEMBERED_USER_KEY);
     resetInputs();
@@ -169,8 +207,8 @@ export default function LoginPage() {
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
-    if (!selectedUser) return;
 
+    if (!selectedUser) return;
     if (!password) {
       setMessage("Enter your password to sign in.");
       return;
@@ -180,6 +218,7 @@ export default function LoginPage() {
     setMessage("");
 
     const result = await login({ userId: selectedUser.id, password, rememberMe });
+
     if (result.error || !result.user) {
       setMessage(result.error || "Unable to sign in.");
       setSubmitting(false);
@@ -192,144 +231,162 @@ export default function LoginPage() {
 
   if (sessionLoading || teamQuery.isLoading) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-6">
-        <div className="rounded-(--radius-xl) border border-border bg-surface px-6 py-5 text-sm text-muted-foreground">
-          Loading team members...
+      <div className="login-shell">
+        <div className="login-card">
+          <p>Loading team members...</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-4xl px-4 py-8 md:px-8 md:py-12">
-      <section className="rounded-(--radius-2xl) border border-border bg-surface p-6 shadow-sm md:p-8">
-        <header className="border-b border-border pb-5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={LOGIN_LOGO_URL}
-            alt="PT Biz Coach"
-            className="h-8 w-auto max-w-[220px]"
-          />
-          <p className="mt-3 text-xs uppercase tracking-[0.15em] text-muted-foreground">PT Biz Coach</p>
-          <h1 className="mt-2 text-3xl font-semibold">Sign in</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Choose your profile and use your account password.</p>
+    <div className="login-shell">
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <header className="login-header">
+          <div className="login-logo-hero">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
+          </div>
+          <h1>Sign in</h1>
+          <p>Select your profile and enter your password.</p>
         </header>
 
         {!selectedUser && (
-          <section className="mt-6">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Choose your profile</h2>
-              <p className="text-xs text-muted-foreground">{orderedTeamMembers.length} team members</p>
+          <section className="member-picker">
+            <div className="member-picker-header">
+              <h2>Choose your profile</h2>
+              <span>{orderedTeamMembers.length} team members</span>
             </div>
-
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
               {orderedTeamMembers.map((member) => (
-                <button
+                <motion.button
                   key={member.id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-white px-3 py-3 text-left hover:border-accent"
+                  className="member-row-card"
                   onClick={() => handleUserSelect(member.id)}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.995 }}
                 >
-                  <TeamAvatar member={member} />
-                  <div>
-                    <p className="text-sm font-semibold">{member.name}</p>
-                    <p className="text-xs text-muted-foreground">{member.title || "Team Member"}</p>
-                    <p className="text-xs text-muted-foreground/80">{member.teamSection || "PT Biz Team"}</p>
+                  <TeamAvatar
+                    name={member.name}
+                    imageUrl={member.imageUrl}
+                    showPtBadge={shouldShowPtBadge(member)}
+                    className="member-list-photo"
+                    fallbackClassName="member-list-photo-fallback"
+                  />
+                  <div className="member-row-meta">
+                    <strong>{member.name}</strong>
+                    <span>{member.title || "Team Member"}</span>
+                    <em>{member.teamSection || "PT Biz Team"}</em>
                   </div>
-                </button>
+                  <div className="member-row-action" aria-hidden="true">
+                    Select
+                  </div>
+                </motion.button>
               ))}
             </div>
           </section>
         )}
 
         {selectedUser && (
-          <section className="mt-6 space-y-5">
-            <button className="text-sm text-accent hover:underline" onClick={handleBack}>
+          <section className="selected-user-section">
+            <button className="change-user-btn" onClick={handleBackToSelection}>
+              <ArrowLeft size={14} />
               Choose a different person
             </button>
 
-            <div className="rounded-xl border border-border bg-white p-4">
-              <div className="flex items-center gap-3">
-                <TeamAvatar member={selectedUser} />
-                <div>
-                  <p className="text-sm font-semibold">{selectedUser.name}</p>
-                  <p className="text-xs text-muted-foreground">{selectedUser.title || "Team Member"}</p>
-                </div>
+            <div className="selected-user-card">
+              <TeamAvatar
+                name={selectedUser.name}
+                imageUrl={selectedUser.imageUrl}
+                showPtBadge={shouldShowPtBadge(selectedUser)}
+                className="selected-user-photo"
+                fallbackClassName="selected-user-photo-fallback"
+              />
+              <div>
+                <h2>{selectedUser.name}</h2>
+                <p>{selectedUser.title}</p>
+                <span>{selectedUser.teamSection}</span>
               </div>
             </div>
 
-            {needsFirstTimeSetup && (
-              <form className="space-y-3 rounded-xl border border-border bg-white p-4" onSubmit={handleSetupPassword}>
-                <h3 className="text-sm font-semibold">Create your password</h3>
-                <label className="block text-xs text-muted-foreground">
-                  Password
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
-                  />
-                </label>
-                <label className="block text-xs text-muted-foreground">
-                  Confirm password
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
-                  />
-                </label>
-                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            {needsFirstTimeSetup ? (
+              <form className="auth-form" onSubmit={handleSetupPassword}>
+                <h3>First-time setup</h3>
+                <p>Create your password once, then you'll use your normal sign-in form daily.</p>
+
+                <label className="checkbox-row">
                   <input
                     type="checkbox"
                     checked={identityConfirmed}
                     onChange={(event) => setIdentityConfirmed(event.target.checked)}
                   />
-                  I confirm this is my profile
+                  <span>I confirm I am {selectedUser.name}</span>
                 </label>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-                >
-                  Save password
-                </button>
-              </form>
-            )}
 
-            <form className="space-y-3 rounded-xl border border-border bg-white p-4" onSubmit={handleLogin}>
-              <h3 className="text-sm font-semibold">Sign in</h3>
-              <label className="block text-xs text-muted-foreground">
-                Password
-                <input
+                <CorexInput
+                  label="New password"
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  disabled={submitting}
                 />
-              </label>
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
+
+                <CorexInput
+                  label="Confirm password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  disabled={submitting}
                 />
-                Keep me signed in
-              </label>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-              >
-                Sign in
-              </button>
-            </form>
+
+                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
+                  <CheckCircle2 size={16} />
+                  Set Password
+                </CorexButton>
+              </form>
+            ) : (
+              <form className="auth-form" onSubmit={handleLogin}>
+                <h3>Sign in</h3>
+                <p>Use your saved profile and enter your password.</p>
+
+                <CorexInput
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={submitting}
+                />
+
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                  />
+                  <span>Keep me logged in</span>
+                </label>
+
+                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
+                  <LockKeyhole size={16} />
+                  Sign In
+                </CorexButton>
+              </form>
+            )}
           </section>
         )}
 
         {message && (
-          <p className="mt-4 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground">{message}</p>
+          <div className="login-message">
+            <UserRound size={14} />
+            <span>{message}</span>
+          </div>
         )}
-      </section>
-    </main>
+      </motion.div>
+    </div>
   );
 }
