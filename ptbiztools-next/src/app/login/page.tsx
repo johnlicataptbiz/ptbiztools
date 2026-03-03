@@ -12,7 +12,24 @@ import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api"
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
-const PT_BADGE_NAME_ALLOWLIST = new Set(["danny matta", "yves gege", "toni counts"]);
+
+const CREDENTIALS_BY_NAME: Record<string, { badge: string; full: string }> = {
+  "ashley speights": { badge: "DPT", full: "PT, DPT (Duke University), PES" },
+  "brooke miller": { badge: "OCS", full: "PT, DPT, OCS (pelvic health & orthopedic specialist)" },
+  "chris robl": { badge: "DPT", full: "DPT (Doctorate of Physical Therapy, 2011); 10+ years clinical experience" },
+  "colleen davis": { badge: "DPT", full: "DPT (founder of GOAT Physical Therapy & Wellness)" },
+  "courtney morse": { badge: "DPT", full: "DPT (Wichita State University, 2011); founder of Natural Wellness Physiotherapy" },
+  "daniel laughlin": { badge: "DPT", full: "PT, DPT (Rockhurst University); SFMA, Certified Functional Dry Needling, Sportsmetrics" },
+  "dj haskins": { badge: "DPT", full: "PT, DPT (pelvic health specialist); founder of Bliss Pelvic Health" },
+  "elizabeth rudd": { badge: "OCS", full: "PT, DPT, OCS, CSCS (Columbia University); founder of Well Equipt" },
+  "jaxie meth": { badge: "DPT", full: "PT, DPT (pelvic floor specialist); founder of The METHOD Performance & Physical Therapy" },
+  "michael sclafani": { badge: "SCS", full: "DPT, SCS, CSCS, USAW (Sports Residency at Cleveland Clinic); published researcher & DPT faculty" },
+  "tyler humphries": { badge: "DPT", full: "DPT (Old Dominion University); TPI & Blood Flow Restriction certified; founder of Bulletproof Physical Therapy" },
+  "ziad dahdul": { badge: "OCS", full: "DPT (University of Southern California); OCS, SFMA, FRCms; 11+ years with athletes" },
+  "danny matta": { badge: "OCS", full: "DPT, OCS, CSCS (former U.S. Army Physical Therapist)" },
+  "yves gege": { badge: "PT", full: "PT (DPT-level training; founder of Made 2 Move Physical Therapy)" },
+  "toni counts": { badge: "DPT", full: "PT, DPT (founder of Off The Block Performance Physical Therapy)" },
+};
 
 function normalizeText(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
@@ -36,17 +53,8 @@ function isBoardMember(member: TeamMember) {
   return section.includes("board") || title.includes("board");
 }
 
-function isCoachMember(member: TeamMember) {
-  const section = normalizeText(member.teamSection);
-  const title = normalizeText(member.title);
-  const role = normalizeText(member.role);
-  return section.includes("coach") || title.includes("coach") || role.includes("coach");
-}
-
-function shouldShowPtBadge(member: TeamMember) {
-  const normalizedName = normalizeText(member.name);
-  if (PT_BADGE_NAME_ALLOWLIST.has(normalizedName)) return true;
-  return isCoachMember(member);
+function getCredentialProfile(member: TeamMember) {
+  return CREDENTIALS_BY_NAME[normalizeText(member.name)] || null;
 }
 
 function getInitials(name: string) {
@@ -61,13 +69,13 @@ function getInitials(name: string) {
 function TeamAvatar({
   name,
   imageUrl,
-  showPtBadge,
+  credentialBadge,
   className,
   fallbackClassName,
 }: {
   name: string;
   imageUrl?: string | null;
-  showPtBadge: boolean;
+  credentialBadge?: string;
   className: string;
   fallbackClassName: string;
 }) {
@@ -86,7 +94,11 @@ function TeamAvatar({
           loading="lazy"
           onError={() => setDidError(true)}
         />
-        {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
+        {credentialBadge && (
+          <span className="team-avatar-badge" aria-label={`Credential ${credentialBadge}`} title={credentialBadge}>
+            {credentialBadge}
+          </span>
+        )}
       </div>
     );
   }
@@ -96,7 +108,11 @@ function TeamAvatar({
       <div className={`${className} ${fallbackClassName}`} aria-label={name}>
         {getInitials(name)}
       </div>
-      {showPtBadge && <span className="team-avatar-badge" aria-hidden="true">PT</span>}
+      {credentialBadge && (
+        <span className="team-avatar-badge" aria-label={`Credential ${credentialBadge}`} title={credentialBadge}>
+          {credentialBadge}
+        </span>
+      )}
     </div>
   );
 }
@@ -146,6 +162,7 @@ export default function LoginPage() {
     () => visibleMembers.find((member) => member.id === selectedUserId) || null,
     [selectedUserId, visibleMembers],
   );
+  const selectedUserCredentials = selectedUser ? getCredentialProfile(selectedUser) : null;
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
 
@@ -263,31 +280,36 @@ export default function LoginPage() {
               <span>{orderedTeamMembers.length} team members</span>
             </div>
             <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
-              {orderedTeamMembers.map((member) => (
-                <motion.button
-                  key={member.id}
-                  className="member-row-card"
-                  onClick={() => handleUserSelect(member.id)}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.995 }}
-                >
-                  <TeamAvatar
-                    name={member.name}
-                    imageUrl={member.imageUrl}
-                    showPtBadge={shouldShowPtBadge(member)}
-                    className="member-list-photo"
-                    fallbackClassName="member-list-photo-fallback"
-                  />
-                  <div className="member-row-meta">
-                    <strong>{member.name}</strong>
-                    <span>{member.title || "Team Member"}</span>
-                    <em>{member.teamSection || "PT Biz Team"}</em>
-                  </div>
-                  <div className="member-row-action" aria-hidden="true">
-                    Select
-                  </div>
-                </motion.button>
-              ))}
+              {orderedTeamMembers.map((member) => {
+                const credentials = getCredentialProfile(member);
+
+                return (
+                  <motion.button
+                    key={member.id}
+                    className="member-row-card"
+                    onClick={() => handleUserSelect(member.id)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.995 }}
+                  >
+                    <TeamAvatar
+                      name={member.name}
+                      imageUrl={member.imageUrl}
+                      credentialBadge={credentials?.badge}
+                      className="member-list-photo"
+                      fallbackClassName="member-list-photo-fallback"
+                    />
+                    <div className="member-row-meta">
+                      <strong>{member.name}</strong>
+                      <span>{member.title || "Team Member"}</span>
+                      <em>{member.teamSection || "PT Biz Team"}</em>
+                      {credentials?.full && <small className="member-row-cred">{credentials.full}</small>}
+                    </div>
+                    <div className="member-row-action" aria-hidden="true">
+                      Select
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
           </section>
         )}
@@ -303,7 +325,7 @@ export default function LoginPage() {
               <TeamAvatar
                 name={selectedUser.name}
                 imageUrl={selectedUser.imageUrl}
-                showPtBadge={shouldShowPtBadge(selectedUser)}
+                credentialBadge={selectedUserCredentials?.badge}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />
@@ -311,6 +333,7 @@ export default function LoginPage() {
                 <h2>{selectedUser.name}</h2>
                 <p>{selectedUser.title}</p>
                 <span>{selectedUser.teamSection}</span>
+                {selectedUserCredentials?.full && <small className="selected-user-cred">{selectedUserCredentials.full}</small>}
               </div>
             </div>
 
