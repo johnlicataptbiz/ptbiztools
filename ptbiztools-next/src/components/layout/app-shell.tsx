@@ -12,9 +12,11 @@ import {
   Menu,
   X,
   LogOut,
+  Palette,
 } from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole, getRoleLabel } from "@/lib/auth/roles";
+import { useTheme } from "@/lib/theme/theme-context";
 import { SITE_LOGO_URL } from "@/constants/branding";
 import "@/styles/app-shell.css";
 
@@ -41,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading, logout } = useSession();
+  const { theme, setTheme, options } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarDidError, setAvatarDidError] = useState(false);
 
@@ -187,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="app-shell-main min-h-screen">
         <header className="app-shell-header sticky top-0 z-20 border-b border-border px-4 py-3 lg:px-8">
-          <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <button
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm shadow-sm lg:hidden"
               onClick={() => setMenuOpen(true)}
@@ -198,6 +201,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             </button>
             <p className="text-sm font-medium tracking-[0.04em] text-muted-foreground">PT Biz Coach Workspace</p>
+            <label className="app-shell-theme-control">
+              <span className="app-shell-theme-label">
+                <Palette size={14} />
+                Theme
+              </span>
+              <select
+                className="app-shell-theme-select"
+                value={theme}
+                onChange={(event) => setTheme(event.target.value as typeof theme)}
+                aria-label="Select theme"
+              >
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </header>
 

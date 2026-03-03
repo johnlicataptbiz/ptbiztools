@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, #394757 0%, #32404f 100%);
+  background: linear-gradient(180deg, var(--brand-dark) 0%, color-mix(in oklab, var(--brand-dark) 74%, #000 26%) 100%);
   box-shadow: 2px 0 14px rgba(0, 0, 0, 0.2);
   color: rgba(255, 255, 255, 0.8);
 }
@@ -69,7 +69,7 @@
   width: 3px;
   height: 0;
   border-radius: 0 2px 2px 0;
-  background: #9ec5e9;
+  background: color-mix(in oklab, var(--brand-accent-light) 82%, #ffffff 18%);
   transition: height 150ms ease;
 }
 
@@ -84,8 +84,8 @@
 }
 
 .app-shell-nav-link-active {
-  background: rgba(91, 127, 166, 0.26);
-  color: #b6d9f4;
+  background: color-mix(in oklab, var(--brand-accent) 30%, transparent);
+  color: color-mix(in oklab, var(--brand-accent-light) 65%, #ffffff 35%);
 }
 
 .app-shell-nav-link-active::before {
@@ -113,14 +113,54 @@
 }
 
 .app-shell-user-card button:hover {
-  background: rgba(91, 127, 166, 0.2);
-  border-color: rgba(91, 127, 166, 0.45);
+  background: color-mix(in oklab, var(--brand-accent) 34%, transparent);
+  border-color: color-mix(in oklab, var(--brand-accent) 52%, transparent);
 }
 
 .app-shell-header {
   background: color-mix(in oklab, var(--background) 84%, white 16%);
   backdrop-filter: blur(7px);
   box-shadow: 0 8px 20px rgba(24, 24, 27, 0.07);
+}
+
+.app-shell-theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-shell-theme-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, black 12%);
+  font-weight: 600;
+}
+
+.app-shell-theme-select {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, #bcb4a8 14%);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 28px 6px 10px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23615a4f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.app-shell-theme-select:hover {
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+}
+
+.app-shell-theme-select:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent) 60%, #1a1410);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 22%, white 78%);
 }
 
 .app-shell-main {
@@ -153,5 +193,9 @@
 @media (max-width: 1023px) {
   .app-shell-sidebar {
     box-shadow: 14px 0 42px rgba(24, 24, 27, 0.38);
+  }
+
+  .app-shell-theme-label {
+    display: none;
   }
 }
