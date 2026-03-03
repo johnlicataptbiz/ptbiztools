@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const THEME_STORAGE_KEY = "ptbiz-theme";
 
-export type AppTheme = "classic" | "midnight" | "ocean" | "evergreen";
+export type AppTheme = "classic" | "midnight" | "ocean" | "evergreen" | "sunset" | "slate" | "sandstone";
 
 export interface ThemeOption {
   value: AppTheme;
@@ -16,6 +16,9 @@ const THEME_OPTIONS: ThemeOption[] = [
   { value: "midnight", label: "Midnight Slate" },
   { value: "ocean", label: "Ocean Ledger" },
   { value: "evergreen", label: "Evergreen" },
+  { value: "sunset", label: "Sunset Ember" },
+  { value: "slate", label: "Slate Steel" },
+  { value: "sandstone", label: "Sandstone" },
 ];
 
 interface ThemeContextValue {
