@@ -2,12 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, LockKeyhole, UserRound } from "lucide-react";
+import { ArrowLeft, CheckCircle2, LockKeyhole, Palette, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { LOGIN_LOGO_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
+import { useTheme } from "@/lib/theme/theme-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
@@ -202,7 +203,9 @@ function isBoardMember(member: TeamMember) {
 
 function getMemberProfile(member: TeamMember) {
   const explicit = MEMBER_PROFILES_BY_NAME[normalizeText(member.name)];
-  if (explicit) return explicit;
+  if (explicit) {
+    return sanitizeProfile(explicit);
+  }
 
   const section = normalizeText(member.teamSection);
   const isCoach = section.includes("coach");
@@ -210,37 +213,53 @@ function getMemberProfile(member: TeamMember) {
   const isAdvisor = section.includes("advisor");
 
   if (isCoach) {
-    return {
+    return sanitizeProfile({
       badge: "OWNER",
       credentials: "Coach profile",
       clinic: "PT clinic founder/owner",
       experience: "Cash-based or hybrid practice builder",
-    };
+    });
   }
 
   if (isPartner) {
-    return {
+    return sanitizeProfile({
       badge: "LEAD",
       credentials: "Partner leadership profile",
       clinic: member.title || "PT Biz Partner",
       experience: "Executive and operations leadership",
-    };
+    });
   }
 
   if (isAdvisor) {
-    return {
+    return sanitizeProfile({
       badge: "ADVR",
       credentials: "Advisor profile",
       clinic: member.title || "PT Biz Advisor",
       experience: "Advisory and business strategy",
-    };
+    });
   }
 
-  return {
+  return sanitizeProfile({
     badge: "OPER",
     credentials: "Team profile",
     clinic: "No PT clinic ownership listed",
     experience: member.title || "Internal operations and client success",
+  });
+}
+
+function sanitizeProfile(profile: { badge: string; credentials: string; clinic: string; experience: string }) {
+  if (profile.badge !== "OPER") return profile;
+
+  const clinic = /^no pt clinic ownership/i.test(profile.clinic.trim()) ? "" : profile.clinic;
+  const experience = profile.experience
+    .replace(/\bNo PT clinic ownership\b;?\s*/i, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return {
+    ...profile,
+    clinic,
+    experience,
   };
 }
 
@@ -307,6 +326,7 @@ function TeamAvatar({
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: sessionLoading, login } = useSession();
+  const { theme, setTheme, options } = useTheme();
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -452,6 +472,26 @@ export default function LoginPage() {
         transition={{ duration: 0.25 }}
       >
         <header className="login-header">
+          <div className="login-theme-row">
+            <label className="login-theme-control">
+              <span className="login-theme-label">
+                <Palette size={13} />
+                Theme
+              </span>
+              <select
+                className="login-theme-select"
+                value={theme}
+                onChange={(event) => setTheme(event.target.value as typeof theme)}
+                aria-label="Select theme"
+              >
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="login-logo-hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
@@ -490,8 +530,8 @@ export default function LoginPage() {
                         <span>{member.title || "Team Member"}</span>
                         <em>{member.teamSection || "PT Biz Team"}</em>
                         <small className="member-row-cred">{profile.credentials}</small>
-                        <small className="member-row-context">{profile.clinic}</small>
-                        <small className="member-row-context">{profile.experience}</small>
+                        {profile.clinic && <small className="member-row-context">{profile.clinic}</small>}
+                        {profile.experience && <small className="member-row-context">{profile.experience}</small>}
                       </div>
                     <div className="member-row-action" aria-hidden="true">
                       Select
@@ -525,8 +565,12 @@ export default function LoginPage() {
                 {selectedUserProfile && (
                   <>
                     <small className="selected-user-cred">{selectedUserProfile.credentials}</small>
-                    <small className="selected-user-context">{selectedUserProfile.clinic}</small>
-                    <small className="selected-user-context">{selectedUserProfile.experience}</small>
+                    {selectedUserProfile.clinic && (
+                      <small className="selected-user-context">{selectedUserProfile.clinic}</small>
+                    )}
+                    {selectedUserProfile.experience && (
+                      <small className="selected-user-context">{selectedUserProfile.experience}</small>
+                    )}
                   </>
                 )}
               </div>
