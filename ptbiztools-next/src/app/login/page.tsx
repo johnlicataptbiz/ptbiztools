@@ -13,169 +13,170 @@ import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api"
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
+const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a11935a3ac5d-512";
 
 const MEMBER_PROFILES_BY_NAME: Record<string, { badge: string; credentials: string; clinic: string; experience: string }> = {
   "ashley speights": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "PT,DPT",
+    credentials: "Coach; PT, DPT, PES",
     clinic: "Founder & Owner — The PHYT Collective (Washington, DC)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Athlete-focused cash practice with strong community education",
   },
   "brooke miller": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic owner",
+    badge: "DPT,OCS",
+    credentials: "Coach; PT, DPT, OCS",
     clinic: "Owner — PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Pelvic health + orthopedic performance specialist clinic owner",
   },
   "chris robl": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
-    clinic: "Founder/Owner — Physio Room (multiple Colorado locations; hybrid model)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    badge: "DPT",
+    credentials: "Coach; DPT",
+    clinic: "Founder/Owner — Physio Room (Colorado; hybrid model)",
+    experience: "10+ years clinical practice; built multi-location hybrid business",
   },
   "colleen davis": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "DPT",
+    credentials: "Coach; DPT",
     clinic: "Founder & Owner — GOAT Physical Therapy and Wellness (Gales Ferry, CT)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Scaled to a 3,500 sq ft clinic with four therapists",
   },
   "courtney morse": {
-    badge: "OWNER",
-    credentials: "Head Coach; PT clinic owner/founder",
-    clinic: "Owner/Founder — Natural Wellness Physiotherapy (Wichita, KS; cash-based, team-run)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    badge: "DPT",
+    credentials: "Head Coach; DPT",
+    clinic: "Owner/Founder — Natural Wellness Physiotherapy (Wichita, KS)",
+    experience: "Built team-run cash clinic and now focuses on systems + leadership",
   },
   "daniel laughlin": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic owner",
+    badge: "PT,DPT",
+    credentials: "Coach; PT, DPT",
     clinic: "Owner — Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Converted from insurance model to high-performing hybrid practice",
   },
   "dj haskins": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder",
+    badge: "PT,DPT",
+    credentials: "Coach; PT, DPT",
     clinic: "Founder — Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Pelvic health practice helping women return to confident movement",
   },
   "elizabeth rudd": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "DPT,OCS",
+    credentials: "Coach; PT, DPT, OCS, CSCS",
     clinic: "Founder/Owner — Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Sports performance, rehab, and pain-management specialist",
   },
   "jaxie meth": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "PT,DPT",
+    credentials: "Coach; PT, DPT",
     clinic: "Founder/Owner — The METHOD Performance and Physical Therapy (Boston, MA area)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Pelvic floor specialist for fitness athletes",
   },
   "michael sclafani": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "DPT,SCS",
+    credentials: "Coach; DPT, SCS, CSCS",
     clinic: "Founder/Owner — Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Sports residency trained; published IJSPT author; DPT faculty contributor",
   },
   "tyler humphries": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "DPT",
+    credentials: "Coach; DPT",
     clinic: "Founder/Owner — Bulletproof Physical Therapy (Houston, TX)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "Performance-based rehab model for active adults and athletes",
   },
   "ziad dahdul": {
-    badge: "OWNER",
-    credentials: "Coach; PT clinic founder/owner",
+    badge: "DPT,OCS",
+    credentials: "Coach; DPT, OCS",
     clinic: "Founder/Owner — Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
-    experience: "Owns/founded successful cash-based or hybrid PT clinic",
+    experience: "11+ years with athletes; USC DPT; functional performance focus",
   },
   "danny matta": {
-    badge: "OWNER",
-    credentials: "Partner; CEO",
+    badge: "DPT,OCS",
+    credentials: "Partner; CEO; DPT, OCS, CSCS",
     clinic: "Co-founder/Co-owner (with Ashley Matta) — Athletes' Potential (Decatur/Atlanta, GA)",
     experience: "Scaled to largest cash-based PT in Georgia; clinic sold in 2023",
   },
   "yves gege": {
-    badge: "OWNER",
-    credentials: "Partner; Head of Customer Success & Coaching",
+    badge: "PT",
+    credentials: "Partner; Head of Customer Success & Coaching; PT",
     clinic: "Founder — Made 2 Move Physical Therapy (Charleston, SC area)",
     experience: "Grew to multiple locations/providers; sold in 2020; remains mentor",
   },
   "jerred moon": {
     badge: "BIZ",
     credentials: "Partner; CFO",
-    clinic: "No PT clinic ownership",
-    experience: "Owner, End of Three Fitness (7-figure digital fitness business)",
+    clinic: "",
+    experience: "USAF veteran; 8-figure digital operator; author of Killing Comfort",
   },
   "john licata": {
     badge: "BIZ",
     credentials: "Advisor; Senior Advisor",
-    clinic: "Senior Advisor",
-    experience: "No PT clinic ownership; 30+ years in consumer goods/executive consulting",
+    clinic: "Senior Advisor — PT Biz",
+    experience: "30+ years in consumer goods strategy and executive consulting",
   },
   "toni counts": {
-    badge: "OWNER",
-    credentials: "Advisor; Business Advisor",
+    badge: "PT,DPT",
+    credentials: "Advisor; Business Advisor; PT, DPT",
     clinic: "Founder/Owner — Off The Block Performance Physical Therapy (Central/Easley, SC area)",
     experience: "Multiple locations with husband Cole",
   },
   "amy gege": {
-    badge: "OPER",
-    credentials: "Client Success; events/operations",
-    clinic: "No PT clinic ownership",
-    experience: "Operations role; married to Yves Gege",
+    badge: "OPS",
+    credentials: "Client Success; Events & Operations",
+    clinic: "",
+    experience: "20+ years event operations; coordinates PT Biz live experiences",
   },
   "ashley matta": {
     badge: "OWNER",
     credentials: "Client Success; First Lady of PT Biz",
     clinic: "Co-owner (with Danny Matta) — Athletes' Potential",
-    experience: "Clinic sold in 2023",
+    experience: "Built and operated cash practice for 8+ years; sold in 2023",
   },
   "bekah fay": {
-    badge: "OWNER",
-    credentials: "Client Success; Acquisitions",
+    badge: "DPT",
+    credentials: "Client Success; Acquisitions; DPT",
     clinic: "Opened cash-based PT practice inside CrossFit affiliate she owns (South Florida)",
-    experience: "PT clinic owner + acquisitions role",
+    experience: "CrossFit affiliate owner who launched and runs cash PT practice",
   },
   "brandon erwin": {
-    badge: "OPER",
+    badge: "OPS",
     credentials: "Client Success",
-    clinic: "No PT clinic ownership",
-    experience: "Business/operations background",
+    clinic: "",
+    experience: "Podcast production plus digital marketing and sales support",
   },
   "nicole miller": {
-    badge: "OPER",
-    credentials: "Client Success; Acquisitions",
-    clinic: "No PT clinic ownership",
-    experience: "DPT with business-role focus only",
+    badge: "DPT",
+    credentials: "Client Success; Acquisitions; DPT",
+    clinic: "",
+    experience: "Outpatient neuro background; movement, education, and operations focus",
   },
   "e'an verdugo": {
-    badge: "OPER",
+    badge: "OPS",
     credentials: "Acquisitions; Creative Director",
-    clinic: "No PT clinic ownership",
-    experience: "Business/creative operations background",
+    clinic: "",
+    experience: "Filmmaker and storyteller leading PT Biz creative direction",
   },
   "justin pfluger": {
-    badge: "OPER",
+    badge: "OPS",
     credentials: "Acquisitions",
-    clinic: "No PT clinic ownership",
-    experience: "Business/operations background",
+    clinic: "",
+    experience: "Ecommerce operator and paid advertising specialist",
   },
   "kaitlin wilcox": {
-    badge: "OPER",
-    credentials: "Acquisitions",
-    clinic: "No PT clinic ownership",
-    experience: "Business/operations background",
+    badge: "RN",
+    credentials: "Acquisitions; RN",
+    clinic: "",
+    experience: "Registered Nurse and former cardiac rehab exercise physiologist",
   },
   "trampis beatty": {
-    badge: "OPER",
-    credentials: "Acquisitions",
-    clinic: "No PT clinic ownership",
-    experience: "Business/operations background",
+    badge: "OPS",
+    credentials: "Acquisitions; Web Builds",
+    clinic: "",
+    experience: "Leads website builds and acquisition support",
   },
   "jack licata": {
-    badge: "OPER",
-    credentials: "Client Success / Acquisitions",
-    clinic: "No PT clinic ownership",
-    experience: "Business/operations background",
+    badge: "BIZ",
+    credentials: "Client Success / Acquisitions; Senior Advisor; PT Biz Coach Tools Creator",
+    clinic: "",
+    experience: "30+ years business strategy; helps clinicians scale profitably",
   },
 };
 
@@ -214,7 +215,7 @@ function getMemberProfile(member: TeamMember) {
 
   if (isCoach) {
     return sanitizeProfile({
-      badge: "OWNER",
+      badge: "PT",
       credentials: "Coach profile",
       clinic: "PT clinic founder/owner",
       experience: "Cash-based or hybrid practice builder",
@@ -240,7 +241,7 @@ function getMemberProfile(member: TeamMember) {
   }
 
   return sanitizeProfile({
-    badge: "OPER",
+    badge: "OPS",
     credentials: "Team profile",
     clinic: "No PT clinic ownership listed",
     experience: member.title || "Internal operations and client success",
@@ -248,9 +249,9 @@ function getMemberProfile(member: TeamMember) {
 }
 
 function sanitizeProfile(profile: { badge: string; credentials: string; clinic: string; experience: string }) {
-  if (profile.badge !== "OPER") return profile;
-
-  const clinic = /^no pt clinic ownership/i.test(profile.clinic.trim()) ? "" : profile.clinic;
+  const clinic = profile.clinic
+    .replace(/^No PT clinic ownership(?: listed)?\s*$/i, "")
+    .trim();
   const experience = profile.experience
     .replace(/\bNo PT clinic ownership\b;?\s*/i, "")
     .replace(/\s{2,}/g, " ")
@@ -287,14 +288,15 @@ function TeamAvatar({
 }) {
   const [didError, setDidError] = useState(false);
   const isJack = normalizeText(name) === JACK_NAME;
+  const resolvedImageUrl = isJack ? JACK_LOGIN_IMAGE_URL : imageUrl;
   const imageClassName = `${className}${isJack ? " jack-headshot-tight" : ""}`;
 
-  if (imageUrl && !didError) {
+  if (resolvedImageUrl && !didError) {
     return (
       <div className={`team-avatar-shell ${className}-shell`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={imageUrl}
+          src={resolvedImageUrl}
           alt={name}
           className={imageClassName}
           loading="lazy"
