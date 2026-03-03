@@ -259,3 +259,38 @@ export async function getActionStats(): Promise<{ data?: ActionStatsSummary; err
     return { error: message };
   }
 }
+
+export async function extractDannyPLFromPdf(file: File): Promise<{
+  extracted?: Record<string, unknown>;
+  model?: string;
+  error?: string;
+}> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+
+    const response = await fetch(`${API_BASE}/danny-tools/pl-extract`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = (await response.json()) as {
+      extracted?: Record<string, unknown>;
+      model?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      return { error: data.error || "Failed to extract P&L fields from PDF" };
+    }
+
+    return {
+      extracted: data.extracted,
+      model: data.model,
+    };
+  } catch (error) {
+    console.error("Failed to extract Danny P&L PDF:", error);
+    return { error: "Network error" };
+  }
+}
