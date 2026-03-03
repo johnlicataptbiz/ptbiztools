@@ -23,6 +23,26 @@ interface AnalysisHistoryData {
 const EMPTY_ANALYSES: CoachingAnalysisRecord[] = [];
 const EMPTY_PDF_EXPORTS: PdfExportRecord[] = [];
 const EMPTY_PL_AUDITS: PLAuditRecord[] = [];
+const ENTITY_MAP: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: "\"",
+  "#39": "'",
+  "#x27": "'",
+  "#x2F": "/",
+};
+
+function decodeHtmlEntities(value: string | null | undefined) {
+  if (!value) return value ?? null;
+  let decoded = value;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = decoded.replace(/&(amp|lt|gt|quot|#39|#x27|#x2F);/g, (_, entity: string) => ENTITY_MAP[entity] ?? `&${entity};`);
+    if (next === decoded) break;
+    decoded = next;
+  }
+  return decoded;
+}
 
 function getToolLabel(row: PdfExportRecord) {
   const tool = (row.metadata as Record<string, unknown> | undefined)?.tool;
@@ -36,9 +56,9 @@ function readAuditMeta(audit: PLAuditRecord) {
   const meta = (audit.metadata || {}) as Record<string, unknown>;
   return {
     score: typeof meta.score === "number" ? meta.score : null,
-    overallGrade: typeof meta.overallGrade === "string" ? meta.overallGrade : null,
-    clientName: typeof meta.clientName === "string" ? meta.clientName : null,
-    coachName: typeof meta.coachName === "string" ? meta.coachName : null,
+    overallGrade: typeof meta.overallGrade === "string" ? decodeHtmlEntities(meta.overallGrade) : null,
+    clientName: typeof meta.clientName === "string" ? decodeHtmlEntities(meta.clientName) : null,
+    coachName: typeof meta.coachName === "string" ? decodeHtmlEntities(meta.coachName) : null,
   };
 }
 
@@ -154,9 +174,9 @@ export default function AnalysisHistory() {
                 {analyses.map((row) => (
                   <article key={row.id} className="analysis-card">
                     <div className="analysis-card-top">
-                      <h3>{row.clientName || "Unknown Client"}</h3>
+                      <h3>{decodeHtmlEntities(row.clientName) || "Unknown Client"}</h3>
                       <span className={`analysis-outcome outcome-${row.outcome.toLowerCase().replace(/\s+/g, "-")}`}>
-                        {row.outcome}
+                        {decodeHtmlEntities(row.outcome)}
                       </span>
                     </div>
 
@@ -167,7 +187,7 @@ export default function AnalysisHistory() {
                       </div>
                       <div>
                         <span className="label">Coach</span>
-                        <strong>{row.coachName || row.user?.name || "Unknown"}</strong>
+                          <strong>{decodeHtmlEntities(row.coachName) || row.user?.name || "Unknown"}</strong>
                       </div>
                       <div>
                         <span className="label">Call Date</span>
@@ -217,7 +237,7 @@ export default function AnalysisHistory() {
                         </div>
                         <div>
                           <span className="label">Coach</span>
-                          <strong>{meta.coachName || audit.user?.name || "Unknown"}</strong>
+                          <strong>{decodeHtmlEntities(meta.coachName) || audit.user?.name || "Unknown"}</strong>
                         </div>
                         <div>
                           <span className="label">Type</span>
@@ -256,7 +276,7 @@ export default function AnalysisHistory() {
                 {pdfExports.map((row) => (
                   <article key={row.id} className="analysis-card">
                     <div className="analysis-card-top">
-                      <h3>{row.clientName || "Client PDF"}</h3>
+                      <h3>{decodeHtmlEntities(row.clientName) || "Client PDF"}</h3>
                       <span className="analysis-outcome">{getToolLabel(row)}</span>
                     </div>
                     <div className="analysis-meta-grid">
@@ -266,7 +286,7 @@ export default function AnalysisHistory() {
                       </div>
                       <div>
                         <span className="label">Coach</span>
-                        <strong>{row.coachName || row.user?.name || "Unknown"}</strong>
+                          <strong>{decodeHtmlEntities(row.coachName) || row.user?.name || "Unknown"}</strong>
                       </div>
                       <div>
                         <span className="label">Call Date</span>
