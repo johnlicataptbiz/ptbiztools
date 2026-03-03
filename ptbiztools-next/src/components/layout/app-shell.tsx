@@ -122,7 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 lg:justify-center">
           <Link href="/dashboard" className="app-shell-logo-link" onClick={() => setMenuOpen(false)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="app-shell-logo-image" src={SITE_LOGO_URL} alt="PT Biz Tools" />
