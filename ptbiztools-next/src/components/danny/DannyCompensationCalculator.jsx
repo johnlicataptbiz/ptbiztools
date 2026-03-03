@@ -2,6 +2,7 @@
 
 // @ts-nocheck
 import { useState, useCallback } from "react";
+import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
@@ -14,9 +15,7 @@ const pf = v => v === null || v === undefined || isNaN(v) ? "—" : v.toFixed(1)
 function Logo() {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:10, justifyContent:"center", marginBottom:8 }}>
-      <div style={{ width:34, height:34, background:"linear-gradient(135deg,#2E86F5,#1a5bb5)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <span style={{ color:"#fff", fontWeight:800, fontSize:16, fontFamily:"'Barlow Condensed',sans-serif" }}>PT</span>
-      </div>
+      <img src={PTBIZ_LOGO_DARK_BG_URL} alt="PT Biz" style={{ height:30, width:"auto", objectFit:"contain" }} />
       <div>
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:18, color:B.wht, letterSpacing:"0.04em" }}>PT BIZ</div>
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:10, color:B.blue, textTransform:"uppercase", letterSpacing:"0.12em", marginTop:-2 }}>Compensation Calculator</div>

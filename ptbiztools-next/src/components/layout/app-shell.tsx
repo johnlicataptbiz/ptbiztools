@@ -123,7 +123,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard" className="app-shell-logo-link" onClick={() => setMenuOpen(false)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="app-shell-logo-image" src={SITE_LOGO_URL} alt="PT Biz Tools" />
-            <span className="app-shell-logo-copy">Execution Hub</span>
+            <span className="app-shell-logo-copy">PTBizCoach</span>
           </Link>
           <button className="app-shell-mobile-close lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Close menu">
             <X size={16} />

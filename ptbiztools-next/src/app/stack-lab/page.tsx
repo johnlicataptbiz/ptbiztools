@@ -1,7 +1,12 @@
+import { notFound } from "next/navigation";
 import { AgentSurfacePanel } from "@/components/agent/agent-surface-panel";
 import { LocalFirstPanel } from "@/components/local-first/local-first-panel";
 
 export default function StackLabPage() {
+  if (process.env.NEXT_PUBLIC_ENABLE_STACK_LAB !== "true") {
+    notFound();
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
       <header className="rounded-(--radius-2xl) border border-border bg-surface/90 p-8 shadow-sm backdrop-blur">

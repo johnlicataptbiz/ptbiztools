@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unescaped-entities, @next/next/no-page-custom-font, @typescript-eslint/no-unused-vars */
 import { useState, useRef, useCallback } from "react";
 import { extractDannyPLFromPdf } from "@/lib/ptbiz-api";
+import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 
 const B = { blue:"#2E86F5", blueLt:"#5BA0F7", blueDk:"#1A6AD4", glow:"rgba(46,134,245,0.25)", dark:"#1A1A1E", surf:"#242428", bdr:"#35353A", bdrLt:"#45454B", wht:"#F5F5F7", gray:"#9A9AA0", grayDk:"#6A6A70", grayXDk:"#4A4A50" };
 const REF = { rev:961260, rent:46807, util:4909, staff:278433, ptax:25785, ben:15596, owner:61539, mkt:58137, merch:28764, sw:11489, dues:15967, oSup:10109, ptSup:7172, med:0, prof:16874, cont:0, ins:5092, ce:3170, meal:5157, trav:5348, int:2095, oth:8721 };
@@ -117,12 +118,10 @@ function mapExtractedToDannyForm(extracted) {
 }
 
 function Logo({ big }) {
-  const sz = big ? 28 : 18;
+  const h = big ? 30 : 22;
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:2, position:"relative" }}>
-      <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontStyle:"italic", fontSize:sz, color:B.blue, letterSpacing:"-0.02em", lineHeight:1 }}>PT</span>
-      <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontStyle:"italic", fontSize:sz, color:B.wht, letterSpacing:"-0.02em", lineHeight:1 }}>BIZ</span>
-      <div style={{ position:"absolute", bottom:-1, left:0, right:-4, height:big?3:2, background:`linear-gradient(90deg,${B.blue},${B.blueLt})`, borderRadius:1, transform:"skewX(-12deg)" }} />
+    <div style={{ display:"flex", alignItems:"center" }}>
+      <img src={PTBIZ_LOGO_DARK_BG_URL} alt="PT Biz" style={{ height:h, width:"auto", objectFit:"contain" }} />
     </div>
   );
 }
@@ -878,7 +877,6 @@ export default function DannyFinancialAudit() {
     </div>
   );
 }
-
 
 
 
