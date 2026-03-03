@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  async redirects() {
+    return [
+      {
+        source: "/pl-calculator-advanced",
+        destination: "/pl-calculator",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: "/api/auth/:path*", destination: `${backendApiBase}/auth/:path*` },
