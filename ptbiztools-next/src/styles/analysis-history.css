@@ -170,3 +170,78 @@
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
 }
+
+.analysis-history {
+  padding: 2px;
+}
+
+.analysis-history-header {
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    radial-gradient(130% 150% at 5% -10%, rgba(30, 118, 143, 0.14), transparent 52%),
+    linear-gradient(180deg, #fffdf9, #fdf7ee);
+  box-shadow: 0 14px 34px rgba(24, 24, 27, 0.08);
+}
+
+.analysis-history-header h1 {
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.analysis-history-controls select {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 9px 10px;
+}
+
+.analysis-refresh-btn {
+  background: linear-gradient(180deg, #fff, #faf6ef);
+  box-shadow: 0 8px 18px rgba(24, 24, 27, 0.08);
+}
+
+.analysis-summary-card {
+  border-color: color-mix(in oklab, var(--accent) 28%, var(--border));
+  background: linear-gradient(180deg, #fffdfa, #fff8ef);
+  box-shadow: 0 10px 24px rgba(24, 24, 27, 0.06);
+}
+
+.analysis-summary-card strong {
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.history-section {
+  padding: 16px;
+  border: 1px solid #e9dece;
+  border-radius: 16px;
+  background: #fffcf8;
+}
+
+.history-section-header h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+.analysis-card {
+  border-radius: 14px;
+  border-color: #e4d7c4;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(24, 24, 27, 0.08);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.analysis-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(24, 24, 27, 0.12);
+}
+
+.analysis-card-top h3 {
+  letter-spacing: -0.01em;
+}
