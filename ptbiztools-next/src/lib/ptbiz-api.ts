@@ -250,6 +250,45 @@ export interface SalesGradeV2Response {
   };
 }
 
+export interface CoachingAnalysisRecord {
+  id: string;
+  userId: string | null;
+  sessionId: string | null;
+  coachName: string | null;
+  clientName: string | null;
+  callDate: string | null;
+  score: number;
+  outcome: string;
+  summary: string;
+  createdAt: string;
+  user?: UsageUserLite | null;
+}
+
+export interface PdfExportRecord {
+  id: string;
+  userId: string | null;
+  coachingAnalysisId: string | null;
+  sessionId: string | null;
+  coachName: string | null;
+  clientName: string | null;
+  callDate: string | null;
+  score: number | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: UsageUserLite | null;
+}
+
+export interface PLAuditRecord {
+  id: string;
+  userId: string | null;
+  sessionId: string | null;
+  actionType: string;
+  description: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: UsageUserLite | null;
+}
+
 export const ActionTypes = {
   TRANSCRIPT_UPLOADED: "transcript_uploaded",
   TRANSCRIPT_PASTED: "transcript_pasted",
@@ -378,6 +417,40 @@ export async function getActionStats(): Promise<{ data?: ActionStatsSummary; err
   try {
     const data = await requestJson<ActionStatsSummary>("/actions/stats");
     return { data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function getCoachingAnalyses(
+  limit = 100,
+): Promise<{ analyses?: CoachingAnalysisRecord[]; error?: string }> {
+  try {
+    const data = await requestJson<{ analyses?: CoachingAnalysisRecord[] }>(`/analytics/coaching-analyses?limit=${limit}`);
+    return { analyses: data.analyses || [] };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function getPdfExports(
+  limit = 100,
+): Promise<{ pdfExports?: PdfExportRecord[]; error?: string }> {
+  try {
+    const data = await requestJson<{ pdfExports?: PdfExportRecord[] }>(`/analytics/pdf-exports?limit=${limit}`);
+    return { pdfExports: data.pdfExports || [] };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function getPLAudits(limit = 100): Promise<{ audits?: PLAuditRecord[]; error?: string }> {
+  try {
+    const data = await requestJson<{ audits?: PLAuditRecord[] }>(`/analytics/pl-audits?limit=${limit}`);
+    return { audits: data.audits || [] };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Network error";
     return { error: message };
