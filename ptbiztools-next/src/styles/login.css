@@ -238,7 +238,7 @@
   position: absolute;
   right: 8px;
   bottom: 8px;
-  min-width: 30px;
+  min-width: 34px;
   height: 22px;
   border-radius: 999px;
   padding: 0 6px;
@@ -298,7 +298,17 @@
   font-size: 11px;
   line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.member-row-context {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -408,6 +418,13 @@
   font-size: 11px;
   line-height: 1.35;
   display: block;
+}
+
+.selected-user-context {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .auth-form {

@@ -13,22 +13,109 @@ import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api"
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
 
-const CREDENTIALS_BY_NAME: Record<string, { badge: string; full: string }> = {
-  "ashley speights": { badge: "DPT", full: "PT, DPT (Duke University), PES" },
-  "brooke miller": { badge: "OCS", full: "PT, DPT, OCS (pelvic health & orthopedic specialist)" },
-  "chris robl": { badge: "DPT", full: "DPT (Doctorate of Physical Therapy, 2011); 10+ years clinical experience" },
-  "colleen davis": { badge: "DPT", full: "DPT (founder of GOAT Physical Therapy & Wellness)" },
-  "courtney morse": { badge: "DPT", full: "DPT (Wichita State University, 2011); founder of Natural Wellness Physiotherapy" },
-  "daniel laughlin": { badge: "DPT", full: "PT, DPT (Rockhurst University); SFMA, Certified Functional Dry Needling, Sportsmetrics" },
-  "dj haskins": { badge: "DPT", full: "PT, DPT (pelvic health specialist); founder of Bliss Pelvic Health" },
-  "elizabeth rudd": { badge: "OCS", full: "PT, DPT, OCS, CSCS (Columbia University); founder of Well Equipt" },
-  "jaxie meth": { badge: "DPT", full: "PT, DPT (pelvic floor specialist); founder of The METHOD Performance & Physical Therapy" },
-  "michael sclafani": { badge: "SCS", full: "DPT, SCS, CSCS, USAW (Sports Residency at Cleveland Clinic); published researcher & DPT faculty" },
-  "tyler humphries": { badge: "DPT", full: "DPT (Old Dominion University); TPI & Blood Flow Restriction certified; founder of Bulletproof Physical Therapy" },
-  "ziad dahdul": { badge: "OCS", full: "DPT (University of Southern California); OCS, SFMA, FRCms; 11+ years with athletes" },
-  "danny matta": { badge: "OCS", full: "DPT, OCS, CSCS (former U.S. Army Physical Therapist)" },
-  "yves gege": { badge: "PT", full: "PT (DPT-level training; founder of Made 2 Move Physical Therapy)" },
-  "toni counts": { badge: "DPT", full: "PT, DPT (founder of Off The Block Performance Physical Therapy)" },
+const MEMBER_PROFILES_BY_NAME: Record<string, { badge: string; credentials: string; clinic: string; experience: string }> = {
+  "ashley speights": {
+    badge: "DPT",
+    credentials: "PT, DPT (Duke University), PES",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "brooke miller": {
+    badge: "OCS",
+    credentials: "PT, DPT, OCS",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "Pelvic health and orthopedic specialist",
+  },
+  "chris robl": {
+    badge: "DPT",
+    credentials: "DPT (Doctorate of Physical Therapy, 2011)",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "10+ years clinical experience",
+  },
+  "colleen davis": {
+    badge: "DPT",
+    credentials: "DPT",
+    clinic: "Founder of GOAT Physical Therapy & Wellness",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "courtney morse": {
+    badge: "DPT",
+    credentials: "DPT (Wichita State University, 2011)",
+    clinic: "Founder of Natural Wellness Physiotherapy",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "daniel laughlin": {
+    badge: "DPT",
+    credentials: "PT, DPT (Rockhurst University); SFMA; Certified Functional Dry Needling",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "dj haskins": {
+    badge: "DPT",
+    credentials: "PT, DPT",
+    clinic: "Founder of Bliss Pelvic Health",
+    experience: "Pelvic health specialist",
+  },
+  "elizabeth rudd": {
+    badge: "OCS",
+    credentials: "PT, DPT, OCS, CSCS (Columbia University)",
+    clinic: "Founder of Well Equipt",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "jaxie meth": {
+    badge: "DPT",
+    credentials: "PT, DPT",
+    clinic: "Founder of The METHOD Performance & Physical Therapy",
+    experience: "Pelvic floor specialist",
+  },
+  "michael sclafani": {
+    badge: "SCS",
+    credentials: "DPT, SCS, CSCS, USAW",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "Sports Residency at Cleveland Clinic; published researcher; DPT faculty",
+  },
+  "tyler humphries": {
+    badge: "DPT",
+    credentials: "DPT (Old Dominion University); TPI; Blood Flow Restriction certified",
+    clinic: "Founder of Bulletproof Physical Therapy",
+    experience: "Clinical coaching leader in PTBiz network",
+  },
+  "ziad dahdul": {
+    badge: "OCS",
+    credentials: "DPT (University of Southern California); OCS, SFMA, FRCms",
+    clinic: "Cash/hybrid PT clinic owner",
+    experience: "11+ years with athletes from youth to professional",
+  },
+  "danny matta": {
+    badge: "OCS",
+    credentials: "DPT, OCS, CSCS",
+    clinic: "PT Biz CEO",
+    experience: "Former U.S. Army Physical Therapist",
+  },
+  "yves gege": {
+    badge: "PT",
+    credentials: "PT (DPT-level training)",
+    clinic: "Founder of Made 2 Move Physical Therapy",
+    experience: "Head of Customer Success & Coaching",
+  },
+  "jerred moon": {
+    badge: "BUS",
+    credentials: "No clinical credentials",
+    clinic: "PT Biz CFO",
+    experience: "Business strategist and Air Force veteran",
+  },
+  "john licata": {
+    badge: "BUS",
+    credentials: "No clinical credentials",
+    clinic: "Senior Advisor",
+    experience: "30+ years consumer goods executive and consultant",
+  },
+  "toni counts": {
+    badge: "DPT",
+    credentials: "PT, DPT",
+    clinic: "Founder of Off The Block Performance Physical Therapy",
+    experience: "Business Advisor",
+  },
 };
 
 function normalizeText(value: string | null | undefined) {
@@ -53,8 +140,48 @@ function isBoardMember(member: TeamMember) {
   return section.includes("board") || title.includes("board");
 }
 
-function getCredentialProfile(member: TeamMember) {
-  return CREDENTIALS_BY_NAME[normalizeText(member.name)] || null;
+function getMemberProfile(member: TeamMember) {
+  const explicit = MEMBER_PROFILES_BY_NAME[normalizeText(member.name)];
+  if (explicit) return explicit;
+
+  const section = normalizeText(member.teamSection);
+  const isCoach = section.includes("coach");
+  const isPartner = section.includes("partner");
+  const isAdvisor = section.includes("advisor");
+
+  if (isCoach) {
+    return {
+      badge: "DPT",
+      credentials: "PT, DPT (licensed physical therapist)",
+      clinic: "Cash/hybrid PT clinic owner",
+      experience: "Clinical coaching leader in PTBiz network",
+    };
+  }
+
+  if (isPartner) {
+    return {
+      badge: "LEAD",
+      credentials: "Partner leadership profile",
+      clinic: member.title || "PT Biz Partner",
+      experience: "Executive and operations leadership",
+    };
+  }
+
+  if (isAdvisor) {
+    return {
+      badge: "ADVR",
+      credentials: "Advisor profile",
+      clinic: member.title || "PT Biz Advisor",
+      experience: "Advisory and business strategy",
+    };
+  }
+
+  return {
+    badge: "TEAM",
+    credentials: "Team profile",
+    clinic: member.title || "PT Biz Team",
+    experience: "Internal operations and client success",
+  };
 }
 
 function getInitials(name: string) {
@@ -162,7 +289,7 @@ export default function LoginPage() {
     () => visibleMembers.find((member) => member.id === selectedUserId) || null,
     [selectedUserId, visibleMembers],
   );
-  const selectedUserCredentials = selectedUser ? getCredentialProfile(selectedUser) : null;
+  const selectedUserProfile = selectedUser ? getMemberProfile(selectedUser) : null;
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
 
@@ -281,7 +408,7 @@ export default function LoginPage() {
             </div>
             <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
               {orderedTeamMembers.map((member) => {
-                const credentials = getCredentialProfile(member);
+                const profile = getMemberProfile(member);
 
                 return (
                   <motion.button
@@ -291,19 +418,21 @@ export default function LoginPage() {
                     whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.995 }}
                   >
-                    <TeamAvatar
-                      name={member.name}
-                      imageUrl={member.imageUrl}
-                      credentialBadge={credentials?.badge}
-                      className="member-list-photo"
-                      fallbackClassName="member-list-photo-fallback"
-                    />
-                    <div className="member-row-meta">
-                      <strong>{member.name}</strong>
-                      <span>{member.title || "Team Member"}</span>
-                      <em>{member.teamSection || "PT Biz Team"}</em>
-                      {credentials?.full && <small className="member-row-cred">{credentials.full}</small>}
-                    </div>
+                      <TeamAvatar
+                        name={member.name}
+                        imageUrl={member.imageUrl}
+                        credentialBadge={profile.badge}
+                        className="member-list-photo"
+                        fallbackClassName="member-list-photo-fallback"
+                      />
+                      <div className="member-row-meta">
+                        <strong>{member.name}</strong>
+                        <span>{member.title || "Team Member"}</span>
+                        <em>{member.teamSection || "PT Biz Team"}</em>
+                        <small className="member-row-cred">{profile.credentials}</small>
+                        <small className="member-row-context">{profile.clinic}</small>
+                        <small className="member-row-context">{profile.experience}</small>
+                      </div>
                     <div className="member-row-action" aria-hidden="true">
                       Select
                     </div>
@@ -325,7 +454,7 @@ export default function LoginPage() {
               <TeamAvatar
                 name={selectedUser.name}
                 imageUrl={selectedUser.imageUrl}
-                credentialBadge={selectedUserCredentials?.badge}
+                credentialBadge={selectedUserProfile?.badge}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />
@@ -333,7 +462,13 @@ export default function LoginPage() {
                 <h2>{selectedUser.name}</h2>
                 <p>{selectedUser.title}</p>
                 <span>{selectedUser.teamSection}</span>
-                {selectedUserCredentials?.full && <small className="selected-user-cred">{selectedUserCredentials.full}</small>}
+                {selectedUserProfile && (
+                  <>
+                    <small className="selected-user-cred">{selectedUserProfile.credentials}</small>
+                    <small className="selected-user-context">{selectedUserProfile.clinic}</small>
+                    <small className="selected-user-context">{selectedUserProfile.experience}</small>
+                  </>
+                )}
               </div>
             </div>
 
