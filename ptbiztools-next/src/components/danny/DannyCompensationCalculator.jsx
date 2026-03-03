@@ -2,7 +2,6 @@
 
 // @ts-nocheck
 import { useState, useCallback } from "react";
-import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
@@ -11,18 +10,6 @@ const B = {bg:"#0e0e12",surf:"#18181f",dark:"#111115",bdr:"#2a2a33",blue:"#2E86F
 const $ = v => v === null || v === undefined || isNaN(v) ? "—" : "$" + Math.round(v).toLocaleString("en-US");
 const $k = v => v >= 1000 ? "$" + (v/1000).toFixed(v % 1000 === 0 ? 0 : 1) + "K" : $(v);
 const pf = v => v === null || v === undefined || isNaN(v) ? "—" : v.toFixed(1) + "%";
-
-function Logo() {
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:10, justifyContent:"center", marginBottom:8 }}>
-      <img src={PTBIZ_LOGO_DARK_BG_URL} alt="PT Biz" style={{ height:30, width:"auto", objectFit:"contain" }} />
-      <div>
-        <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:18, color:B.wht, letterSpacing:"0.04em" }}>PT BIZ</div>
-        <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:10, color:B.blue, textTransform:"uppercase", letterSpacing:"0.12em", marginTop:-2 }}>Compensation Calculator</div>
-      </div>
-    </div>
-  );
-}
 
 function Inp({ label, value, name, onChange, hint, prefix }) {
   return (
@@ -102,16 +89,40 @@ export default function App() {
   const healthColors = { healthy:B.green, caution:B.yellow, critical:B.red, low:B.blue, none:B.gray };
 
   const canCalc = grossMonthly > 0;
+  const pageShellStyle = { maxWidth:980, margin:"0 auto", padding:"0 24px 64px" };
+  const canvasStyle = {
+    maxWidth: step === "input" ? 760 : 920,
+    margin:"0 auto",
+    padding:"24px 24px 26px",
+    fontFamily:"'Barlow',sans-serif",
+    color:B.wht,
+    background:B.bg,
+    border:"1px solid " + B.bdr,
+    borderRadius:16,
+    boxShadow:"0 20px 48px rgba(5, 8, 20, 0.36)",
+  };
+  const sectionStyle = {
+    background:B.surf,
+    borderRadius:14,
+    padding:"18px 20px",
+    marginBottom:14,
+    border:"1px solid " + B.bdr,
+  };
 
   // ── INPUT VIEW ──
   if (step === "input") {
     return (
-      <div style={{ maxWidth:580, margin:"0 auto", padding:"28px 20px", fontFamily:"'Barlow',sans-serif", color:B.wht, background:B.bg, minHeight:"100vh" }}>
-        <Logo />
-        <p style={{ textAlign:"center", fontSize:12, color:B.grayDk, marginBottom:24, fontStyle:"italic" }}>Build competitive, sustainable compensation models for staff clinicians</p>
+      <div className="tool-page">
+        <section className="tool-page-hero">
+          <p className="tool-page-kicker">Compensation Planning</p>
+          <h1 className="tool-page-title">Compensation Calculator</h1>
+          <p className="tool-page-subtitle">Build competitive, sustainable compensation models for staff clinicians.</p>
+        </section>
+        <div style={pageShellStyle}>
+          <div style={canvasStyle}>
 
         {/* Location */}
-        <div style={{ background:B.surf, borderRadius:8, padding:"16px 18px", marginBottom:12, border:"1px solid " + B.bdr }}>
+        <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Location</h3>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 14px" }}>
             <div style={{ marginBottom:10 }}>
@@ -125,7 +136,7 @@ export default function App() {
         </div>
 
         {/* Revenue Inputs */}
-        <div style={{ background:B.surf, borderRadius:8, padding:"16px 18px", marginBottom:12, border:"1px solid " + B.bdr }}>
+        <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Provider Revenue</h3>
           <div style={{ display:"flex", gap:0, borderRadius:6, overflow:"hidden", border:"1px solid " + B.bdr, marginBottom:14 }}>
             {[["visits","Calculate from Visits"],["gross","Enter Gross Revenue"]].map(([v, lb]) => (
@@ -161,7 +172,7 @@ export default function App() {
         </div>
 
         {/* Experience Level */}
-        <div style={{ background:B.surf, borderRadius:8, padding:"16px 18px", marginBottom:12, border:"1px solid " + B.bdr }}>
+        <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Experience Level</h3>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
             {[
@@ -179,7 +190,7 @@ export default function App() {
         </div>
 
         {/* Benefits */}
-        <div style={{ background:B.surf, borderRadius:8, padding:"16px 18px", marginBottom:18, border:"1px solid " + B.bdr }}>
+        <div style={{ ...sectionStyle, marginBottom:20 }}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Benefits</h3>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 14px" }}>
             <Inp label="Health Insurance (monthly)" value={f.healthIns} name="healthIns" onChange={handleChange} hint="e.g. 500" prefix="$" />
@@ -188,28 +199,33 @@ export default function App() {
           <div style={{ fontSize:10, color:B.grayXDk, fontStyle:"italic" }}>Cover 100% of employee premium. Biggest retention driver after salary.</div>
         </div>
 
-        <button onClick={() => canCalc && setStep("results")} disabled={!canCalc} style={{ width:"100%", padding:"14px", background:canCalc ? B.blue : B.bdr, border:"none", borderRadius:8, color:canCalc ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:canCalc ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:canCalc ? "0 4px 20px " + B.glow : "none" }}>Calculate Compensation →</button>
+        <button onClick={() => canCalc && setStep("results")} disabled={!canCalc} style={{ width:"100%", padding:"14px", background:canCalc ? B.blue : B.bdr, border:"none", borderRadius:10, color:canCalc ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:canCalc ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:canCalc ? "0 4px 20px " + B.glow : "none" }}>Calculate Compensation →</button>
+          </div>
+        </div>
       </div>
     );
   }
 
   // ── RESULTS VIEW ──
   return (
-    <div style={{ maxWidth:640, margin:"0 auto", padding:"28px 20px", fontFamily:"'Barlow',sans-serif", color:B.wht, background:B.bg, minHeight:"100vh" }}>
-      <Logo />
-      <p style={{ textAlign:"center", fontSize:12, color:B.grayDk, marginBottom:6 }}>
-        {f.city ? f.city + ", " : ""}{f.state}
-      </p>
+    <div className="tool-page">
+      <section className="tool-page-hero">
+        <p className="tool-page-kicker">Compensation Planning</p>
+        <h1 className="tool-page-title">Recommended Compensation</h1>
+        <p className="tool-page-subtitle">{f.city ? f.city + ", " : ""}{f.state} · {expLevel === "newgrad" ? "New Grad" : expLevel === "moderate" ? "1-3 Years" : expLevel === "experienced" ? "3-5 Years" : "Senior"} · {$(grossMonthly)}/month gross</p>
+      </section>
+      <div style={pageShellStyle}>
+        <div style={canvasStyle}>
       <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:20 }}>
         <span style={{ fontSize:10, fontWeight:700, color:"#7C3AED", background:"#7C3AED15", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #7C3AED33" }}>{expLevel === "newgrad" ? "NEW GRAD" : expLevel === "moderate" ? "1-3 YRS" : expLevel === "experienced" ? "3-5 YRS" : "SENIOR"}</span>
         <span style={{ fontSize:10, fontWeight:700, color:"#059669", background:"#05966915", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #05966933" }}>{$(grossMonthly)}/MO GROSS</span>
       </div>
 
       {/* Recommended Salary */}
-      <div style={{ background:B.surf, borderRadius:10, padding:"20px 24px", marginBottom:20, border:"1px solid " + B.bdr }}>
+      <div style={{ ...sectionStyle, borderRadius:16, padding:"22px 24px", marginBottom:20 }}>
         <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontStyle:"italic", fontSize:18, fontWeight:700, color:B.wht, margin:"0 0 16px" }}>Recommended Salary</h3>
 
-        <div style={{ background:B.dark, borderRadius:10, padding:"20px", marginBottom:16, textAlign:"center" }}>
+        <div style={{ background:B.dark, borderRadius:12, padding:"20px", marginBottom:16, textAlign:"center" }}>
           <div style={{ fontSize:10, color:B.grayDk, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Annual Salary Range</div>
           <div style={{ fontSize:32, fontWeight:800, color:B.green, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"-0.02em" }}>
             {$k(salaryLo)} – {$k(salaryHi)}
@@ -265,7 +281,7 @@ export default function App() {
       </div>
 
       {/* True Cost to Employer */}
-      <div style={{ background:B.surf, borderRadius:10, padding:"20px 24px", marginBottom:20, border:"1px solid " + B.bdr }}>
+      <div style={{ ...sectionStyle, borderRadius:16, padding:"22px 24px", marginBottom:20 }}>
         <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontStyle:"italic", fontSize:18, fontWeight:700, color:B.wht, margin:"0 0 4px" }}>True Cost to Employer</h3>
         <div style={{ fontSize:10, color:B.grayXDk, marginBottom:16, fontStyle:"italic" }}>Based on midpoint salary of {$(salaryMid)}</div>
 
@@ -307,7 +323,7 @@ export default function App() {
       </div>
 
       {/* All Tiers Comparison */}
-      <div style={{ background:B.surf, borderRadius:10, padding:"20px 24px", marginBottom:20, border:"1px solid " + B.bdr }}>
+      <div style={{ ...sectionStyle, borderRadius:16, padding:"22px 24px", marginBottom:20 }}>
         <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontStyle:"italic", fontSize:18, fontWeight:700, color:B.wht, margin:"0 0 14px" }}>All Experience Levels at {$(grossMonthly)}/mo</h3>
         <div style={{ overflowX:"auto" }}>
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
@@ -342,7 +358,7 @@ export default function App() {
       </div>
 
       {/* Key Rules */}
-      <div style={{ background:B.surf, borderRadius:10, padding:"20px 24px", marginBottom:20, border:"1px solid " + B.bdr }}>
+      <div style={{ ...sectionStyle, borderRadius:16, padding:"22px 24px", marginBottom:20 }}>
         <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontStyle:"italic", fontSize:18, fontWeight:700, color:B.wht, margin:"0 0 14px" }}>Compensation Rules</h3>
         {[
           { rule:"Total comp should be 33–38% of the gross revenue the provider generates", status:compHealth },
@@ -363,7 +379,9 @@ export default function App() {
         ))}
       </div>
 
-      <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:8, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>← Edit Inputs</button>
+      <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:10, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>← Edit Inputs</button>
+        </div>
+      </div>
     </div>
   );
 }

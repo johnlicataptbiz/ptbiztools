@@ -542,28 +542,42 @@ export default function DannyFinancialAudit() {
   };
 
   const priClr = { HIGH:"#F87171", MED:"#FBBF24", LOW:B.gray, INFO:"#34D399" };
+  const pageShellStyle = { maxWidth:980, margin:"0 auto", padding:"0 24px 64px" };
+  const canvasStyle = {
+    maxWidth:980,
+    margin:"0 auto",
+    padding:"24px 24px 26px",
+    background:B.dark,
+    border:"1px solid " + B.bdr,
+    borderRadius:16,
+    boxShadow:"0 20px 48px rgba(5, 8, 20, 0.36)",
+    color:B.wht,
+    fontFamily:"'Barlow',sans-serif",
+  };
 
   // ===== INPUT STEP =====
   if (step === "input") {
     return (
-      <div style={{ minHeight:"100vh", background:B.dark, color:B.wht, fontFamily:"'Barlow',sans-serif" }}>
+      <div className="tool-page">
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-        <div style={{ padding:"16px 24px", borderBottom:"3px solid " + B.blue, background:B.surf }}>
-          <div style={{ maxWidth:920, margin:"0 auto", display:"flex", alignItems:"center", gap:14 }}>
-            <Logo big />
-            <div style={{ width:1, height:28, background:B.bdr, margin:"0 4px" }} />
-            <div>
+        <section className="tool-page-hero">
+          <p className="tool-page-kicker">Financial Intelligence</p>
+          <h1 className="tool-page-title">P&amp;L Calculator</h1>
+          <p className="tool-page-subtitle">Enter your P&amp;L data for an instant financial health score, cash flow analysis, and a 90-day profit improvement plan.</p>
+        </section>
+        <div style={pageShellStyle}>
+          <div style={canvasStyle}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <Logo big />
+              <div style={{ width:1, height:28, background:B.bdr }} />
               <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
-              <h1 style={{ margin:0, fontSize:16, fontWeight:700, color:B.wht, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>Financial Audit Report</h1>
             </div>
           </div>
-        </div>
-        <div style={{ maxWidth:920, margin:"0 auto", padding:"20px 24px 60px" }}>
           <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:24, fontWeight:800, color:B.wht, marginBottom:4, textTransform:"uppercase" }}>How Healthy Are Your Clinic Finances?</h2>
-          <p style={{ color:B.gray, fontSize:14, margin:"0 0 6px", lineHeight:1.5 }}>Enter your P&L data for an instant financial health score, cash flow analysis, and 90-day profit improvement plan.</p>
           <p style={{ color:B.grayDk, fontSize:12, margin:"0 0 20px" }}>Upload is processed server-side for field mapping with authenticated access.</p>
 
-          <div style={{ marginBottom:20, padding:20, background:B.surf, borderRadius:10, border:uploading ? "2px solid " + B.blue : "2px dashed " + B.bdrLt, textAlign:"center", cursor:uploading ? "wait" : "pointer" }} onClick={() => !uploading && fileRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const fl = e.dataTransfer.files?.[0]; if (fl) handleUpload({ target: { files: [fl] } }); }}>
+          <div style={{ marginBottom:20, padding:20, background:B.surf, borderRadius:14, border:uploading ? "2px solid " + B.blue : "2px dashed " + B.bdrLt, textAlign:"center", cursor:uploading ? "wait" : "pointer" }} onClick={() => !uploading && fileRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const fl = e.dataTransfer.files?.[0]; if (fl) handleUpload({ target: { files: [fl] } }); }}>
             <input ref={fileRef} type="file" accept=".pdf" onChange={handleUpload} style={{ display:"none" }} />
             {uploading ? (
               <div>
@@ -635,7 +649,7 @@ export default function DannyFinancialAudit() {
           <Sec title="Marketing"><Inp label="Marketing & Advertising" value={f.marketing} name="marketing" onChange={handleChange} /><Inp label="Merchant / CC Fees" value={f.merchantFees} name="merchantFees" onChange={handleChange} /></Sec>
           <Sec title="Operations"><Inp label="Software & Tech" value={f.software} name="software" onChange={handleChange} /><Inp label="Dues & Subscriptions" value={f.duesSubs} name="duesSubs" onChange={handleChange} /><Inp label="Office Supplies" value={f.officeSupplies} name="officeSupplies" onChange={handleChange} /><Inp label="PT Supplies & Equipment" value={f.ptSupplies} name="ptSupplies" onChange={handleChange} /><Inp label="Medical Billing" value={f.medBilling} name="medBilling" onChange={handleChange} /><Inp label="Professional Fees (Acct/Legal)" value={f.profFees} name="profFees" onChange={handleChange} /><Inp label="Contracted Services" value={f.contractedSvcs} name="contractedSvcs" onChange={handleChange} /><Inp label="Insurance" value={f.insurance} name="insurance" onChange={handleChange} /><Inp label="Continuing Education" value={f.ce} name="ce" onChange={handleChange} /><Inp label="Meals & Entertainment" value={f.mealsEnt} name="mealsEnt" onChange={handleChange} /><Inp label="Travel & Auto" value={f.travelAuto} name="travelAuto" onChange={handleChange} /><Inp label="Interest / Debt" value={f.interest} name="interest" onChange={handleChange} /><Inp label="Depreciation & Amortization" value={f.depreciation} name="depreciation" onChange={handleChange} /><Inp label="Other Expenses" value={f.other} name="other" onChange={handleChange} /></Sec>
           {rev > 0 && (
-            <div style={{ background:B.surf, borderRadius:8, padding:"14px 18px", marginBottom:18, border:"1px solid " + B.blue + "44" }}>
+            <div style={{ background:B.surf, borderRadius:12, padding:"14px 18px", marginBottom:18, border:"1px solid " + B.blue + "44" }}>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
                 <div><div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", fontFamily:"'Barlow Condensed',sans-serif" }}>Revenue</div><div style={{ fontSize:18, fontWeight:700, color:B.wht, fontFamily:"'JetBrains Mono',monospace" }}>{$(rev)}</div></div>
                 <div><div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", fontFamily:"'Barlow Condensed',sans-serif" }}>Total Expenses</div><div style={{ fontSize:18, fontWeight:700, color:B.wht, fontFamily:"'JetBrains Mono',monospace" }}>{$(totalExp)}</div></div>
@@ -643,7 +657,8 @@ export default function DannyFinancialAudit() {
               </div>
             </div>
           )}
-          <button onClick={() => rev > 0 && setStep("report")} disabled={rev <= 0} style={{ width:"100%", padding:"14px", background:rev > 0 ? B.blue : B.bdr, border:"none", borderRadius:8, color:rev > 0 ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:rev > 0 ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:rev > 0 ? "0 4px 20px " + B.glow : "none" }}>Get My Financial Health Score →</button>
+          <button onClick={() => rev > 0 && setStep("report")} disabled={rev <= 0} style={{ width:"100%", padding:"14px", background:rev > 0 ? B.blue : B.bdr, border:"none", borderRadius:10, color:rev > 0 ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:rev > 0 ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:rev > 0 ? "0 4px 20px " + B.glow : "none" }}>Get My Financial Health Score →</button>
+          </div>
         </div>
       </div>
     );
@@ -651,19 +666,22 @@ export default function DannyFinancialAudit() {
 
   // ===== REPORT STEP =====
   return (
-    <div style={{ minHeight:"100vh", background:B.dark, color:B.wht, fontFamily:"'Barlow',sans-serif" }}>
+    <div className="tool-page">
       <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-      <div style={{ padding:"16px 24px", borderBottom:"3px solid " + B.blue, background:B.surf }}>
-        <div style={{ maxWidth:920, margin:"0 auto", display:"flex", alignItems:"center", gap:14 }}>
-          <Logo big />
-          <div style={{ width:1, height:28, background:B.bdr, margin:"0 4px" }} />
-          <div>
+      <section className="tool-page-hero">
+        <p className="tool-page-kicker">Financial Intelligence</p>
+        <h1 className="tool-page-title">P&amp;L Audit Report</h1>
+        <p className="tool-page-subtitle">Review performance benchmarks, cash flow pressure points, and a prioritized 90-day plan from your clinic financials.</p>
+      </section>
+      <div style={pageShellStyle}>
+        <div style={canvasStyle}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <Logo big />
+            <div style={{ width:1, height:28, background:B.bdr }} />
             <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
-            <h1 style={{ margin:0, fontSize:16, fontWeight:700, color:B.wht, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>Financial Audit Report</h1>
           </div>
         </div>
-      </div>
-      <div style={{ maxWidth:920, margin:"0 auto", padding:"20px 24px 60px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <button onClick={() => setStep("input")} style={{ background:"none", border:"none", color:B.grayDk, cursor:"pointer", fontSize:12 }}>← Edit numbers</button>
           <button onClick={handleDownload} style={{ background:B.blue, border:"none", borderRadius:6, color:"#fff", fontSize:13, fontWeight:700, padding:"10px 20px", cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>📥 Download Report</button>
@@ -685,7 +703,7 @@ export default function DannyFinancialAudit() {
         </div>
 
         {/* SCORE CARD */}
-        <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:20, padding:20, background:B.surf, borderRadius:10, border:"1px solid " + B.bdr, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:20, padding:20, background:B.surf, borderRadius:14, border:"1px solid " + B.bdr, flexWrap:"wrap" }}>
           <Ring score={score} size={120} />
           <div style={{ flex:"1 1 260px" }}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:700, margin:"0 0 6px", color:B.wht, textTransform:"uppercase" }}>Financial Health Score</h3>
@@ -708,7 +726,7 @@ export default function DannyFinancialAudit() {
         </div>
 
         {/* QUICK ANALYSIS */}
-        <div style={{ background:B.surf, borderRadius:10, padding:"20px 24px", marginBottom:24, border:"1px solid " + B.bdr }}>
+        <div style={{ background:B.surf, borderRadius:14, padding:"20px 24px", marginBottom:24, border:"1px solid " + B.bdr }}>
           <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontStyle:"italic", fontSize:18, fontWeight:700, color:B.wht, margin:"0 0 16px" }}>Quick Analysis</h3>
           {[
             { lb:"Net Profit", v:m.netPct, c:m.netPct >= 15 ? "#34D399" : m.netPct >= 10 ? "#FBBF24" : "#F87171" },
@@ -727,7 +745,7 @@ export default function DannyFinancialAudit() {
         <div style={{ marginBottom:24 }}>
           <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:700, margin:"0 0 3px", color:B.wht, textTransform:"uppercase" }}>P&L Breakdown</h3>
           <p style={{ color:B.grayDk, fontSize:11, margin:"0 0 12px" }}>Every line item as % of revenue</p>
-          <div style={{ background:B.surf, borderRadius:8, overflow:"hidden", border:"1px solid " + B.bdr }}>
+          <div style={{ background:B.surf, borderRadius:12, overflow:"hidden", border:"1px solid " + B.bdr }}>
             <div style={{ overflowX:"auto" }}>
               <table style={{ width:"100%", borderCollapse:"collapse", minWidth:520, fontSize:12 }}>
                 <thead>
@@ -793,7 +811,7 @@ export default function DannyFinancialAudit() {
             <p style={{ color:B.grayDk, fontSize:11, margin:"0 0 14px" }}>How money moves through your clinic</p>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
               {cashFlow.map((s, i) => (
-                <div key={i} style={{ background:B.surf, borderRadius:8, padding:16, border:"1px solid " + B.bdr }}>
+                <div key={i} style={{ background:B.surf, borderRadius:12, padding:16, border:"1px solid " + B.bdr }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                     <span style={{ fontSize:18 }}>{s.icon}</span>
                     <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:14, color:B.wht, textTransform:"uppercase" }}>{s.title}</span>
@@ -813,14 +831,14 @@ export default function DannyFinancialAudit() {
                 <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:700, margin:"0 0 3px", color:B.wht, textTransform:"uppercase" }}>90-Day Profit Improvement Plan</h3>
                 <p style={{ color:B.grayDk, fontSize:11, margin:0 }}>A phased strategy to improve your financial health</p>
               </div>
-              <div style={{ background:B.blue + "15", borderRadius:10, padding:"14px 20px", border:"1px solid " + B.blue + "44", textAlign:"center" }}>
+              <div style={{ background:B.blue + "15", borderRadius:12, padding:"14px 20px", border:"1px solid " + B.blue + "44", textAlign:"center" }}>
                 <div style={{ fontSize:10, color:B.blue, textTransform:"uppercase", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600, letterSpacing:"0.1em", marginBottom:2 }}>Total Projected Profit Increase</div>
                 <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:28, fontWeight:700, color:"#34D399" }}>{$(plan.total)}</div>
                 <div style={{ fontSize:10, color:B.grayDk }}>Estimated Annual Impact</div>
               </div>
             </div>
             {plan.phases.map((phase, i) => (
-              <div key={i} style={{ background:B.surf, borderRadius:10, padding:20, marginBottom:12, border:"1px solid " + B.bdr, borderLeft:"4px solid " + B.blue }}>
+              <div key={i} style={{ background:B.surf, borderRadius:14, padding:20, marginBottom:12, border:"1px solid " + B.bdr, borderLeft:"4px solid " + B.blue }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
                   <div style={{ width:32, height:32, borderRadius:"50%", background:B.blue, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:16, color:"#fff", flexShrink:0 }}>{i + 1}</div>
                   <div>
@@ -847,7 +865,7 @@ export default function DannyFinancialAudit() {
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16, fontWeight:700, margin:"0 0 3px", color:B.wht, textTransform:"uppercase" }}>Recommendations</h3>
             <p style={{ color:B.grayDk, fontSize:11, margin:"0 0 12px" }}>Prioritized actions based on your numbers</p>
             {recs.map((r, i) => (
-              <div key={i} style={{ padding:"14px 16px", background:B.surf, borderRadius:8, marginBottom:8, border:"1px solid " + B.bdr, borderLeft:"4px solid " + priClr[r.p] }}>
+              <div key={i} style={{ padding:"14px 16px", background:B.surf, borderRadius:12, marginBottom:8, border:"1px solid " + B.bdr, borderLeft:"4px solid " + priClr[r.p] }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2, flexWrap:"wrap" }}>
                   <span style={{ fontSize:9, fontWeight:700, color:priClr[r.p], background:priClr[r.p] + "15", padding:"2px 6px", borderRadius:3, fontFamily:"'Barlow Condensed',sans-serif" }}>{r.p === "MED" ? "MEDIUM" : r.p} PRIORITY</span>
                   <span style={{ fontSize:9, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.06em" }}>{r.cat}</span>
@@ -875,12 +893,9 @@ export default function DannyFinancialAudit() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
-
-
-
-
 
 
 
