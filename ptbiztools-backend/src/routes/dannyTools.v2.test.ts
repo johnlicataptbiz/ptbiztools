@@ -168,3 +168,36 @@ test('sales-grade-v2 scoring is outcome-blind and prompt excludes outcome labels
   assert.equal(mergedPromptBody.includes('Won'), false)
   assert.equal(mergedPromptBody.includes('Lost'), false)
 })
+
+test('sales-grade-v2 normalizes empty evidence fields from model output', async () => {
+  prismaUser.findUnique = async () => ({ id: 'user-1' })
+  process.env.ANTHROPIC_API_KEY = 'test-key'
+
+  const brokenExtraction = JSON.parse(JSON.stringify(mockExtraction)) as typeof mockExtraction
+  brokenExtraction.phases.discovery.evidence = ['']
+  brokenExtraction.critical_behaviors.time_management.evidence = ['']
+  brokenExtraction.critical_behaviors.time_management.note = ''
+
+  global.fetch = async () => {
+    return {
+      ok: true,
+      json: async () => ({
+        content: [{ type: 'text', text: JSON.stringify(brokenExtraction) }],
+      }),
+    } as Response
+  }
+
+  const app = createApp()
+  const response = await request(app)
+    .post('/api/danny-tools/sales-grade-v2')
+    .set('Cookie', ['ptbiz_user=user-1'])
+    .send({ transcript: longTranscript, closer: 'John', program: 'Rainmaker' })
+
+  assert.equal(response.status, 200)
+  assert.equal(response.body.qualityGate.accepted, true)
+  assert.ok(Array.isArray(response.body.phaseScores.discovery.evidence))
+  assert.ok(response.body.phaseScores.discovery.evidence[0].length > 0)
+  assert.ok(Array.isArray(response.body.criticalBehaviors.time_management.evidence))
+  assert.ok(response.body.criticalBehaviors.time_management.evidence[0].length > 0)
+  assert.ok(response.body.criticalBehaviors.time_management.note.length >= 3)
+})

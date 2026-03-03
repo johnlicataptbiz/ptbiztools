@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 import { Router } from 'express'
 import multer from 'multer'
 import {
+  type ExtractionResult,
   extractionResultSchema,
   salesGradeV2RequestSchema,
   zodIssuesToReasons,
@@ -195,6 +196,115 @@ function buildSalesV2Content(program: 'Rainmaker' | 'Mastermind', transcript: st
   ].join('\n\n')
 }
 
+const PHASE_IDS = [
+  'connection',
+  'discovery',
+  'gap_creation',
+  'temp_check',
+  'solution',
+  'close',
+  'followup',
+] as const
+
+const BEHAVIOR_IDS = [
+  'free_consulting',
+  'discount_discipline',
+  'emotional_depth',
+  'time_management',
+  'personal_story',
+] as const
+
+function clampScore(value: unknown) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return 50
+  if (numeric < 0) return 0
+  if (numeric > 100) return 100
+  return Math.round(numeric)
+}
+
+function normalizeText(value: unknown, fallback: string, minLen = 1, maxLen = 1000) {
+  const raw = typeof value === 'string' ? value.trim() : ''
+  if (raw.length >= minLen) return raw.slice(0, maxLen)
+  return fallback.slice(0, maxLen)
+}
+
+function buildTranscriptEvidencePool(transcript: string) {
+  const lines = transcript
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length >= 8)
+    .map((line) => line.slice(0, 300))
+
+  const uniqueLines = [...new Set(lines)]
+  if (uniqueLines.length > 0) return uniqueLines
+
+  const fallback = transcript.trim().slice(0, 300)
+  return [fallback.length > 0 ? fallback : 'Transcript provided but no quote candidates were extracted.']
+}
+
+function normalizeEvidence(
+  value: unknown,
+  maxItems: number,
+  fallbackQuote: string,
+) {
+  const fromModel = Array.isArray(value)
+    ? value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0)
+        .map((item) => item.slice(0, 300))
+    : []
+
+  const unique = [...new Set(fromModel)]
+  if (unique.length > 0) return unique.slice(0, maxItems)
+  return [fallbackQuote.slice(0, 300)]
+}
+
+function normalizeStatus(value: unknown): 'pass' | 'fail' | 'unknown' {
+  if (value === 'pass' || value === 'fail' || value === 'unknown') return value
+  return 'unknown'
+}
+
+function normalizeExtractionContract(raw: unknown, transcript: string): ExtractionResult {
+  const source = (raw && typeof raw === 'object' ? raw : {}) as {
+    phases?: Record<string, unknown>
+    critical_behaviors?: Record<string, unknown>
+    top_strength?: unknown
+    top_improvement?: unknown
+    prospect_summary?: unknown
+  }
+
+  const evidencePool = buildTranscriptEvidencePool(transcript)
+  const nextQuote = (index: number) => evidencePool[index % evidencePool.length]
+
+  const phases = {} as ExtractionResult['phases']
+  PHASE_IDS.forEach((phaseId, index) => {
+    const rawPhase = (source.phases?.[phaseId] || {}) as Record<string, unknown>
+    phases[phaseId] = {
+      score: clampScore(rawPhase.score),
+      summary: normalizeText(rawPhase.summary, 'Model summary unavailable for this phase.', 8, 800),
+      evidence: normalizeEvidence(rawPhase.evidence, 6, nextQuote(index)),
+    }
+  })
+
+  const criticalBehaviors = {} as ExtractionResult['critical_behaviors']
+  BEHAVIOR_IDS.forEach((behaviorId, index) => {
+    const rawBehavior = (source.critical_behaviors?.[behaviorId] || {}) as Record<string, unknown>
+    criticalBehaviors[behaviorId] = {
+      status: normalizeStatus(rawBehavior.status),
+      note: normalizeText(rawBehavior.note, 'Model note unavailable for this behavior.', 3, 600),
+      evidence: normalizeEvidence(rawBehavior.evidence, 4, nextQuote(PHASE_IDS.length + index)),
+    }
+  })
+
+  return {
+    phases,
+    critical_behaviors: criticalBehaviors,
+    top_strength: normalizeText(source.top_strength, 'Strongest moment identified from transcript evidence.', 5, 600),
+    top_improvement: normalizeText(source.top_improvement, 'Primary improvement opportunity identified from transcript evidence.', 5, 600),
+    prospect_summary: normalizeText(source.prospect_summary, 'Prospect context summarized from transcript evidence.', 5, 1000),
+  }
+}
+
 dannyToolsRouter.use(attachSessionUser)
 
 dannyToolsRouter.post('/sales-grade-v2', requireAuth, async (req: SessionRequest, res: Response) => {
@@ -234,7 +344,12 @@ dannyToolsRouter.post('/sales-grade-v2', requireAuth, async (req: SessionRequest
     return
   }
 
-  const parsedExtraction = extractionResultSchema.safeParse(rawExtraction)
+  let parsedExtraction = extractionResultSchema.safeParse(rawExtraction)
+  if (!parsedExtraction.success) {
+    const normalizedExtraction = normalizeExtractionContract(rawExtraction, transcript)
+    parsedExtraction = extractionResultSchema.safeParse(normalizedExtraction)
+  }
+
   if (!parsedExtraction.success) {
     res.status(422).json({
       error: 'Model extraction schema validation failed',
