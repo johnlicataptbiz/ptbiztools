@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { LOGIN_LOGO_URL } from "@/constants/branding";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
 
@@ -203,7 +204,13 @@ export default function LoginPage() {
     <main className="mx-auto min-h-screen max-w-4xl px-4 py-8 md:px-8 md:py-12">
       <section className="rounded-(--radius-2xl) border border-border bg-surface p-6 shadow-sm md:p-8">
         <header className="border-b border-border pb-5">
-          <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">PT Biz Coach</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGIN_LOGO_URL}
+            alt="PT Biz Coach"
+            className="h-8 w-auto max-w-[220px]"
+          />
+          <p className="mt-3 text-xs uppercase tracking-[0.15em] text-muted-foreground">PT Biz Coach</p>
           <h1 className="mt-2 text-3xl font-semibold">Sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">Choose your profile and use your account password.</p>
         </header>
