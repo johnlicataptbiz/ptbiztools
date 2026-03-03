@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { Activity, ChartNoAxesColumn, FileText, LogIn, Medal, Users } from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import {
@@ -11,6 +13,7 @@ import {
   type ActionStatsSummary,
   type AdminUsageSummary,
 } from "@/lib/ptbiz-api";
+import "@/styles/dashboard.css";
 
 interface ActivityFeedItem {
   id: string;
@@ -106,6 +109,13 @@ function formatDate(dateStr: string) {
   return `${days}d ago`;
 }
 
+function statTone(value: number | null | undefined) {
+  if (value === null || value === undefined) return "neutral";
+  if (value >= 80) return "strong";
+  if (value >= 40) return "steady";
+  return "watch";
+}
+
 export default function DashboardPage() {
   const { user } = useSession();
 
@@ -183,54 +193,87 @@ export default function DashboardPage() {
   const isLoading = isAdmin ? adminUsageQuery.isLoading : coachStatsQuery.isLoading;
   const isError = isAdmin ? adminUsageQuery.isError : coachStatsQuery.isError;
 
+  const topActionTotal = useMemo(
+    () => (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + row._count.actionType, 0),
+    [actionStats?.stats],
+  );
+
   return (
-    <section className="space-y-6">
-      <header className="rounded-(--radius-2xl) border border-border bg-surface p-6 shadow-sm">
+    <section className="dashboard-v2 space-y-6">
+      <motion.header
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28 }}
+        className="dashboard-v2-hero rounded-(--radius-2xl) border border-border bg-surface p-6 shadow-sm"
+      >
         <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Dashboard</p>
-        <h1 className="mt-2 text-3xl font-semibold">{greeting}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{greeting}</h1>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Live usage data is now connected in the Next.js stack with role-aware access controls.
         </p>
-      </header>
+      </motion.header>
 
       {isError && (
-        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger shadow-sm">
           Failed to load usage metrics. Confirm backend availability and refresh.
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs text-muted-foreground">Logins (30d)</p>
-          <p className="mt-1 text-2xl font-semibold">{adminUsage?.totals.successfulLogins ?? "-"}</p>
-        </article>
-        <article className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs text-muted-foreground">Coaching Analyses</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {isAdmin ? (adminUsage?.totals.coachingAnalyses ?? "-") : coachStats.totalGrades}
-          </p>
-        </article>
-        <article className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs text-muted-foreground">PDF Exports</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {isAdmin ? (adminUsage?.totals.pdfExports ?? "-") : coachStats.totalPdfs}
-          </p>
-        </article>
-        <article className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs text-muted-foreground">Active Users</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {isAdmin ? (adminUsage?.totals.activeUsers ?? "-") : coachStats.totalTranscripts}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {isAdmin ? "Users active in selected window" : "Transcripts uploaded by you"}
-          </p>
-        </article>
+        {[
+          {
+            label: "Logins (30d)",
+            value: isAdmin ? adminUsage?.totals.successfulLogins ?? null : null,
+            icon: LogIn,
+            helper: isAdmin ? "Successful authenticated entries" : "Admin metric",
+          },
+          {
+            label: "Coaching Analyses",
+            value: isAdmin ? adminUsage?.totals.coachingAnalyses ?? null : coachStats.totalGrades,
+            icon: Medal,
+            helper: "Saved grading outputs",
+          },
+          {
+            label: "PDF Exports",
+            value: isAdmin ? adminUsage?.totals.pdfExports ?? null : coachStats.totalPdfs,
+            icon: FileText,
+            helper: "Generated downloadable reports",
+          },
+          {
+            label: "Active Users",
+            value: isAdmin ? adminUsage?.totals.activeUsers ?? null : coachStats.totalTranscripts,
+            icon: Users,
+            helper: isAdmin ? "Users active in selected window" : "Transcripts uploaded by you",
+          },
+        ].map((card, index) => {
+          const tone = statTone(card.value);
+          const Icon = card.icon;
+          return (
+            <motion.article
+              key={card.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.24, delay: 0.03 * index }}
+              className={`dashboard-v2-stat dashboard-v2-stat-${tone} rounded-xl border border-border bg-surface p-4`}
+            >
+              <div className="flex items-start justify-between">
+                <p className="text-xs text-muted-foreground">{card.label}</p>
+                <Icon size={16} className="dashboard-v2-stat-icon" />
+              </div>
+              <p className="mt-2 text-3xl font-semibold tracking-tight">{card.value ?? "-"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
+            </motion.article>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-border bg-surface p-4">
+        <section className="dashboard-v2-panel rounded-xl border border-border bg-surface p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Recent Activity</h2>
+            <h2 className="flex items-center gap-2 text-sm font-semibold">
+              <Activity size={15} />
+              Recent Activity
+            </h2>
             {isLoading && <span className="text-xs text-muted-foreground">Refreshing...</span>}
           </div>
           <div className="space-y-2">
@@ -240,24 +283,54 @@ export default function DashboardPage() {
               </p>
             )}
             {activityFeed.map((item) => (
-              <article key={item.id} className="rounded-lg border border-border bg-white px-3 py-2">
-                <p className="text-sm">{item.description}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {item.userName ? `${item.userName} · ` : ""}
-                  {formatDate(item.createdAt)}
-                </p>
+              <article key={item.id} className="dashboard-v2-activity-item rounded-lg border border-border bg-white px-3 py-2">
+                <div className="flex items-start gap-3">
+                  {item.userImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="mt-0.5 h-7 w-7 rounded-full object-cover" src={item.userImageUrl} alt={item.userName || "User"} />
+                  ) : (
+                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-background text-[10px] font-semibold text-muted-foreground">
+                      {(item.userName || "?").slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm">{item.description}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {item.userName ? `${item.userName} · ` : ""}
+                      {formatDate(item.createdAt)}
+                    </p>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-surface p-4">
-          <h2 className="mb-3 text-sm font-semibold">Top Action Types</h2>
+        <section className="dashboard-v2-panel rounded-xl border border-border bg-surface p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold">
+              <ChartNoAxesColumn size={15} />
+              Top Action Types
+            </h2>
+            <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+              Total {topActionTotal}
+            </span>
+          </div>
           <div className="space-y-2">
             {(actionStats?.stats || []).slice(0, 8).map((item) => (
-              <div key={item.actionType} className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2">
-                <p className="text-sm">{item.actionType}</p>
-                <p className="text-sm font-semibold">{item._count.actionType}</p>
+              <div key={item.actionType} className="rounded-lg border border-border bg-white px-3 py-2">
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="truncate pr-3 text-sm">{item.actionType}</p>
+                  <p className="text-sm font-semibold">{item._count.actionType}</p>
+                </div>
+                <div className="h-1.5 rounded-full bg-background">
+                  <div
+                    className="h-1.5 rounded-full bg-accent transition-all"
+                    style={{
+                      width: `${topActionTotal > 0 ? Math.max((item._count.actionType / topActionTotal) * 100, 6) : 0}%`,
+                    }}
+                  />
+                </div>
               </div>
             ))}
             {!actionStats?.stats?.length && (
@@ -269,7 +342,10 @@ export default function DashboardPage() {
 
           {Boolean(adminUsage?.topUsers.length) && (
             <>
-              <h3 className="mb-2 mt-6 text-sm font-semibold">Top Users</h3>
+              <h3 className="mb-2 mt-6 flex items-center gap-2 text-sm font-semibold">
+                <Users size={14} />
+                Top Users
+              </h3>
               <div className="space-y-2">
                 {(adminUsage?.topUsers || []).slice(0, 5).map((userRow) => (
                   <div key={userRow.userId} className="rounded-lg border border-border bg-white px-3 py-2">

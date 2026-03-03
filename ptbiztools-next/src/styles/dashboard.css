@@ -1,0 +1,39 @@
+.dashboard-v2-hero {
+  background:
+    radial-gradient(130% 120% at 5% 0%, rgba(31, 111, 139, 0.16), transparent 50%),
+    radial-gradient(120% 120% at 100% 100%, rgba(47, 133, 90, 0.11), transparent 40%),
+    linear-gradient(180deg, #fffdf9, #fdf8f1);
+}
+
+.dashboard-v2-stat {
+  box-shadow: 0 12px 30px rgba(24, 24, 27, 0.06);
+}
+
+.dashboard-v2-stat-icon {
+  color: color-mix(in oklab, var(--accent) 70%, #1c1917);
+}
+
+.dashboard-v2-stat-strong {
+  border-color: color-mix(in oklab, var(--success) 48%, var(--border));
+}
+
+.dashboard-v2-stat-steady {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+}
+
+.dashboard-v2-stat-watch {
+  border-color: color-mix(in oklab, var(--warning) 45%, var(--border));
+}
+
+.dashboard-v2-panel {
+  box-shadow: 0 12px 32px rgba(24, 24, 27, 0.07);
+}
+
+.dashboard-v2-activity-item {
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.dashboard-v2-activity-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(24, 24, 27, 0.08);
+}

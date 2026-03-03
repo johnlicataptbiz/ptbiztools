@@ -2,13 +2,27 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
+import {
+  BarChart3,
+  ClipboardList,
+  Calculator,
+  PhoneCall,
+  ScrollText,
+  Menu,
+  X,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole, getRoleLabel } from "@/lib/auth/roles";
+import { SITE_LOGO_URL } from "@/constants/branding";
+import "@/styles/app-shell.css";
 
 interface NavItem {
   href: string;
   label: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
 }
 
 function normalizeText(value: string | null | undefined) {
@@ -44,32 +58,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navItems = useMemo<NavItem[]>(() => {
     if (isAdmin) {
       return [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/discovery-call-grader", label: "Call Grader" },
-        { href: "/pl-calculator", label: "P&L Calculator" },
-        { href: "/compensation-calculator", label: "Comp Calculator" },
-        { href: "/sales-discovery-grader", label: "Sales Grader" },
-        { href: "/analyses", label: "Analyses" },
+        { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
+        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall },
+        { href: "/analyses", label: "Analyses", icon: ScrollText },
       ];
     }
 
     if (isAdvisor) {
       return [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/discovery-call-grader", label: "Call Grader" },
-        { href: "/pl-calculator", label: "P&L Calculator" },
-        { href: "/compensation-calculator", label: "Comp Calculator" },
-        { href: "/sales-discovery-grader", label: "Sales Grader" },
-        { href: "/analyses", label: "My Analyses" },
+        { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
+        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall },
+        { href: "/analyses", label: "My Analyses", icon: ScrollText },
       ];
     }
 
     return [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/discovery-call-grader", label: "Call Grader" },
-      { href: "/pl-calculator", label: "P&L Calculator" },
-      { href: "/compensation-calculator", label: "Comp Calculator" },
-      { href: "/analyses", label: "My Analyses" },
+      { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+      { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+      { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+      { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
+      { href: "/analyses", label: "My Analyses", icon: ScrollText },
     ];
   }, [isAdmin, isAdvisor]);
 
@@ -81,7 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!user) {
     return (
       <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-6 py-10">
-        <div className="rounded-(--radius-xl) border border-border bg-surface px-6 py-5 text-sm text-muted-foreground">
+        <div className="rounded-(--radius-xl) border border-border bg-surface px-6 py-5 text-sm text-muted-foreground shadow-md">
           Loading workspace...
         </div>
       </main>
@@ -92,98 +106,109 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isJack = normalizeText(user.name) === "jack licata";
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="app-shell min-h-screen lg:grid lg:grid-cols-[296px_minmax(0,1fr)]">
       {menuOpen && (
         <button
-          className="fixed inset-0 z-30 bg-black/35 lg:hidden"
+          className="app-shell-overlay fixed inset-0 z-30 bg-black/45 backdrop-blur-[1px] lg:hidden"
           onClick={() => setMenuOpen(false)}
           aria-label="Close menu"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-[280px] border-r border-border bg-surface p-5 transition-transform lg:static lg:translate-x-0 ${
+        className={`app-shell-sidebar fixed inset-y-0 left-0 z-40 w-[296px] border-r border-border bg-surface p-5 transition-transform lg:static lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <Link href="/dashboard" className="text-sm font-semibold tracking-[0.12em] text-accent" onClick={() => setMenuOpen(false)}>
-            PT BIZ TOOLS
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/dashboard" className="app-shell-logo-link" onClick={() => setMenuOpen(false)}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="app-shell-logo-image" src={SITE_LOGO_URL} alt="PT Biz Tools" />
+            <span className="app-shell-logo-copy">Execution Hub</span>
           </Link>
-          <button className="text-sm text-muted-foreground lg:hidden" onClick={() => setMenuOpen(false)}>
-            Close
+          <button className="app-shell-mobile-close lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+            <X size={16} />
           </button>
         </div>
 
-        <nav className="mt-8 space-y-1">
+        <nav className="mt-8 space-y-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
+            const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-lg px-3 py-2 text-sm transition ${
+                className={`app-shell-nav-link ${
                   isActive
-                    ? "bg-accent text-white"
-                    : "text-foreground hover:bg-white"
+                    ? "app-shell-nav-link-active"
+                    : "app-shell-nav-link-idle"
                 }`}
                 onClick={() => setMenuOpen(false)}
               >
+                <Icon size={16} className="shrink-0" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-8 rounded-xl border border-border bg-white/75 p-3">
-          <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Migration Lab</p>
-          <Link href="/stack-lab" className="mt-2 inline-block text-sm font-medium text-accent">
+        <div className="app-shell-lab mt-8 rounded-xl border border-border bg-white/80 p-3.5">
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+            <Sparkles size={12} />
+            Migration Lab
+          </p>
+          <Link href="/stack-lab" className="mt-2 inline-block text-sm font-semibold text-accent hover:text-accent-strong">
             View New Stack Controls
           </Link>
         </div>
 
         <div className="mt-auto pt-8">
-          <div className="rounded-xl border border-border bg-white p-3">
+          <div className="app-shell-user-card rounded-xl border border-border bg-white p-3">
             <div className="flex items-center gap-3">
               {user.imageUrl && !avatarDidError ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  className={`h-10 w-10 rounded-full object-cover ${isJack ? "object-[50%_8%]" : ""}`}
+                  className={`h-11 w-11 rounded-full object-cover ${isJack ? "object-[50%_8%]" : ""}`}
                   src={user.imageUrl}
                   alt={user.name}
                   onError={() => setAvatarDidError(true)}
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
                   {initials}
                 </div>
               )}
               <div>
-                <p className="text-sm font-semibold leading-tight">{user.name}</p>
+                <p className="text-sm font-semibold leading-tight tracking-tight">{user.name}</p>
                 <p className="text-xs text-muted-foreground">{getRoleLabel(user)}</p>
               </div>
             </div>
             <button
-              className="mt-3 w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-background"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-background"
               onClick={handleLogout}
             >
+              <LogOut size={14} />
               Log Out
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="min-h-screen">
-        <header className="sticky top-0 z-20 border-b border-border bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
+      <div className="app-shell-main min-h-screen">
+        <header className="app-shell-header sticky top-0 z-20 border-b border-border bg-background/95 px-4 py-3 backdrop-blur lg:px-8">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
             <button
-              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm lg:hidden"
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm shadow-sm lg:hidden"
               onClick={() => setMenuOpen(true)}
             >
-              Menu
+              <span className="inline-flex items-center gap-2">
+                <Menu size={15} />
+                Menu
+              </span>
             </button>
-            <p className="text-sm text-muted-foreground">PT Biz Coach Workspace</p>
+            <p className="text-sm font-medium tracking-[0.04em] text-muted-foreground">PT Biz Coach Workspace</p>
           </div>
         </header>
 
