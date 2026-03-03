@@ -312,17 +312,17 @@ export default function DiscoveryCallGrader() {
 
   return (
     <div className="grader-page">
-      <div className="container">
+      <div className="container tool-page">
         <motion.div
-          className="page-header"
+          className="page-header tool-page-hero"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="header-icon">
             <ClipboardList size={28} />
           </div>
-          <h1>Discovery Call Grader</h1>
-          <p>Dynamic transcript intake, pre-grade diagnostics, and instant coaching reports.</p>
+          <h1 className="tool-page-title">Discovery Call Grader</h1>
+          <p className="tool-page-subtitle">Dynamic transcript intake, pre-grade diagnostics, and instant coaching reports.</p>
         </motion.div>
 
         <motion.div

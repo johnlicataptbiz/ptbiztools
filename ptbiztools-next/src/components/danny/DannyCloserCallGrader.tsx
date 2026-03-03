@@ -1018,28 +1018,19 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
           #printable-report { box-shadow: none !important; border-radius: 0 !important; padding: 20px !important; }
         }
       `}</style>
-      <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
+      <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
-        <div
-          className="no-print"
-          style={{
-            marginBottom: "20px",
-            padding: "18px 20px",
-            border: `1px solid ${border}`,
-            borderRadius: "16px",
-            background: `linear-gradient(180deg, ${card}, ${cardSoft})`,
-            boxShadow: "0 10px 24px color-mix(in oklab, var(--color-text) 10%, transparent)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-            <h1 style={{ margin: 0, fontSize: "clamp(34px, 4.6vw, 52px)", lineHeight: 1.04, fontWeight: 700, fontFamily: fontSans, letterSpacing: "-0.03em" }}>
+        <div className="no-print tool-page-hero" style={{ marginBottom: "20px" }}>
+          <p className="tool-page-kicker">Sales Performance</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px", flexWrap: "wrap" }}>
+            <h1 className="tool-page-title" style={{ margin: 0 }}>
               PT Biz Call Grader
             </h1>
             <span style={{ fontSize: "11px", padding: "4px 10px", background: accent, color: "#ffffff", borderRadius: "999px", fontWeight: 700, fontFamily: fontSans }}>
               v1.0
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: "16px", lineHeight: 1.45, color: textSecondary }}>
+          <p className="tool-page-subtitle" style={{ marginTop: "6px" }}>
             Score calls against the 7-phase framework. Track closer performance over time.
           </p>
         </div>

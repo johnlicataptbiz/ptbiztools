@@ -83,11 +83,11 @@ export default function AnalysisHistory() {
   }, [analyses]);
 
   return (
-    <div className="analysis-history">
-      <div className="analysis-history-header">
+    <div className="analysis-history tool-page">
+      <div className="analysis-history-header tool-page-hero">
         <div>
-          <h1>{isAdmin ? "Team Activity Records" : "My Saved Records"}</h1>
-          <p>
+          <h1 className="tool-page-title">{isAdmin ? "Team Activity Records" : "My Saved Records"}</h1>
+          <p className="tool-page-subtitle">
             {isAdmin
               ? "View all coach/advisor/admin generated analyses, P&L audits, and PDF exports"
               : "Your generated discovery analyses, P&L audits, and exports"}

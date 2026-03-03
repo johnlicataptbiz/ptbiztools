@@ -1,0 +1,43 @@
+.tool-page {
+  display: grid;
+  gap: 18px;
+}
+
+.tool-page-hero {
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
+  border-radius: 18px;
+  padding: 20px 22px;
+  background:
+    radial-gradient(130% 150% at 5% -10%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 52%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 95%, var(--background) 5%),
+      color-mix(in oklab, var(--surface) 84%, var(--background) 16%)
+    );
+  box-shadow: 0 14px 34px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.tool-page-kicker {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-page-title {
+  margin: 0;
+  font-size: clamp(34px, 4.2vw, 50px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.tool-page-subtitle {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.45;
+}
