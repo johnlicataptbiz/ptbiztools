@@ -135,6 +135,130 @@ export interface ActionLog {
   } | null;
 }
 
+export interface ActionLogInput {
+  actionType: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+  sessionId?: string;
+}
+
+export interface GradeStoragePayload {
+  score: number;
+  outcome: string;
+  summary: string;
+  phaseScores: unknown;
+  strengths: string[];
+  improvements: string[];
+  redFlags: string[];
+  deidentifiedTranscript?: string;
+  transcript?: string;
+  gradingVersion?: string;
+  deterministic?: unknown;
+  criticalBehaviors?: unknown;
+  confidence?: number;
+  qualityGate?: unknown;
+  evidence?: unknown;
+  transcriptHash?: string;
+}
+
+export interface CoachingAnalysisSaveInput {
+  sessionId?: string;
+  coachName?: string;
+  clientName?: string;
+  callDate?: string;
+  grade: GradeStoragePayload;
+}
+
+export interface PdfExportSaveInput {
+  sessionId?: string;
+  coachingAnalysisId?: string;
+  coachName?: string;
+  clientName?: string;
+  callDate?: string;
+  score?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export type SalesGradeProgramProfile = "Rainmaker" | "Mastermind";
+export type SalesGradeBehaviorStatus = "pass" | "fail" | "unknown";
+
+export interface SalesGradeV2Phase {
+  score: number;
+  summary: string;
+  evidence: string[];
+}
+
+export interface SalesGradeV2Behavior {
+  status: SalesGradeBehaviorStatus;
+  note: string;
+  evidence: string[];
+}
+
+export interface SalesGradeV2Response {
+  version: "v2";
+  programProfile: SalesGradeProgramProfile;
+  phaseScores: {
+    connection: SalesGradeV2Phase;
+    discovery: SalesGradeV2Phase;
+    gap_creation: SalesGradeV2Phase;
+    temp_check: SalesGradeV2Phase;
+    solution: SalesGradeV2Phase;
+    close: SalesGradeV2Phase;
+    followup: SalesGradeV2Phase;
+  };
+  criticalBehaviors: {
+    free_consulting: SalesGradeV2Behavior;
+    discount_discipline: SalesGradeV2Behavior;
+    emotional_depth: SalesGradeV2Behavior;
+    time_management: SalesGradeV2Behavior;
+    personal_story: SalesGradeV2Behavior;
+  };
+  deterministic: {
+    weightedPhaseScore: number;
+    penaltyPoints: number;
+    unknownPenalty: number;
+    overallScore: number;
+  };
+  confidence: {
+    score: number;
+    evidenceCoverage: number;
+    quoteVerificationRate: number;
+    transcriptQuality: number;
+  };
+  qualityGate: {
+    accepted: boolean;
+    reasons: string[];
+  };
+  highlights: {
+    topStrength: string;
+    topImprovement: string;
+    prospectSummary: string;
+  };
+  metadata: {
+    closer: string;
+    outcome?: string;
+    model: string;
+  };
+  diagnostics?: {
+    verifiedQuotes: number;
+    totalQuotes: number;
+    unverifiedQuotes: string[];
+  };
+  storage?: {
+    redactedTranscript: string;
+    transcriptHash: string;
+  };
+}
+
+export const ActionTypes = {
+  TRANSCRIPT_UPLOADED: "transcript_uploaded",
+  TRANSCRIPT_PASTED: "transcript_pasted",
+  GRADE_GENERATED: "grade_generated",
+  PDF_GENERATED: "pdf_generated",
+  SESSION_STARTED: "session_started",
+  SESSION_ENDED: "session_ended",
+} as const;
+
 async function requestJson<T>(input: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${input}`, {
     credentials: "include",
@@ -257,6 +381,141 @@ export async function getActionStats(): Promise<{ data?: ActionStatsSummary; err
   } catch (error) {
     const message = error instanceof Error ? error.message : "Network error";
     return { error: message };
+  }
+}
+
+export async function logAction(input: ActionLogInput): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/actions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(input),
+    });
+  } catch (error) {
+    console.error("Failed to log action:", error);
+  }
+}
+
+export async function saveCoachingAnalysis(
+  input: CoachingAnalysisSaveInput,
+): Promise<{ analysisId?: string; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/analytics/coaching-analyses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(input),
+    });
+
+    const data = (await response.json()) as { analysis?: { id?: string }; error?: string };
+    if (!response.ok) return { error: data.error || "Failed to save coaching analysis" };
+    return { analysisId: data.analysis?.id };
+  } catch (error) {
+    console.error("Failed to save coaching analysis:", error);
+    return { error: "Network error" };
+  }
+}
+
+export async function savePdfExport(
+  input: PdfExportSaveInput,
+): Promise<{ pdfExportId?: string; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/analytics/pdf-exports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(input),
+    });
+
+    const data = (await response.json()) as { pdfExport?: { id?: string }; error?: string };
+    if (!response.ok) return { error: data.error || "Failed to save PDF export" };
+    return { pdfExportId: data.pdfExport?.id };
+  } catch (error) {
+    console.error("Failed to save pdf export:", error);
+    return { error: "Network error" };
+  }
+}
+
+export async function extractTranscriptFromFile(file: File): Promise<{
+  text?: string;
+  sourceType?: "pdf" | "text";
+  filename?: string;
+  wordCount?: number;
+  charCount?: number;
+  error?: string;
+}> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+
+    const response = await fetch(`${API_BASE}/transcripts/extract`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = (await response.json()) as {
+      text?: string;
+      sourceType?: "pdf" | "text";
+      filename?: string;
+      wordCount?: number;
+      charCount?: number;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      return { error: data.error || "Failed to extract transcript text" };
+    }
+
+    return {
+      text: data.text,
+      sourceType: data.sourceType,
+      filename: data.filename,
+      wordCount: data.wordCount,
+      charCount: data.charCount,
+    };
+  } catch (error) {
+    console.error("Failed to extract transcript file:", error);
+    return { error: "Network error" };
+  }
+}
+
+export async function gradeDannySalesCallV2(input: {
+  transcript: string;
+  closer: string;
+  outcome?: "Won" | "Lost";
+  program: SalesGradeProgramProfile;
+  prospectName?: string;
+  callMeta?: {
+    durationMinutes?: number;
+  };
+}): Promise<{ data?: SalesGradeV2Response; error?: string; reasons?: string[] }> {
+  try {
+    const response = await fetch(`${API_BASE}/danny-tools/sales-grade-v2`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(input),
+    });
+
+    const data = (await response.json()) as SalesGradeV2Response & {
+      error?: string;
+      reasons?: string[];
+    };
+    if (!response.ok) {
+      return {
+        error: data.error || "Failed to grade sales call",
+        reasons: Array.isArray(data.reasons) ? data.reasons : [],
+      };
+    }
+
+    return {
+      data: data as SalesGradeV2Response,
+    };
+  } catch (error) {
+    console.error("Failed to grade Danny sales call v2:", error);
+    return { error: "Network error", reasons: [] };
   }
 }
 

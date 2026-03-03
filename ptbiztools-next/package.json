@@ -17,9 +17,13 @@
     "@tanstack/react-query": "^5.90.21",
     "@workflow/ai": "^4.0.1-beta.54",
     "ai": "^6.0.107",
+    "framer-motion": "^12.34.4",
+    "jspdf": "^4.2.0",
+    "lucide-react": "^0.576.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "sonner": "^2.0.7",
     "workflow": "^4.1.0-beta.60",
     "zod": "^4.1.11"
   },

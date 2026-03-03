@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import "@/styles/corex-compat.css";
+import "@/styles/discovery-call-grader.css";
 
 const brandSans = Space_Grotesk({
   variable: "--font-brand-sans",
