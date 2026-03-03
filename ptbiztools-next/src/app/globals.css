@@ -30,6 +30,14 @@
   --bg-radial-b: #d7ebef7a;
   --bg-linear-start: #f2ecdf;
   --bg-linear-end: #ece2d0;
+  --shell-radial-a: #1f6f8b1f;
+  --shell-radial-b: #2f855a1a;
+  --shell-linear-start: #f4efe5;
+  --shell-linear-end: #eee4d3;
+  --hero-radial-a: #1f6f8b29;
+  --hero-radial-b: #2f855a1c;
+  --hero-linear-start: #fffdf9;
+  --hero-linear-end: #fdf8f1;
 
   --scroll-track: #eee5d7;
   --scroll-thumb: #c7b8a0;
@@ -64,6 +72,14 @@
   --bg-radial-b: #41ba8d26;
   --bg-linear-start: #101722;
   --bg-linear-end: #0c121d;
+  --shell-radial-a: #5ca4ff30;
+  --shell-radial-b: #41ba8d24;
+  --shell-linear-start: #0f1724;
+  --shell-linear-end: #0a111b;
+  --hero-radial-a: #5ca4ff40;
+  --hero-radial-b: #41ba8d2e;
+  --hero-linear-start: #192233;
+  --hero-linear-end: #141d2c;
 
   --scroll-track: #131f2e;
   --scroll-thumb: #3d5576;
@@ -98,6 +114,14 @@
   --bg-radial-b: #97ccd95e;
   --bg-linear-start: #e8f4f7;
   --bg-linear-end: #d7ebf1;
+  --shell-radial-a: #0f7f9b24;
+  --shell-radial-b: #2c8f6a1f;
+  --shell-linear-start: #eaf6f9;
+  --shell-linear-end: #daedf3;
+  --hero-radial-a: #0f7f9b33;
+  --hero-radial-b: #2c8f6a26;
+  --hero-linear-start: #fbfeff;
+  --hero-linear-end: #eef8fb;
 
   --scroll-track: #d6e8ed;
   --scroll-thumb: #88b3bf;
@@ -132,6 +156,14 @@
   --bg-radial-b: #d1e4d266;
   --bg-linear-start: #edf3eb;
   --bg-linear-end: #e2ecdf;
+  --shell-radial-a: #2e7c5221;
+  --shell-radial-b: #2b875118;
+  --shell-linear-start: #eef5ec;
+  --shell-linear-end: #e0eadc;
+  --hero-radial-a: #2e7c5230;
+  --hero-radial-b: #2b875124;
+  --hero-linear-start: #fbfffb;
+  --hero-linear-end: #eef8ee;
 
   --scroll-track: #dde8da;
   --scroll-thumb: #9cb79d;

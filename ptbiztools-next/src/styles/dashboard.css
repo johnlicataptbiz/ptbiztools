@@ -15,9 +15,9 @@
 
 .dashboard-v2-hero {
   background:
-    radial-gradient(130% 120% at 5% 0%, rgba(31, 111, 139, 0.16), transparent 50%),
-    radial-gradient(120% 120% at 100% 100%, rgba(47, 133, 90, 0.11), transparent 40%),
-    linear-gradient(180deg, #fffdf9, #fdf8f1);
+    radial-gradient(130% 120% at 5% 0%, var(--hero-radial-a), transparent 50%),
+    radial-gradient(120% 120% at 100% 100%, var(--hero-radial-b), transparent 40%),
+    linear-gradient(180deg, var(--hero-linear-start), var(--hero-linear-end));
 }
 
 .dashboard-header h1 {

@@ -167,9 +167,9 @@
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(1000px 460px at 8% -28%, rgba(31, 111, 139, 0.12), transparent 55%),
-    radial-gradient(900px 420px at 95% 105%, rgba(47, 133, 90, 0.1), transparent 45%),
-    linear-gradient(180deg, #f4efe5, #eee4d3);
+    radial-gradient(1000px 460px at 8% -28%, var(--shell-radial-a), transparent 55%),
+    radial-gradient(900px 420px at 95% 105%, var(--shell-radial-b), transparent 45%),
+    linear-gradient(180deg, var(--shell-linear-start), var(--shell-linear-end));
 }
 
 .app-shell-main > main {
