@@ -116,6 +116,12 @@ function statTone(value: number | null | undefined) {
   return "watch";
 }
 
+function coerceCount(value: unknown) {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0) return 0;
+  return Math.round(numeric);
+}
+
 export default function DashboardPage() {
   const { user } = useSession();
 
@@ -194,7 +200,7 @@ export default function DashboardPage() {
   const isError = isAdmin ? adminUsageQuery.isError : coachStatsQuery.isError;
 
   const topActionTotal = useMemo(
-    () => (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + row._count.actionType, 0),
+    () => (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + coerceCount(row?._count?.actionType), 0),
     [actionStats?.stats],
   );
 
@@ -317,22 +323,25 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="space-y-2">
-            {(actionStats?.stats || []).slice(0, 8).map((item) => (
-              <div key={item.actionType} className="rounded-lg border border-border bg-white px-3 py-2">
-                <div className="mb-1 flex items-center justify-between">
-                  <p className="truncate pr-3 text-sm">{item.actionType}</p>
-                  <p className="text-sm font-semibold">{item._count.actionType}</p>
+            {(actionStats?.stats || []).slice(0, 8).map((item) => {
+              const itemCount = coerceCount(item?._count?.actionType);
+              return (
+                <div key={item.actionType} className="rounded-lg border border-border bg-white px-3 py-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="truncate pr-3 text-sm">{item.actionType}</p>
+                    <p className="text-sm font-semibold">{itemCount}</p>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-background">
+                    <div
+                      className="h-1.5 rounded-full bg-accent transition-all"
+                      style={{
+                        width: `${topActionTotal > 0 ? Math.max((itemCount / topActionTotal) * 100, 6) : 0}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 rounded-full bg-background">
-                  <div
-                    className="h-1.5 rounded-full bg-accent transition-all"
-                    style={{
-                      width: `${topActionTotal > 0 ? Math.max((item._count.actionType / topActionTotal) * 100, 6) : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {!actionStats?.stats?.length && (
               <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
                 Action statistics will appear once tracked events are generated.

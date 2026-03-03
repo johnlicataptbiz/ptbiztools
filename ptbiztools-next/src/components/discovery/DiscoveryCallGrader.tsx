@@ -67,6 +67,16 @@ function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
   }
 }
 
+function shouldRetryGrading(response: { error?: string; reasons?: string[] }) {
+  const errorText = (response.error || '').toLowerCase()
+  const reasons = (response.reasons || []).map((reason) => reason.toLowerCase())
+  return (
+    errorText.includes('model extraction schema validation failed') ||
+    errorText.includes('quality gate rejected extraction') ||
+    reasons.some((reason) => reason.includes('evidence'))
+  )
+}
+
 const transcriptTemplate = `Clinician: Thanks for taking the call. What made you reach out now?
 Prospect: I have chronic back pain and want to get back to lifting.
 Clinician: Got it. What have you already tried, and what is still not working?
@@ -184,12 +194,17 @@ export default function DiscoveryCallGrader() {
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
-      const response = await gradeDannySalesCallV2({
+      const payload = {
         transcript,
         program: 'Rainmaker',
         closer: coachName.trim() || 'Unknown',
         prospectName: clientName.trim() || undefined,
-      })
+      } as const
+
+      let response = await gradeDannySalesCallV2(payload)
+      if ((response.error || !response.data) && shouldRetryGrading(response)) {
+        response = await gradeDannySalesCallV2(payload)
+      }
 
       if (response.error || !response.data) {
         const reasonSuffix = response.reasons?.length ? ` ${response.reasons.join(' | ')}` : ''
@@ -240,7 +255,8 @@ export default function DiscoveryCallGrader() {
         setAnalysisId(saved.analysisId)
       }
     } catch (error) {
-      toast.error('Failed to grade transcript', { id: 'grading' })
+      const errorMessage = error instanceof Error ? error.message : 'Failed to grade transcript'
+      toast.error(errorMessage, { id: 'grading' })
       console.error(error)
     } finally {
       setIsGrading(false)
