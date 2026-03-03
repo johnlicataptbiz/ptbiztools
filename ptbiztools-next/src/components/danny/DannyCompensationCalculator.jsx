@@ -11,6 +11,16 @@ const $ = v => v === null || v === undefined || isNaN(v) ? "—" : "$" + Math.ro
 const $k = v => v >= 1000 ? "$" + (v/1000).toFixed(v % 1000 === 0 ? 0 : 1) + "K" : $(v);
 const pf = v => v === null || v === undefined || isNaN(v) ? "—" : v.toFixed(1) + "%";
 
+function parseNumericInput(value) {
+  const normalized = String(value ?? "").trim().replace(/[$,\s]/g, "");
+  if (!normalized) return null;
+  // Strict numeric parse so malformed values like "200abc" are rejected.
+  if (!/^-?\d*\.?\d+$/.test(normalized)) return null;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed;
+}
+
 function Inp({ label, value, name, onChange, hint, prefix }) {
   return (
     <div style={{ marginBottom:10 }}>
@@ -42,7 +52,11 @@ export default function App() {
   const [expLevel, setExp] = useState("moderate");
   const [step, setStep] = useState("input");
 
-  const n = k => parseFloat(f[k]) || 0;
+  const n = k => {
+    const parsed = parseNumericInput(f[k]);
+    if (parsed === null) return 0;
+    return Math.max(0, parsed);
+  };
   // Core calculations
   const avgRate = n("avgVisitRate");
   const monthlyVisits = n("monthlyVisits");
@@ -82,6 +96,8 @@ export default function App() {
   // Gross profit from this provider
   const grossProfit = grossAnnual - totalCostMid;
   const grossProfitPct = grossAnnual > 0 ? (grossProfit / grossAnnual) * 100 : null;
+  const totalCostMonthlyMid = totalCostMid / 12;
+  const netAfterBurdenMonthly = grossMonthly - totalCostMonthlyMid;
 
   // Health checks
   const compHealth = salaryPctMid === null ? "none" : salaryPctMid <= 33 ? "low" : salaryPctMid <= 38 ? "healthy" : salaryPctMid <= 42 ? "caution" : "critical";
@@ -166,7 +182,7 @@ export default function App() {
           {!f.useGross && avgRate > 0 && avgRate < 170 && (
             <div style={{ background:"#F8717115", border:"1px solid #F8717133", borderRadius:6, padding:"10px 12px", marginTop:10 }}>
               <div style={{ fontSize:11, color:B.red, fontWeight:600 }}>⚠️ Average visit rate below $170</div>
-              <div style={{ fontSize:10, color:B.grayDk, marginTop:2 }}>At this rate, it's very difficult to hire talented providers and maintain profitability. Consider raising your visit rate before hiring.</div>
+              <div style={{ fontSize:10, color:B.grayDk, marginTop:2 }}>At this rate, it&apos;s very difficult to hire talented providers and maintain profitability. Consider raising your visit rate before hiring.</div>
             </div>
           )}
         </div>
@@ -259,7 +275,7 @@ export default function App() {
         </div>
 
         {/* Monthly breakdown */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:16 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:16 }}>
           <div style={{ background:B.bg, borderRadius:6, padding:"10px 12px", textAlign:"center" }}>
             <div style={{ fontSize:9, color:B.grayXDk, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase" }}>Provider Grosses</div>
             <div style={{ fontSize:15, fontWeight:700, color:B.wht, fontFamily:"'JetBrains Mono',monospace", marginTop:2 }}>{$(grossMonthly)}/mo</div>
@@ -269,8 +285,8 @@ export default function App() {
             <div style={{ fontSize:15, fontWeight:700, color:B.green, fontFamily:"'JetBrains Mono',monospace", marginTop:2 }}>{$(salaryMonthlyMid)}/mo</div>
           </div>
           <div style={{ background:B.bg, borderRadius:6, padding:"10px 12px", textAlign:"center" }}>
-            <div style={{ fontSize:9, color:B.grayXDk, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase" }}>Left Over</div>
-            <div style={{ fontSize:15, fontWeight:700, color:grossMonthly - salaryMonthlyMid > 0 ? B.wht : B.red, fontFamily:"'JetBrains Mono',monospace", marginTop:2 }}>{$(grossMonthly - salaryMonthlyMid)}/mo</div>
+            <div style={{ fontSize:9, color:B.grayXDk, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase" }}>Left After Total Cost</div>
+            <div style={{ fontSize:15, fontWeight:700, color:netAfterBurdenMonthly > 0 ? B.wht : B.red, fontFamily:"'JetBrains Mono',monospace", marginTop:2 }}>{$(netAfterBurdenMonthly)}/mo</div>
           </div>
         </div>
 
@@ -366,7 +382,7 @@ export default function App() {
           { rule:"Hire employees, not contractors — stability reduces turnover", status:"healthy" },
           { rule:"Expect 3-4 months net negative when onboarding a new provider", status:"healthy" },
           { rule:"105 visits/month is a stabilized schedule — not a starting point", status:"healthy" },
-          { rule:"Average visit rate needs to be $170+ to hire profitably", status:avgRate > 0 && avgRate < 170 ? "critical" : "healthy" },
+          { rule:"Average visit rate needs to be $170+ to hire profitably", status:f.useGross ? "none" : (avgRate > 0 && avgRate < 170 ? "critical" : "healthy") },
           { rule:"Give providers stability — make the job too good to leave", status:"healthy" },
         ].map((r, i) => (
           <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"8px 0", borderBottom:i < 6 ? "1px solid " + B.bdr + "44" : "none" }}>

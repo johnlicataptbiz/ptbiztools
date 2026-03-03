@@ -15,108 +15,130 @@ const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
 const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a11935a3ac5d-512";
 
-const MEMBER_PROFILES_BY_NAME: Record<string, { badge: string; credentials: string; clinic: string; experience: string }> = {
+type MemberProfile = {
+  badge: string;
+  credentials: string;
+  clinic: string;
+  experience: string;
+  clinicLogoUrl?: string;
+};
+
+const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
   "ashley speights": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT, PES",
     clinic: "Founder & Owner — The PHYT Collective (Washington, DC)",
     experience: "Athlete-focused cash practice with strong community education",
+    clinicLogoUrl: "https://logos.hunter.io/phytcollective.com",
   },
   "brooke miller": {
     badge: "DPT,OCS",
     credentials: "Coach; PT, DPT, OCS",
     clinic: "Owner — PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
     experience: "Pelvic health + orthopedic performance specialist clinic owner",
+    clinicLogoUrl: "https://logos.hunter.io/peakrxtherapy.com",
   },
   "chris robl": {
     badge: "DPT",
     credentials: "Coach; DPT",
     clinic: "Founder/Owner — Physio Room (Colorado; hybrid model)",
     experience: "10+ years clinical practice; built multi-location hybrid business",
+    clinicLogoUrl: "https://logos.hunter.io/physioroomco.com",
   },
   "colleen davis": {
     badge: "DPT",
     credentials: "Coach; DPT",
     clinic: "Founder & Owner — GOAT Physical Therapy and Wellness (Gales Ferry, CT)",
     experience: "Scaled to a 3,500 sq ft clinic with four therapists",
+    clinicLogoUrl: "https://logos.hunter.io/goatpt.com",
   },
   "courtney morse": {
     badge: "DPT",
     credentials: "Head Coach; DPT",
     clinic: "Owner/Founder — Natural Wellness Physiotherapy (Wichita, KS)",
     experience: "Built team-run cash clinic and now focuses on systems + leadership",
+    clinicLogoUrl: "https://logos.hunter.io/teamnaturalwellness.com",
   },
   "daniel laughlin": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Owner — Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
     experience: "Converted from insurance model to high-performing hybrid practice",
+    clinicLogoUrl: "https://logos.hunter.io/lpptkc.com",
   },
   "dj haskins": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Founder — Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
     experience: "Pelvic health practice helping women return to confident movement",
+    clinicLogoUrl: "https://logos.hunter.io/blisspelvichealth.com",
   },
   "elizabeth rudd": {
     badge: "DPT,OCS",
     credentials: "Coach; PT, DPT, OCS, CSCS",
     clinic: "Founder/Owner — Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
     experience: "Sports performance, rehab, and pain-management specialist",
+    clinicLogoUrl: "https://logos.hunter.io/wellequiptpt.com",
   },
   "jaxie meth": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Founder/Owner — The METHOD Performance and Physical Therapy (Boston, MA area)",
     experience: "Pelvic floor specialist for fitness athletes",
+    clinicLogoUrl: "https://logos.hunter.io/themethodpt.com",
   },
   "michael sclafani": {
     badge: "DPT,SCS",
     credentials: "Coach; DPT, SCS, CSCS",
     clinic: "Founder/Owner — Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
     experience: "Sports residency trained; published IJSPT author; DPT faculty contributor",
+    clinicLogoUrl: "https://logos.hunter.io/tidelinesportsperformance.com",
   },
   "tyler humphries": {
     badge: "DPT",
     credentials: "Coach; DPT",
     clinic: "Founder/Owner — Bulletproof Physical Therapy (Houston, TX)",
     experience: "Performance-based rehab model for active adults and athletes",
+    clinicLogoUrl: "https://logos.hunter.io/bulletproofpt.com",
   },
   "ziad dahdul": {
     badge: "DPT,OCS",
     credentials: "Coach; DPT, OCS",
     clinic: "Founder/Owner — Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
     experience: "11+ years with athletes; USC DPT; functional performance focus",
+    clinicLogoUrl: "https://logos.hunter.io/ignitephyzio.com",
   },
   "danny matta": {
     badge: "DPT,OCS",
     credentials: "Partner; CEO; DPT, OCS, CSCS",
     clinic: "Co-founder/Co-owner (with Ashley Matta) — Athletes' Potential (Decatur/Atlanta, GA)",
-    experience: "Scaled to largest cash-based PT in Georgia; clinic sold in 2023",
+    experience: "Former U.S. Army Physical Therapist; co-founded PT Biz and scaled Athletes' Potential before selling in 2023",
   },
   "yves gege": {
     badge: "PT",
     credentials: "Partner; Head of Customer Success & Coaching; PT",
     clinic: "Founder — Made 2 Move Physical Therapy (Charleston, SC area)",
     experience: "Grew to multiple locations/providers; sold in 2020; remains mentor",
+    clinicLogoUrl: "https://logos.hunter.io/made2movept.com",
   },
   "jerred moon": {
     badge: "BIZ",
     credentials: "Partner; CFO",
     clinic: "",
-    experience: "USAF veteran; 8-figure digital operator; author of Killing Comfort",
+    experience: "PT Biz CFO + acquisitions leader; USAF veteran; 8-figure digital operator; author of Killing Comfort",
   },
   "john licata": {
     badge: "BIZ",
     credentials: "Advisor; Senior Advisor",
     clinic: "Senior Advisor — PT Biz",
-    experience: "30+ years in consumer goods strategy and executive consulting",
+    experience: "30+ years in consumer goods leadership, sales strategy, and executive consulting",
   },
   "toni counts": {
     badge: "PT,DPT",
     credentials: "Advisor; Business Advisor; PT, DPT",
     clinic: "Founder/Owner — Off The Block Performance Physical Therapy (Central/Easley, SC area)",
     experience: "Multiple locations with husband Cole",
+    clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
   },
   "amy gege": {
     badge: "OPS",
@@ -129,6 +151,7 @@ const MEMBER_PROFILES_BY_NAME: Record<string, { badge: string; credentials: stri
     credentials: "Client Success; First Lady of PT Biz",
     clinic: "Co-owner (with Danny Matta) — Athletes' Potential",
     experience: "Built and operated cash practice for 8+ years; sold in 2023",
+    clinicLogoUrl: "https://logos.hunter.io/athletespotential.com",
   },
   "bekah fay": {
     badge: "DPT",
@@ -174,9 +197,9 @@ const MEMBER_PROFILES_BY_NAME: Record<string, { badge: string; credentials: stri
   },
   "jack licata": {
     badge: "BIZ",
-    credentials: "Client Success / Acquisitions; Senior Advisor; PT Biz Coach Tools Creator",
+    credentials: "Client Success; Acquisitions Support; PT Biz Coach Tools Creator",
     clinic: "",
-    experience: "30+ years business strategy; helps clinicians scale profitably",
+    experience: "Supports advisor sales process and helps execute web, AI, and workflow fulfillment",
   },
 };
 
@@ -248,7 +271,7 @@ function getMemberProfile(member: TeamMember) {
   });
 }
 
-function sanitizeProfile(profile: { badge: string; credentials: string; clinic: string; experience: string }) {
+function sanitizeProfile(profile: MemberProfile) {
   const clinic = profile.clinic
     .replace(/^No PT clinic ownership(?: listed)?\s*$/i, "")
     .trim();
@@ -264,6 +287,26 @@ function sanitizeProfile(profile: { badge: string; credentials: string; clinic: 
   };
 }
 
+function ClinicContext({
+  clinic,
+  clinicLogoUrl,
+}: {
+  clinic: string;
+  clinicLogoUrl?: string;
+}) {
+  return (
+    <small className="member-row-context member-row-context-with-logo">
+      {clinicLogoUrl && (
+        <span className="clinic-logo-chip" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={clinicLogoUrl} alt="" className="clinic-logo-img" loading="lazy" />
+        </span>
+      )}
+      <span className="member-row-context-text">{clinic}</span>
+    </small>
+  );
+}
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -276,13 +319,11 @@ function getInitials(name: string) {
 function TeamAvatar({
   name,
   imageUrl,
-  credentialBadge,
   className,
   fallbackClassName,
 }: {
   name: string;
   imageUrl?: string | null;
-  credentialBadge?: string;
   className: string;
   fallbackClassName: string;
 }) {
@@ -302,11 +343,6 @@ function TeamAvatar({
           loading="lazy"
           onError={() => setDidError(true)}
         />
-        {credentialBadge && (
-          <span className="team-avatar-badge" aria-label={`Credential ${credentialBadge}`} title={credentialBadge}>
-            {credentialBadge}
-          </span>
-        )}
       </div>
     );
   }
@@ -316,13 +352,16 @@ function TeamAvatar({
       <div className={`${className} ${fallbackClassName}`} aria-label={name}>
         {getInitials(name)}
       </div>
-      {credentialBadge && (
-        <span className="team-avatar-badge" aria-label={`Credential ${credentialBadge}`} title={credentialBadge}>
-          {credentialBadge}
-        </span>
-      )}
     </div>
   );
+}
+
+function getBadgeTokens(profile?: { badge: string } | null) {
+  if (!profile?.badge) return [];
+  return profile.badge
+    .split(",")
+    .map((token) => token.trim().toUpperCase())
+    .filter(Boolean);
 }
 
 export default function LoginPage() {
@@ -372,6 +411,7 @@ export default function LoginPage() {
     [selectedUserId, visibleMembers],
   );
   const selectedUserProfile = selectedUser ? getMemberProfile(selectedUser) : null;
+  const selectedUserBadgeTokens = useMemo(() => getBadgeTokens(selectedUserProfile), [selectedUserProfile]);
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
 
@@ -511,6 +551,7 @@ export default function LoginPage() {
             <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
               {orderedTeamMembers.map((member) => {
                 const profile = getMemberProfile(member);
+                const badgeTokens = getBadgeTokens(profile);
 
                 return (
                   <motion.button
@@ -523,7 +564,6 @@ export default function LoginPage() {
                       <TeamAvatar
                         name={member.name}
                         imageUrl={member.imageUrl}
-                        credentialBadge={profile.badge}
                         className="member-list-photo"
                         fallbackClassName="member-list-photo-fallback"
                       />
@@ -531,9 +571,22 @@ export default function LoginPage() {
                         <strong>{member.name}</strong>
                         <span>{member.title || "Team Member"}</span>
                         <em>{member.teamSection || "PT Biz Team"}</em>
-                        <small className="member-row-cred">{profile.credentials}</small>
-                        {profile.clinic && <small className="member-row-context">{profile.clinic}</small>}
-                        {profile.experience && <small className="member-row-context">{profile.experience}</small>}
+                        {!!badgeTokens.length && (
+                          <div className="member-row-badge-list" aria-label={`${member.name} credentials`}>
+                            {badgeTokens.map((badgeToken) => (
+                              <small key={`${member.id}-${badgeToken}`} className="member-row-badge-chip">
+                                {badgeToken}
+                              </small>
+                            ))}
+                          </div>
+                        )}
+                        <div className="member-row-detail-grid">
+                          <small className="member-row-cred">{profile.credentials}</small>
+                          {profile.clinic && (
+                            <ClinicContext clinic={profile.clinic} clinicLogoUrl={profile.clinicLogoUrl} />
+                          )}
+                          {profile.experience && <small className="member-row-context">{profile.experience}</small>}
+                        </div>
                       </div>
                     <div className="member-row-action" aria-hidden="true">
                       Select
@@ -556,7 +609,6 @@ export default function LoginPage() {
               <TeamAvatar
                 name={selectedUser.name}
                 imageUrl={selectedUser.imageUrl}
-                credentialBadge={selectedUserProfile?.badge}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />
@@ -564,15 +616,34 @@ export default function LoginPage() {
                 <h2>{selectedUser.name}</h2>
                 <p>{selectedUser.title}</p>
                 <span>{selectedUser.teamSection}</span>
+                {!!selectedUserBadgeTokens.length && (
+                  <div className="selected-user-badge-list" aria-label={`${selectedUser.name} credentials`}>
+                    {selectedUserBadgeTokens.map((badgeToken) => (
+                      <small key={`${selectedUser.id}-${badgeToken}`} className="selected-user-badge-chip">
+                        {badgeToken}
+                      </small>
+                    ))}
+                  </div>
+                )}
                 {selectedUserProfile && (
                   <>
-                    <small className="selected-user-cred">{selectedUserProfile.credentials}</small>
-                    {selectedUserProfile.clinic && (
-                      <small className="selected-user-context">{selectedUserProfile.clinic}</small>
-                    )}
-                    {selectedUserProfile.experience && (
-                      <small className="selected-user-context">{selectedUserProfile.experience}</small>
-                    )}
+                    <div className="selected-user-detail-grid">
+                      <small className="selected-user-cred">{selectedUserProfile.credentials}</small>
+                      {selectedUserProfile.clinic && (
+                        <small className="selected-user-context selected-user-context-with-logo">
+                          {selectedUserProfile.clinicLogoUrl && (
+                            <span className="clinic-logo-chip" aria-hidden="true">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={selectedUserProfile.clinicLogoUrl} alt="" className="clinic-logo-img" loading="lazy" />
+                            </span>
+                          )}
+                          <span className="member-row-context-text">{selectedUserProfile.clinic}</span>
+                        </small>
+                      )}
+                      {selectedUserProfile.experience && (
+                        <small className="selected-user-context">{selectedUserProfile.experience}</small>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
@@ -581,7 +652,7 @@ export default function LoginPage() {
             {needsFirstTimeSetup ? (
               <form className="auth-form" onSubmit={handleSetupPassword}>
                 <h3>First-time setup</h3>
-                <p>Create your password once, then you'll use your normal sign-in form daily.</p>
+                <p>Create your password once, then you&apos;ll use your normal sign-in form daily.</p>
 
                 <label className="checkbox-row">
                   <input
