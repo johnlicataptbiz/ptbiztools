@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { BarChart3, ClipboardList, Calculator, Film, BookOpenText, ScrollText, LogOut, Menu, PhoneCall, X } from 'lucide-react'
+import { BarChart3, ClipboardList, Calculator, ScrollText, LogOut, Menu, PhoneCall, X } from 'lucide-react'
 import type { User } from '../services/api'
 import { SITE_LOGO_URL } from '../constants/branding'
 import { getEffectiveRole, getRoleLabel } from '../utils/roles'
@@ -26,8 +26,6 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
         { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
         { to: '/analyses', label: 'Analyses', icon: ScrollText },
-        { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
-        { to: '/media', label: 'Media', icon: Film },
       ]
     }
 
@@ -39,7 +37,6 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
         { to: '/sales-discovery-grader', label: 'Sales Grader', icon: PhoneCall },
         { to: '/analyses', label: 'My Analyses', icon: ScrollText },
-        { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
       ]
     }
 
@@ -49,12 +46,8 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
       { to: '/pl-calculator', label: 'P&L Calculator', icon: Calculator },
       { to: '/compensation-calculator', label: 'Comp Calculator', icon: Calculator },
       { to: '/analyses', label: 'My Analyses', icon: ScrollText },
-      { to: '/knowledge', label: 'Knowledge', icon: BookOpenText },
     ]
   }, [isAdmin, isAdvisor])
-
-  // Keep routes available but hide the last two low-priority sidebar links.
-  const featuredNavItems = useMemo(() => navItems.slice(0, Math.max(navItems.length - 2, 0)), [navItems])
 
   const initials = user.name
     .split(' ')
@@ -85,7 +78,7 @@ export default function Layout({ user, isAdmin, onLogout }: LayoutProps) {
         </div>
 
         <nav className="sidebar-nav">
-          {featuredNavItems.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

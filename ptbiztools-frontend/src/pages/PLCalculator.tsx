@@ -1825,14 +1825,6 @@ export default function PLCalculator() {
                                 <div className="tile-tip">?</div>
                               </Tooltip>
                               <p className="tile-diagnostic">{metric.diagnostic}</p>
-                              {metric.knowledgeRefSlug ? (
-                                <a
-                                  className="tile-why-link"
-                                  href={`/knowledge?slug=${encodeURIComponent(metric.knowledgeRefSlug)}`}
-                                >
-                                  Why this matters
-                                </a>
-                              ) : null}
                             </motion.div>
                           ))}
                         </div>

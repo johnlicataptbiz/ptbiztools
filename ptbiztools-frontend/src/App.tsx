@@ -10,8 +10,6 @@ import DannyCloserCallGrader from './pages/danny/DannyCloserCallGrader'
 import DannyCompensationCalculator from './pages/danny/DannyCompensationCalculator'
 import Login from './pages/Login'
 import AnalysisHistory from './pages/AnalysisHistory'
-import KnowledgeCenter from './pages/KnowledgeCenter'
-import MediaManager from './pages/MediaManager'
 import { getMe, logout, type User } from './services/api'
 import { getEffectiveRole, isAdminUser } from './utils/roles'
 import { SITE_LOGO_URL } from './constants/branding'
@@ -174,11 +172,6 @@ function App() {
               element={canAccessSalesDiscovery ? <DannyCloserCallGrader /> : <Navigate to="/" replace />}
             />
             <Route path="analyses" element={<AnalysisHistory isAdmin={isAdmin} />} />
-            <Route path="knowledge" element={<KnowledgeCenter isAdmin={isAdmin} />} />
-            <Route
-              path="media"
-              element={isAdmin ? <MediaManager /> : <Navigate to="/" replace />}
-            />
             <Route path="login" element={<Navigate to="/" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

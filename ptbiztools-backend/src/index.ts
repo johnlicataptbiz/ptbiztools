@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { actionLogRouter } from './routes/actionLog.js';
-import { knowledgeDocRouter } from './routes/knowledgeDoc.js';
-import videoRouter from './routes/video.js';
 import authRouter from './routes/auth.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { plImportRouter } from './routes/plImport.js';
@@ -44,8 +42,6 @@ app.use(cookieParser());
 app.use(express.json({ limit: '100mb' }));
 
 app.use('/api/actions', actionLogRouter);
-app.use('/api/knowledge', knowledgeDocRouter);
-app.use('/api/videos', videoRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/pl-imports', plImportRouter);

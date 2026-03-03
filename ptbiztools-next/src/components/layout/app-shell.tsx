@@ -50,8 +50,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         { href: "/compensation-calculator", label: "Comp Calculator" },
         { href: "/sales-discovery-grader", label: "Sales Grader" },
         { href: "/analyses", label: "Analyses" },
-        { href: "/knowledge", label: "Knowledge" },
-        { href: "/media", label: "Media" },
       ];
     }
 
@@ -63,7 +61,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         { href: "/compensation-calculator", label: "Comp Calculator" },
         { href: "/sales-discovery-grader", label: "Sales Grader" },
         { href: "/analyses", label: "My Analyses" },
-        { href: "/knowledge", label: "Knowledge" },
       ];
     }
 
@@ -73,11 +70,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       { href: "/pl-calculator", label: "P&L Calculator" },
       { href: "/compensation-calculator", label: "Comp Calculator" },
       { href: "/analyses", label: "My Analyses" },
-      { href: "/knowledge", label: "Knowledge" },
     ];
   }, [isAdmin, isAdvisor]);
-
-  const featuredNavItems = useMemo(() => navItems.slice(0, Math.max(navItems.length - 2, 0)), [navItems]);
 
   const handleLogout = async () => {
     await logout();
@@ -122,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="mt-8 space-y-1">
-          {featuredNavItems.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href;
 
             return (

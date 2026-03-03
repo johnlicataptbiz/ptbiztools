@@ -70,19 +70,6 @@ export interface AdminRecentAction {
   } | null;
 }
 
-export interface KnowledgeDoc {
-  id: string;
-  slug?: string | null;
-  title: string;
-  content: string;
-  category: string;
-  source?: string | null;
-  version?: string;
-  checksum?: string | null;
-  createdAt: string;
-  updatedAt?: string;
-}
-
 export interface ActionTypeStat {
   actionType: string;
   _count: {
@@ -636,67 +623,6 @@ export async function getPLAudits(limit = 100): Promise<{ audits?: PLAuditRecord
   } catch (error) {
     console.error('Failed to fetch P&L audits:', error);
     return { error: 'Network error' };
-  }
-}
-
-export async function getKnowledgeDocs(): Promise<{ docs?: KnowledgeDoc[]; error?: string }> {
-  try {
-    const response = await fetch(`${API_BASE}/knowledge`, { credentials: 'include' });
-    const data = await response.json();
-    if (!response.ok) return { error: data.error || 'Failed to fetch knowledge docs' };
-    return { docs: data.docs || [] };
-  } catch (error) {
-    console.error('Failed to fetch knowledge docs:', error);
-    return { error: 'Network error' };
-  }
-}
-
-export async function seedKnowledgeDocs(): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const response = await fetch(`${API_BASE}/knowledge/seed`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    const data = await response.json();
-    if (!response.ok) return { ok: false, error: data.error || 'Failed to seed knowledge docs' };
-    return { ok: true };
-  } catch (error) {
-    console.error('Failed to seed knowledge docs:', error);
-    return { ok: false, error: 'Network error' };
-  }
-}
-
-export async function uploadVideoAsset(
-  name: string,
-  file: File,
-  mimeType = 'video/mp4',
-): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('mimeType', mimeType);
-    formData.append('file', file, file.name);
-
-    const response = await fetch(`${API_BASE}/videos/upload`, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
-    const data = await response.json();
-    if (!response.ok) return { ok: false, error: data.error || 'Failed to upload video' };
-    return { ok: true };
-  } catch (error) {
-    console.error('Failed to upload video asset:', error);
-    return { ok: false, error: 'Network error' };
-  }
-}
-
-export async function getVideoAssetStatus(name: string): Promise<{ exists: boolean; status: number }> {
-  try {
-    const response = await fetch(`${API_BASE}/videos/${name}`, { credentials: 'include' });
-    return { exists: response.ok, status: response.status };
-  } catch {
-    return { exists: false, status: 0 };
   }
 }
 

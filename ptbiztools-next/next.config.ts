@@ -22,8 +22,6 @@ const nextConfig: NextConfig = {
       { source: "/api/auth/:path*", destination: `${backendApiBase}/auth/:path*` },
       { source: "/api/actions/:path*", destination: `${backendApiBase}/actions/:path*` },
       { source: "/api/analytics/:path*", destination: `${backendApiBase}/analytics/:path*` },
-      { source: "/api/knowledge/:path*", destination: `${backendApiBase}/knowledge/:path*` },
-      { source: "/api/videos/:path*", destination: `${backendApiBase}/videos/:path*` },
       { source: "/api/pl-imports/:path*", destination: `${backendApiBase}/pl-imports/:path*` },
       { source: "/api/transcripts/:path*", destination: `${backendApiBase}/transcripts/:path*` },
       { source: "/api/danny-tools/:path*", destination: `${backendApiBase}/danny-tools/:path*` },
