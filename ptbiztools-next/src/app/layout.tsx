@@ -14,8 +14,8 @@ const brandMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PT Biz Next Stack",
-  description: "Next.js 16 migration shell with local-first sync and agentic UI protocols.",
+  title: "PT Biz Tools",
+  description: "PT Biz Coach workspace powered by Next.js 16 migration architecture.",
 };
 
 export default function RootLayout({
