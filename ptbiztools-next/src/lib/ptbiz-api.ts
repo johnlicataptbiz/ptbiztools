@@ -555,7 +555,7 @@ export async function savePdfExport(
 
 export async function extractTranscriptFromFile(file: File): Promise<{
   text?: string;
-  sourceType?: "pdf" | "text";
+  sourceType?: "pdf" | "text" | "csv" | "rtf" | "xlsx" | "image";
   filename?: string;
   wordCount?: number;
   charCount?: number;
@@ -573,7 +573,7 @@ export async function extractTranscriptFromFile(file: File): Promise<{
 
     const data = (await response.json()) as {
       text?: string;
-      sourceType?: "pdf" | "text";
+      sourceType?: "pdf" | "text" | "csv" | "rtf" | "xlsx" | "image";
       filename?: string;
       wordCount?: number;
       charCount?: number;

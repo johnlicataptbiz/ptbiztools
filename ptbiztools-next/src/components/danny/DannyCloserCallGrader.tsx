@@ -147,24 +147,19 @@ export default function SalesCallGrader() {
     setFileLoading(true);
     setError(null);
     try {
-      const ext = (file.name.split(".").pop() || "").toLowerCase();
-      if (ext === "docx" || ext === "doc") {
-        setError("DOC/DOCX upload is not enabled in this tool. Please use PDF/TXT or paste transcript text.");
+      const extracted = await extractTranscriptFromFile(file);
+      if (extracted.error || !extracted.text) {
+        setError(extracted.error || "Failed to extract transcript text from file.");
       } else {
-        const extracted = await extractTranscriptFromFile(file);
-        if (extracted.error || !extracted.text) {
-          setError(extracted.error || "Failed to extract transcript text from file.");
-        } else {
-          setUploadedFile({ name: file.name, type: extracted.sourceType || "text", text: extracted.text });
-          setTranscript("");
-          setChunks([]);
-          await logAction({
-            actionType: ActionTypes.TRANSCRIPT_UPLOADED,
-            description: `Uploaded transcript file: ${file.name}`,
-            metadata: { sourceType: extracted.sourceType || "text", wordCount: extracted.wordCount || 0 },
-            sessionId,
-          });
-        }
+        setUploadedFile({ name: file.name, type: extracted.sourceType || "text", text: extracted.text });
+        setTranscript("");
+        setChunks([]);
+        await logAction({
+          actionType: ActionTypes.TRANSCRIPT_UPLOADED,
+          description: `Uploaded transcript file: ${file.name}`,
+          metadata: { sourceType: extracted.sourceType || "text", wordCount: extracted.wordCount || 0 },
+          sessionId,
+        });
       }
     } catch (e) {
       console.error(e);
@@ -529,7 +524,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
               <input
                 id="file-input"
                 type="file"
-                accept=".pdf,.docx,.doc,.txt"
+                accept=".pdf,.txt,.md,.csv,.json,.rtf,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
                 style={{ display: "none" }}
                 onChange={e => handleFileUpload(e.target.files?.[0])}
               />
@@ -540,7 +535,7 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                   <div style={{ fontSize: "13px", color: textSecondary, marginBottom: "4px" }}>
                     Drop a file here or <span style={{ color: accent, fontWeight: 600 }}>click to upload</span>
                   </div>
-                  <div style={{ fontSize: "11px", color: textSecondary }}>PDF, DOCX, or TXT — or paste the transcript below</div>
+                  <div style={{ fontSize: "11px", color: textSecondary }}>PDF, TXT, CSV, JSON, RTF, XLSX, PNG/JPG — or paste the transcript below</div>
                 </>
               )}
             </div>

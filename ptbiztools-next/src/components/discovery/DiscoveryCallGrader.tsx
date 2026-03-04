@@ -83,6 +83,16 @@ Clinician: Got it. What have you already tried, and what is still not working?
 Prospect: PT at a chain clinic helped a little but the pain keeps returning.
 `
 
+function sourceTypeLabel(sourceType?: "pdf" | "text" | "csv" | "rtf" | "xlsx" | "image") {
+  if (!sourceType) return "file";
+  if (sourceType === "pdf") return "PDF";
+  if (sourceType === "xlsx") return "spreadsheet";
+  if (sourceType === "image") return "image OCR";
+  if (sourceType === "rtf") return "RTF";
+  if (sourceType === "csv") return "CSV";
+  return "text";
+}
+
 function getTranscriptStats(value: string) {
   const trimmed = value.trim()
   const words = trimmed ? trimmed.split(/\s+/).filter(Boolean) : []
@@ -147,10 +157,10 @@ export default function DiscoveryCallGrader() {
       }
 
       setTranscript(extracted.text)
-      toast.success(`Loaded transcript from ${file.name}${extracted.sourceType === 'pdf' ? ' (PDF)' : ''}`)
+      toast.success(`Loaded transcript from ${file.name} (${sourceTypeLabel(extracted.sourceType)})`)
     } catch (error) {
       console.error(error)
-      toast.error('Could not read transcript file. Use TXT/MD/CSV/JSON/PDF.')
+      toast.error('Could not read transcript file. Use PDF, TXT, MD, CSV, JSON, RTF, XLSX, PNG, JPG, or WEBP.')
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -377,7 +387,7 @@ export default function DiscoveryCallGrader() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".txt,.md,.csv,.json,.pdf"
+                  accept=".txt,.md,.csv,.json,.rtf,.pdf,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
                   className="grader-file-input"
                   onChange={handleFileUpload}
                 />
