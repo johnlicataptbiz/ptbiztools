@@ -4,6 +4,10 @@
 }
 
 .tool-page-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
   border-radius: 18px;
   padding: 20px 22px;
@@ -26,7 +30,8 @@
   border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--border));
   background: color-mix(in oklab, var(--surface) 90%, var(--background) 10%);
   box-shadow: 0 8px 22px color-mix(in oklab, var(--foreground) 12%, transparent);
-  margin-bottom: 12px;
+  display: block;
+  margin: 0 auto 12px;
 }
 
 .tool-page-kicker {

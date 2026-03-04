@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { extractDannyPLFromPdf } from "@/lib/ptbiz-api";
 import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const B = { blue:"#2E86F5", blueLt:"#5BA0F7", blueDk:"#1A6AD4", glow:"rgba(46,134,245,0.25)", dark:"#1A1A1E", surf:"#242428", bdr:"#35353A", bdrLt:"#45454B", wht:"#F5F5F7", gray:"#9A9AA0", grayDk:"#6A6A70", grayXDk:"#4A4A50" };
 const REF = { rev:961260, rent:46807, util:4909, staff:278433, ptax:25785, ben:15596, owner:61539, mkt:58137, merch:28764, sw:11489, dues:15967, oSup:10109, ptSup:7172, med:0, prof:16874, cont:0, ins:5092, ce:3170, meal:5157, trav:5348, int:2095, oth:8721 };
@@ -561,7 +562,8 @@ export default function DannyFinancialAudit() {
       <div className="tool-page">
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
         <section className="tool-page-hero">
-          <p className="tool-page-kicker">Financial Intelligence</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tool-page-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
           <h1 className="tool-page-title">P&amp;L Calculator</h1>
           <p className="tool-page-subtitle">Enter your P&amp;L data for an instant financial health score, cash flow analysis, and a 90-day profit improvement plan.</p>
         </section>
@@ -669,7 +671,8 @@ export default function DannyFinancialAudit() {
     <div className="tool-page">
       <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
       <section className="tool-page-hero">
-        <p className="tool-page-kicker">Financial Intelligence</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="tool-page-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
         <h1 className="tool-page-title">P&amp;L Audit Report</h1>
         <p className="tool-page-subtitle">Review performance benchmarks, cash flow pressure points, and a prioritized 90-day plan from your clinic financials.</p>
       </section>
@@ -896,7 +899,6 @@ export default function DannyFinancialAudit() {
     </div>
   );
 }
-
 
 
 

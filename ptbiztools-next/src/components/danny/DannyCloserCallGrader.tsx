@@ -16,6 +16,7 @@ import {
   normalizeBehaviorStatus,
   normalizeV2Result,
 } from "@/components/danny/graderV2Helpers";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const STORAGE_KEY = "ptbiz-call-grades";
 const MIN_WORDS_REQUIRED = 120;
@@ -1016,8 +1017,9 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
       <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
         <div className="no-print tool-page-hero" style={{ marginBottom: "20px" }}>
-          <p className="tool-page-kicker">Sales Performance</p>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px", flexWrap: "wrap" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tool-page-badge" src={TOOL_BADGES.sales} alt="Sales Grader badge" />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "4px", flexWrap: "wrap" }}>
             <h1 className="tool-page-title" style={{ margin: 0 }}>
               PT Biz Call Grader
             </h1>

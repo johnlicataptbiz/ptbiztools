@@ -2,6 +2,7 @@
 
 // @ts-nocheck
 import { useState, useCallback } from "react";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
@@ -130,7 +131,8 @@ export default function App() {
     return (
       <div className="tool-page">
         <section className="tool-page-hero">
-          <p className="tool-page-kicker">Compensation Planning</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tool-page-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
           <h1 className="tool-page-title">Compensation Calculator</h1>
           <p className="tool-page-subtitle">Build competitive, sustainable compensation models for staff clinicians.</p>
         </section>
@@ -226,7 +228,8 @@ export default function App() {
   return (
     <div className="tool-page">
       <section className="tool-page-hero">
-        <p className="tool-page-kicker">Compensation Planning</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="tool-page-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
         <h1 className="tool-page-title">Recommended Compensation</h1>
         <p className="tool-page-subtitle">{f.city ? f.city + ", " : ""}{f.state} · {expLevel === "newgrad" ? "New Grad" : expLevel === "moderate" ? "1-3 Years" : expLevel === "experienced" ? "3-5 Years" : "Senior"} · {$(grossMonthly)}/month gross</p>
       </section>

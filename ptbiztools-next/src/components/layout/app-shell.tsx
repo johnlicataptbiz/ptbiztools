@@ -20,14 +20,12 @@ import { useTheme } from "@/lib/theme/theme-context";
 import { TourAnchors } from "@/lib/tour/anchors";
 import { useTour } from "@/lib/tour/tour-context";
 import { SITE_LOGO_URL } from "@/constants/branding";
-import { TOOL_BADGES } from "@/constants/tool-badges";
 import "@/styles/app-shell.css";
 
 interface NavItem {
   href: string;
   label: string;
   icon: ComponentType<{ size?: number; className?: string }>;
-  badgeUrl?: string;
 }
 
 function normalizeText(value: string | null | undefined) {
@@ -72,10 +70,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (isAdmin) {
       return [
         { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList, badgeUrl: TOOL_BADGES.discovery },
-        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.pl },
-        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.comp },
-        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall, badgeUrl: TOOL_BADGES.sales },
+        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
+        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall },
         { href: "/analyses", label: "Analyses", icon: ScrollText },
       ];
     }
@@ -83,19 +81,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (isAdvisor) {
       return [
         { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList, badgeUrl: TOOL_BADGES.discovery },
-        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.pl },
-        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.comp },
-        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall, badgeUrl: TOOL_BADGES.sales },
+        { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+        { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+        { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
+        { href: "/sales-discovery-grader", label: "Sales Grader", icon: PhoneCall },
         { href: "/analyses", label: "My Analyses", icon: ScrollText },
       ];
     }
 
     return [
       { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-      { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList, badgeUrl: TOOL_BADGES.discovery },
-      { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.pl },
-      { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator, badgeUrl: TOOL_BADGES.comp },
+      { href: "/discovery-call-grader", label: "Call Grader", icon: ClipboardList },
+      { href: "/pl-calculator", label: "P&L Calculator", icon: Calculator },
+      { href: "/compensation-calculator", label: "Comp Calculator", icon: Calculator },
       { href: "/analyses", label: "My Analyses", icon: ScrollText },
     ];
   }, [isAdmin, isAdvisor]);
@@ -165,20 +163,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 }`}
                 onClick={() => setMenuOpen(false)}
               >
-                {item.badgeUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.badgeUrl}
-                    alt={`${item.label} badge`}
-                    className="app-shell-nav-badge"
-                    onError={(event) => {
-                      (event.currentTarget as HTMLImageElement).style.display = "none";
-                      const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
-                      if (fallback) fallback.style.display = "inline-flex";
-                    }}
-                  />
-                ) : null}
-                <span className="app-shell-nav-icon-fallback" style={{ display: item.badgeUrl ? "none" : "inline-flex" }}>
+                <span className="app-shell-nav-icon-fallback">
                   <Icon size={16} className="shrink-0" />
                 </span>
                 {item.label}
