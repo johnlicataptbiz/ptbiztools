@@ -30,6 +30,25 @@ import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const MIN_WORDS = 120
 
+const DISCOVERY_GRADING_STAGES = [
+  {
+    title: "Parsing transcript structure",
+    detail: "Separating discovery and close segments for cleaner phase scoring.",
+  },
+  {
+    title: "Running deterministic framework",
+    detail: "Applying weighted phase rules and critical behavior penalties.",
+  },
+  {
+    title: "Verifying evidence quality",
+    detail: "Confirming transcript quotes and consistency before final score.",
+  },
+  {
+    title: "Saving analysis records",
+    detail: "Writing this run to your analyses dashboard and export history.",
+  },
+] as const
+
 const LEGACY_PHASE_MAP = [
   { id: 'connection', name: 'Opening & Rapport' },
   { id: 'discovery', name: 'Discovery — Current State' },
@@ -109,6 +128,12 @@ function getTranscriptStats(value: string) {
   }
 }
 
+function formatElapsed(seconds: number) {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
 export default function DiscoveryCallGrader() {
   const [transcript, setTranscript] = useState('')
   const [grade, setGrade] = useState<GradeResult | null>(null)
@@ -118,6 +143,8 @@ export default function DiscoveryCallGrader() {
   const [clientName, setClientName] = useState('')
   const [callDate, setCallDate] = useState('')
   const [analysisId, setAnalysisId] = useState<string | undefined>(undefined)
+  const [gradingElapsed, setGradingElapsed] = useState(0)
+  const [gradingStageIndex, setGradingStageIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -137,6 +164,9 @@ export default function DiscoveryCallGrader() {
 
   const completedChecklist = checklist.filter((item) => item.ok).length
   const canGrade = stats.wordCount >= MIN_WORDS
+  const gradingPulseDots = ".".repeat((gradingElapsed % 3) + 1)
+  const gradingProgressPct = Math.min(96, 16 + gradingElapsed * 8)
+  const activeStage = DISCOVERY_GRADING_STAGES[gradingStageIndex]
 
   useEffect(() => {
     void logAction({
@@ -145,6 +175,25 @@ export default function DiscoveryCallGrader() {
       sessionId,
     })
   }, [sessionId])
+
+  useEffect(() => {
+    if (!isGrading) {
+      setGradingElapsed(0)
+      setGradingStageIndex(0)
+      return
+    }
+
+    const startedAt = Date.now()
+    const timer = window.setInterval(() => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000))
+      setGradingElapsed(elapsed)
+      setGradingStageIndex(Math.min(DISCOVERY_GRADING_STAGES.length - 1, Math.floor(elapsed / 3)))
+    }, 1000)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [isGrading])
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -433,6 +482,35 @@ export default function DiscoveryCallGrader() {
                   )}
                 </button>
               </div>
+
+              {isGrading && (
+                <div className="grading-progress-card" role="status" aria-live="polite">
+                  <div className="grading-progress-head">
+                    <span className="grading-progress-status">Live Analysis{gradingPulseDots}</span>
+                    <span className="grading-progress-time">{formatElapsed(gradingElapsed)}</span>
+                  </div>
+                  <div className="grading-progress-title">{activeStage.title}</div>
+                  <p className="grading-progress-detail">{activeStage.detail}</p>
+                  <div className="grading-progress-track">
+                    <div className="grading-progress-fill" style={{ width: `${gradingProgressPct}%` }} />
+                  </div>
+                  <div className="grading-progress-steps">
+                    {DISCOVERY_GRADING_STAGES.map((stage, index) => {
+                      const complete = index < gradingStageIndex
+                      const current = index === gradingStageIndex
+                      return (
+                        <div
+                          key={stage.title}
+                          className={`grading-progress-step${current ? " is-current" : ""}${complete ? " is-complete" : ""}`}
+                        >
+                          <span className="grading-progress-step-marker">{complete ? "✓" : current ? "●" : "○"}</span>
+                          {stage.title}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </section>
 
             <aside className="grader-side-pane">

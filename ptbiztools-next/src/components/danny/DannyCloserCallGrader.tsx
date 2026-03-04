@@ -39,7 +39,20 @@ const CRITICAL_BEHAVIORS = [
   { id: "personal_story", name: "Story Deployment", description: "Used personal or client transformation story effectively" },
 ];
 
+const GRADING_PROGRESS_STAGES = [
+  { title: "Parsing transcript context", detail: "Reading the full call and segmenting discovery phases." },
+  { title: "Applying deterministic scoring", detail: "Weighting each phase and enforcing critical behavior rules." },
+  { title: "Validating evidence quality", detail: "Checking quote support and transcript consistency gates." },
+  { title: "Saving analysis + report metadata", detail: "Persisting this run for dashboard and analyses retrieval." },
+];
+
 const scoreColorValue = (score) => (score >= 65 ? "#22c55e" : score >= 50 ? "#eab308" : "#ef4444");
+
+const formatElapsed = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+};
 
 
 function ScoreBar({ score, size = "md" }) {
@@ -109,11 +122,32 @@ export default function SalesCallGrader() {
   const [prospectName, setProspectName] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null); // { name, type, text? }
   const [fileLoading, setFileLoading] = useState(false);
+  const [gradingElapsed, setGradingElapsed] = useState(0);
+  const [gradingStageIndex, setGradingStageIndex] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setGradingElapsed(0);
+      setGradingStageIndex(0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      setGradingElapsed(elapsed);
+      setGradingStageIndex(Math.min(GRADING_PROGRESS_STAGES.length - 1, Math.floor(elapsed / 3)));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [loading]);
 
   const loadHistory = () => {
     try {
@@ -439,6 +473,9 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
   const textMuted = "var(--color-text-muted)";
   const accent = "var(--accent)";
   const fontSans = "var(--font-brand-sans), system-ui, sans-serif";
+  const gradingPulseDots = ".".repeat((gradingElapsed % 3) + 1);
+  const gradingProgressPct = Math.min(96, 14 + gradingElapsed * 8);
+  const activeGradingStage = GRADING_PROGRESS_STAGES[gradingStageIndex];
 
   const cardStyle = {
     background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "20px",
@@ -588,9 +625,69 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
               color: loading || !meetsWordThreshold ? textSecondary : "#ffffff",
             }}
           >
-            {loading ? "Analyzing..." : "Grade This Call"}
+            {loading ? "Analyzing Transcript..." : "Grade This Call"}
           </button>
         </div>
+        {loading && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "12px 14px",
+              borderRadius: "8px",
+              border: `1px solid color-mix(in oklab, ${accent} 38%, transparent)`,
+              background: "color-mix(in oklab, var(--color-bg-secondary) 92%, var(--accent) 8%)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "12px", color: textSecondary, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+                Live Analysis{gradingPulseDots}
+              </span>
+              <span style={{ fontSize: "12px", color: textSecondary, fontFamily: "'JetBrains Mono', monospace" }}>
+                {formatElapsed(gradingElapsed)}
+              </span>
+            </div>
+            <div style={{ fontSize: "14px", color: textPrimary, fontWeight: 700, marginBottom: "4px" }}>
+              {activeGradingStage.title}
+            </div>
+            <div style={{ fontSize: "12px", color: textSecondary, marginBottom: "10px" }}>
+              {activeGradingStage.detail}
+            </div>
+            <div style={{ height: "6px", borderRadius: "999px", background: "color-mix(in oklab, var(--color-bg-secondary) 80%, black 20%)", overflow: "hidden", marginBottom: "10px" }}>
+              <div
+                style={{
+                  width: `${gradingProgressPct}%`,
+                  height: "100%",
+                  borderRadius: "999px",
+                  background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 65%, #ffffff 35%))`,
+                  transition: "width 0.8s ease",
+                }}
+              />
+            </div>
+            <div style={{ display: "grid", gap: "6px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
+              {GRADING_PROGRESS_STAGES.map((stage, index) => {
+                const isComplete = index < gradingStageIndex;
+                const isCurrent = index === gradingStageIndex;
+                return (
+                  <div
+                    key={stage.title}
+                    style={{
+                      padding: "6px 8px",
+                      borderRadius: "6px",
+                      border: `1px solid ${isCurrent ? "color-mix(in oklab, var(--accent) 35%, transparent)" : "color-mix(in oklab, var(--color-border) 75%, transparent)"}`,
+                      background: isCurrent ? "color-mix(in oklab, var(--accent) 14%, transparent)" : "color-mix(in oklab, var(--color-bg-secondary) 88%, transparent)",
+                      fontSize: "11px",
+                      color: isComplete ? "#22c55e" : isCurrent ? textPrimary : textSecondary,
+                      fontWeight: isCurrent ? 700 : 600,
+                    }}
+                  >
+                    {isComplete ? "✓ " : isCurrent ? "● " : "○ "}
+                    {stage.title}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {error && <div style={{ marginTop: "12px", padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "6px", color: "#ef4444", fontSize: "13px" }}>{error}</div>}
       </div>
     </div>
