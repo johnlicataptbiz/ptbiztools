@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, FileText, RefreshCw, ScrollText } from "lucide-react";
 import {
   getCoachingAnalyses,
@@ -66,12 +66,14 @@ function readAuditMeta(audit: PLAuditRecord) {
 export default function AnalysisHistory() {
   const { user } = useSession();
   const isAdmin = getEffectiveRole(user) === "admin";
+  const queryClient = useQueryClient();
 
   const [limit, setLimit] = useState(100);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
   const recordsQuery = useQuery<AnalysisHistoryData, Error>({
-    queryKey: ["analyses", "history", limit],
+    queryKey: ["analyses", "history", user?.id || "anon", isAdmin ? "admin" : "member", limit],
+    enabled: Boolean(user?.id),
     queryFn: async () => {
       const [analysesResult, exportsResult, auditsResult] = await Promise.all([
         getCoachingAnalyses(limit),
@@ -92,6 +94,11 @@ export default function AnalysisHistory() {
     },
     staleTime: 30_000,
   });
+
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["analyses", "history"] });
+    await recordsQuery.refetch({ cancelRefetch: false });
+  };
 
   const analyses = recordsQuery.data?.analyses ?? EMPTY_ANALYSES;
   const pdfExports = recordsQuery.data?.pdfExports ?? EMPTY_PDF_EXPORTS;
@@ -130,9 +137,13 @@ export default function AnalysisHistory() {
               <option value={200}>200</option>
             </select>
           </label>
-          <button className="analysis-refresh-btn" onClick={() => void recordsQuery.refetch()}>
-            <RefreshCw size={14} />
-            Refresh
+          <button
+            className="analysis-refresh-btn"
+            onClick={() => void handleRefresh()}
+            disabled={recordsQuery.isFetching}
+          >
+            <RefreshCw size={14} className={recordsQuery.isFetching ? "analysis-refresh-icon-spinning" : undefined} />
+            {recordsQuery.isFetching ? "Refreshing..." : "Refresh"}
           </button>
         </div>
       </div>

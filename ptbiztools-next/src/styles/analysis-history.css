@@ -63,6 +63,22 @@
   gap: 6px;
   font-weight: 600;
   box-shadow: 0 8px 18px color-mix(in oklab, var(--foreground) 8%, transparent);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.analysis-refresh-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.analysis-refresh-icon-spinning {
+  animation: analysis-refresh-spin 900ms linear infinite;
+}
+
+@keyframes analysis-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .analysis-summary-grid {

@@ -24,11 +24,47 @@ async function getSessionUser(req: Request): Promise<SessionUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, role: true },
+    select: { id: true, role: true, title: true, teamSection: true },
   });
 
   if (!user) return null;
-  return user;
+  return {
+    id: user.id,
+    role: resolveRole(user.role, user.teamSection, user.title),
+  };
+}
+
+function resolveRole(
+  role: string | null | undefined,
+  teamSection: string | null | undefined,
+  title: string | null | undefined,
+): "admin" | "advisor" | "coach" {
+  if (role === "admin" || role === "advisor" || role === "coach") {
+    return role;
+  }
+
+  const section = (teamSection || "").trim();
+  const loweredTitle = (title || "").toLowerCase();
+
+  if (
+    section === "Partners" ||
+    section === "Acquisitions" ||
+    section === "Client Success" ||
+    loweredTitle.includes("ceo") ||
+    loweredTitle.includes("cfo")
+  ) {
+    return "admin";
+  }
+
+  if (
+    section === "Advisors" ||
+    section === "Board" ||
+    loweredTitle.includes("advisor")
+  ) {
+    return "advisor";
+  }
+
+  return "coach";
 }
 
 function isAdminRole(role: string | undefined) {

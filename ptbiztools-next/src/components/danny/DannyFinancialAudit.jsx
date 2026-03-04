@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities, @next/next/no-page-custom-font, @typescript-eslint/no-unused-vars */
 import { useState, useRef, useCallback } from "react";
-import { extractDannyPLFromPdf } from "@/lib/ptbiz-api";
+import { extractDannyPLFromPdf, logAction, savePdfExport } from "@/lib/ptbiz-api";
 import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 
@@ -371,6 +371,11 @@ function Sec({ title, children }) {
 
 export default function DannyFinancialAudit() {
   const [step, setStep] = useState("input");
+  const [sessionId] = useState(() =>
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   const [clinicName, setCN] = useState("");
   const [period, setPer] = useState("");
   const [clinicType, setCT] = useState("multi");
@@ -471,6 +476,22 @@ export default function DannyFinancialAudit() {
     { l:"Other Expenses", a:n("other"), pc:pct(n("other")), tgt:"—" },
   ];
 
+  const handleGenerateReport = async () => {
+    if (rev <= 0) return;
+    setStep("report");
+    await logAction({
+      actionType: "pl_report_generated",
+      description: `P&L audit generated for ${clinicName || "Unknown Clinic"}`,
+      metadata: {
+        tool: "pl_calculator",
+        clinicName: clinicName || null,
+        period: period || null,
+        score,
+      },
+      sessionId,
+    });
+  };
+
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     const looksLikePdf = file && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
@@ -540,6 +561,31 @@ export default function DannyFinancialAudit() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    void Promise.allSettled([
+      savePdfExport({
+        sessionId,
+        clientName: clinicName || "P&L Audit",
+        score,
+        metadata: {
+          tool: "pl_calculator",
+          summary: `${clinicName || "Clinic"} financial audit export`,
+          period: period || null,
+          grade,
+        },
+      }),
+      logAction({
+        actionType: "pdf_generated",
+        description: `P&L report export generated for ${clinicName || "Unknown Clinic"}`,
+        metadata: {
+          tool: "pl_calculator",
+          clinicName: clinicName || null,
+          period: period || null,
+          score,
+        },
+        sessionId,
+      }),
+    ]);
   };
 
   const priClr = { HIGH:"#F87171", MED:"#FBBF24", LOW:B.gray, INFO:"#34D399" };
@@ -659,7 +705,7 @@ export default function DannyFinancialAudit() {
               </div>
             </div>
           )}
-          <button onClick={() => rev > 0 && setStep("report")} disabled={rev <= 0} style={{ width:"100%", padding:"14px", background:rev > 0 ? B.blue : B.bdr, border:"none", borderRadius:10, color:rev > 0 ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:rev > 0 ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:rev > 0 ? "0 4px 20px " + B.glow : "none" }}>Get My Financial Health Score →</button>
+          <button onClick={handleGenerateReport} disabled={rev <= 0} style={{ width:"100%", padding:"14px", background:rev > 0 ? B.blue : B.bdr, border:"none", borderRadius:10, color:rev > 0 ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:rev > 0 ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:rev > 0 ? "0 4px 20px " + B.glow : "none" }}>Get My Financial Health Score →</button>
           </div>
         </div>
       </div>
@@ -899,7 +945,6 @@ export default function DannyFinancialAudit() {
     </div>
   );
 }
-
 
 
 

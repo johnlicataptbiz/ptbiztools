@@ -9,6 +9,8 @@ interface SessionRequest extends Request {
   currentUserName?: string;
 }
 
+type PersistedRole = "admin" | "advisor" | "coach";
+
 interface GradePayload {
   score: number;
   outcome: string;
@@ -95,12 +97,12 @@ async function attachSessionUser(req: SessionRequest, _res: Response, next: Next
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, role: true, name: true },
+      select: { id: true, role: true, name: true, title: true, teamSection: true },
     });
 
     if (user) {
       req.currentUserId = user.id;
-      req.currentUserRole = user.role;
+      req.currentUserRole = resolveRole(user.role, user.teamSection, user.title);
       req.currentUserName = user.name;
     }
 
@@ -108,6 +110,39 @@ async function attachSessionUser(req: SessionRequest, _res: Response, next: Next
   } catch (error) {
     next(error);
   }
+}
+
+function resolveRole(
+  role: string | null | undefined,
+  teamSection: string | null | undefined,
+  title: string | null | undefined,
+): PersistedRole {
+  if (role === "admin" || role === "advisor" || role === "coach") {
+    return role;
+  }
+
+  const section = (teamSection || "").trim();
+  const loweredTitle = (title || "").toLowerCase();
+
+  if (
+    section === "Partners" ||
+    section === "Acquisitions" ||
+    section === "Client Success" ||
+    loweredTitle.includes("ceo") ||
+    loweredTitle.includes("cfo")
+  ) {
+    return "admin";
+  }
+
+  if (
+    section === "Advisors" ||
+    section === "Board" ||
+    loweredTitle.includes("advisor")
+  ) {
+    return "advisor";
+  }
+
+  return "coach";
 }
 
 function requireAuth(req: SessionRequest, res: Response, next: NextFunction) {
@@ -461,4 +496,3 @@ analyticsRouter.get('/pl-audits', requireAuth, async (req: SessionRequest, res: 
     res.status(500).json({ error: 'Failed to fetch P&L audits' });
   }
 });
-
