@@ -14,7 +14,8 @@
     "start": "node dist/index.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "db:check-users": "tsx scripts/check-users.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
