@@ -132,6 +132,10 @@
   box-shadow: none;
 }
 
+.app-shell-user-slot {
+  margin-top: clamp(18px, 4vh, 36px);
+}
+
 .app-shell-user-card p:first-child {
   color: rgba(255, 255, 255, 0.92);
 }

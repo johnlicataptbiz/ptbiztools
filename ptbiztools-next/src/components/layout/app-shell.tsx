@@ -187,7 +187,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="mt-auto pt-8">
+        <div className="app-shell-user-slot">
           <div className="app-shell-user-card rounded-xl border border-border bg-white p-3">
             <div className="flex items-center gap-3">
               {user.imageUrl && !avatarDidError ? (
