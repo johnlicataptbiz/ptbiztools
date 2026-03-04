@@ -153,6 +153,34 @@ async function runImageOCR(buffer: Buffer) {
   }
 }
 
+async function extractPdfText(buffer: Buffer, maxPages = 40): Promise<string> {
+  const pdfParseModule = await import('pdf-parse');
+  const moduleAny = pdfParseModule as unknown as {
+    default?: (data: Buffer, options?: { max?: number }) => Promise<{ text: string }>;
+    PDFParse?: new (options: { data: Buffer }) => { getText: (options?: { partial?: number[] }) => Promise<{ text?: string }>; destroy?: () => Promise<void> };
+  };
+
+  if (typeof moduleAny.default === 'function') {
+    const parsed = await moduleAny.default(buffer, { max: maxPages });
+    return String(parsed?.text || '');
+  }
+
+  if (typeof moduleAny.PDFParse === 'function') {
+    const parser = new moduleAny.PDFParse({ data: buffer });
+    try {
+      const partial = Array.from({ length: maxPages }, (_, index) => index + 1);
+      const parsed = await parser.getText({ partial });
+      return String(parsed?.text || '');
+    } finally {
+      if (typeof parser.destroy === 'function') {
+        await parser.destroy();
+      }
+    }
+  }
+
+  throw new Error('Unsupported pdf-parse export shape');
+}
+
 transcriptRouter.use(attachSessionUser);
 
 transcriptRouter.post('/extract', requireAuth, upload.single('file'), async (req: SessionRequest, res: Response) => {
@@ -174,15 +202,7 @@ transcriptRouter.post('/extract', requireAuth, upload.single('file'), async (req
 
     switch (sourceType) {
       case 'pdf': {
-        const pdfParseModule = await import('pdf-parse');
-        const pdfParse =
-          (pdfParseModule as unknown as {
-            default?: (data: Buffer, options?: { max?: number }) => Promise<{ text: string }>;
-          }).default
-          || (pdfParseModule as unknown as (data: Buffer, options?: { max?: number }) => Promise<{ text: string }>);
-
-        const parsed = await pdfParse(req.file.buffer, { max: 40 });
-        text = String(parsed?.text || '');
+        text = await extractPdfText(req.file.buffer, 40);
         if (countWords(text) < 20) {
           const ocrText = await runImageOCR(req.file.buffer);
           if (countWords(ocrText) > countWords(text)) {

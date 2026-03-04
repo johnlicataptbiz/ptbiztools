@@ -55,12 +55,31 @@ export async function parsePdfBuffer(buffer: Buffer): Promise<ParseOutput> {
 
   try {
     const pdfParseModule = await import('pdf-parse')
-    const pdfParse =
-      (pdfParseModule as unknown as { default?: (data: Buffer, options?: { max?: number }) => Promise<{ text: string; numpages?: number }> }).default
-      || (pdfParseModule as unknown as (data: Buffer, options?: { max?: number }) => Promise<{ text: string; numpages?: number }>)
-    const parsed = await pdfParse(buffer, { max: PDF_MAX_PAGES })
-    text = parsed.text || ''
-    pageCount = parsed.numpages || 0
+    const moduleAny = pdfParseModule as unknown as {
+      default?: (data: Buffer, options?: { max?: number }) => Promise<{ text: string; numpages?: number }>
+      PDFParse?: new (options: { data: Buffer }) => { getText: (options?: { partial?: number[] }) => Promise<{ text?: string; total?: number }>; destroy?: () => Promise<void> }
+    }
+
+    if (typeof moduleAny.default === 'function') {
+      const parsed = await moduleAny.default(buffer, { max: PDF_MAX_PAGES })
+      text = parsed.text || ''
+      pageCount = parsed.numpages || 0
+    } else if (typeof moduleAny.PDFParse === 'function') {
+      const parser = new moduleAny.PDFParse({ data: buffer })
+      try {
+        const partial = Array.from({ length: PDF_MAX_PAGES }, (_, index) => index + 1)
+        const parsed = await parser.getText({ partial })
+        text = parsed.text || ''
+        pageCount = parsed.total || partial.length
+      } finally {
+        if (typeof parser.destroy === 'function') {
+          await parser.destroy()
+        }
+      }
+    } else {
+      throw new Error('Unsupported pdf-parse export shape')
+    }
+
     if (pageCount > PDF_MAX_PAGES) {
       warnings.push(`PDF page count (${pageCount}) exceeds cap (${PDF_MAX_PAGES}). Parsed first ${PDF_MAX_PAGES} pages.`)
     }
