@@ -350,7 +350,11 @@ export default function DashboardPage() {
   }, [adminUsage]);
 
   const activityFeed = isAdmin ? adminActivityFeed : coachStats.recentActivity;
-  const chartData = isAdmin ? adminChartData : coachStats.chartData;
+  const chartData = useMemo(() => {
+    const raw = isAdmin ? adminChartData : coachStats.chartData;
+    const maxPoints = isAdmin ? 10 : 7;
+    return raw.slice(-maxPoints);
+  }, [adminChartData, coachStats.chartData, isAdmin]);
   const isLoading = isAdmin ? adminUsageQuery.isLoading : coachStatsQuery.isLoading;
 
   const topActionTotal = useMemo(() => {
@@ -424,11 +428,12 @@ export default function DashboardPage() {
         <motion.section variants={itemVariants} className="chart-section">
           <div className="chart-card">
             <div className="chart-header">
-              <div className="chart-title">
-                <BarChart3 size={20} />
-                <h3>Activity Overview</h3>
-              </div>
-              <div className="chart-legend">
+                <div className="chart-title">
+                  <BarChart3 size={20} />
+                  <h3>Activity Overview</h3>
+                </div>
+                <span className="chart-window-label">{isAdmin ? "Last 10 days" : "Last 7 days"}</span>
+                <div className="chart-legend">
                 <span className="legend-item">
                   <span className="legend-dot" style={{ background: "var(--accent)" }} />
                   Analyses

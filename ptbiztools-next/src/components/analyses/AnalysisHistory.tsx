@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, FileText, RefreshCw, ScrollText } from "lucide-react";
@@ -67,6 +68,7 @@ export default function AnalysisHistory() {
   const isAdmin = getEffectiveRole(user) === "admin";
 
   const [limit, setLimit] = useState(100);
+  const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
   const recordsQuery = useQuery<AnalysisHistoryData, Error>({
     queryKey: ["analyses", "history", limit],
@@ -101,6 +103,10 @@ export default function AnalysisHistory() {
     const booked = analyses.filter((row) => row.outcome.toUpperCase() === "BOOKED").length;
     return { avg, booked };
   }, [analyses]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedRecordId((current) => (current === id ? null : id));
+  };
 
   return (
     <div className="analysis-history tool-page">
@@ -171,8 +177,22 @@ export default function AnalysisHistory() {
               <div className="analysis-empty">No discovery analyses saved yet.</div>
             ) : (
               <div className="analysis-list">
-                {analyses.map((row) => (
-                  <article key={row.id} className="analysis-card">
+                {analyses.map((row) => {
+                  const isExpanded = expandedRecordId === row.id;
+                  return (
+                  <article
+                    key={row.id}
+                    className={`analysis-card analysis-card-clickable${isExpanded ? " analysis-card-expanded" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleExpanded(row.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggleExpanded(row.id);
+                      }
+                    }}
+                  >
                     <div className="analysis-card-top">
                       <h3>{decodeHtmlEntities(row.clientName) || "Unknown Client"}</h3>
                       <span className={`analysis-outcome outcome-${row.outcome.toLowerCase().replace(/\s+/g, "-")}`}>
@@ -205,8 +225,18 @@ export default function AnalysisHistory() {
                         <span>{row.user.name}</span>
                       </div>
                     )}
+                    <p className="analysis-open-hint">{isExpanded ? "Click to collapse" : "Click to open details"}</p>
+                    {isExpanded && (
+                      <div className="analysis-detail-panel">
+                        <h4>Summary</h4>
+                        <p>{decodeHtmlEntities(row.summary) || "No summary saved for this analysis."}</p>
+                        <Link href="/discovery-call-grader" className="analysis-detail-link">
+                          Open Discovery Call Grader
+                        </Link>
+                      </div>
+                    )}
                   </article>
-                ))}
+                )})}
               </div>
             )}
           </section>
@@ -224,8 +254,22 @@ export default function AnalysisHistory() {
               <div className="analysis-list">
                 {plAudits.map((audit) => {
                   const meta = readAuditMeta(audit);
+                  const recordId = `audit-${audit.id}`;
+                  const isExpanded = expandedRecordId === recordId;
                   return (
-                    <article key={audit.id} className="analysis-card">
+                    <article
+                      key={audit.id}
+                      className={`analysis-card analysis-card-clickable${isExpanded ? " analysis-card-expanded" : ""}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleExpanded(recordId)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          toggleExpanded(recordId);
+                        }
+                      }}
+                    >
                       <div className="analysis-card-top">
                         <h3>{meta.clientName || "P&amp;L Audit"}</h3>
                         <span className="analysis-outcome">{meta.overallGrade || "Generated"}</span>
@@ -255,6 +299,16 @@ export default function AnalysisHistory() {
                           <span>{audit.user.name}</span>
                         </div>
                       )}
+                      <p className="analysis-open-hint">{isExpanded ? "Click to collapse" : "Click to open details"}</p>
+                      {isExpanded && (
+                        <div className="analysis-detail-panel">
+                          <h4>Audit Notes</h4>
+                          <p>{decodeHtmlEntities(audit.description) || "No additional notes were saved for this P&L audit."}</p>
+                          <Link href="/pl-calculator" className="analysis-detail-link">
+                            Open P&amp;L Calculator
+                          </Link>
+                        </div>
+                      )}
                     </article>
                   );
                 })}
@@ -273,8 +327,23 @@ export default function AnalysisHistory() {
               <div className="analysis-empty">No PDF exports saved yet.</div>
             ) : (
               <div className="analysis-list">
-                {pdfExports.map((row) => (
-                  <article key={row.id} className="analysis-card">
+                {pdfExports.map((row) => {
+                  const recordId = `pdf-${row.id}`;
+                  const isExpanded = expandedRecordId === recordId;
+                  return (
+                  <article
+                    key={row.id}
+                    className={`analysis-card analysis-card-clickable${isExpanded ? " analysis-card-expanded" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleExpanded(recordId)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggleExpanded(recordId);
+                      }
+                    }}
+                  >
                     <div className="analysis-card-top">
                       <h3>{decodeHtmlEntities(row.clientName) || "Client PDF"}</h3>
                       <span className="analysis-outcome">{getToolLabel(row)}</span>
@@ -304,8 +373,22 @@ export default function AnalysisHistory() {
                         <span>{row.user.name}</span>
                       </div>
                     )}
+                    <p className="analysis-open-hint">{isExpanded ? "Click to collapse" : "Click to open details"}</p>
+                    {isExpanded && (
+                      <div className="analysis-detail-panel">
+                        <h4>Export Metadata</h4>
+                        <p>
+                          {typeof row.metadata?.summary === "string"
+                            ? decodeHtmlEntities(row.metadata.summary)
+                            : "No metadata summary was stored with this export."}
+                        </p>
+                        <Link href="/analyses" className="analysis-detail-link">
+                          Stay on Analyses
+                        </Link>
+                      </div>
+                    )}
                   </article>
-                ))}
+                )})}
               </div>
             )}
           </section>
