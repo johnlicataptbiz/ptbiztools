@@ -103,6 +103,66 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
     writeWrapped(title, { size: 12, style: "bold", color: COLORS.muted, after: 10 });
   };
 
+  const drawInfoGrid = (items: Array<[string, string]>) => {
+    const columns = 3;
+    const gap = 8;
+    const cardHeight = 34;
+    const cardWidth = (contentWidth - gap * (columns - 1)) / columns;
+    const rows = Math.ceil(items.length / columns);
+    ensureSpace(rows * (cardHeight + gap) + 4);
+
+    items.forEach(([label, value], index) => {
+      const row = Math.floor(index / columns);
+      const col = index % columns;
+      const x = margin + col * (cardWidth + gap);
+      const boxY = y + row * (cardHeight + gap);
+
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(COLORS.border);
+      doc.roundedRect(x, boxY, cardWidth, cardHeight, 4, 4, "FD");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(COLORS.muted);
+      doc.text(label.toUpperCase(), x + 7, boxY + 11);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(COLORS.ink);
+      const clippedValue = value.length > 34 ? `${value.slice(0, 34)}…` : value;
+      doc.text(clippedValue, x + 7, boxY + 24);
+    });
+
+    y += rows * (cardHeight + gap) + 4;
+  };
+
+  const drawCallout = (opts: { label: string; text: string; tone: "success" | "danger" | "accent" }) => {
+    const color = opts.tone === "success" ? COLORS.success : opts.tone === "danger" ? COLORS.danger : COLORS.accent;
+    const innerWidth = contentWidth - 16;
+    const wrapped = doc.splitTextToSize(opts.text || "N/A", innerWidth - 8);
+    const boxHeight = Math.max(36, 24 + wrapped.length * 11);
+    ensureSpace(boxHeight + 8);
+
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(COLORS.border);
+    doc.roundedRect(margin, y, contentWidth, boxHeight, 5, 5, "FD");
+
+    doc.setFillColor(color);
+    doc.rect(margin, y, 4, boxHeight, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(color);
+    doc.text(opts.label.toUpperCase(), margin + 10, y + 12);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(COLORS.ink);
+    doc.text(wrapped, margin + 10, y + 26);
+
+    y += boxHeight + 8;
+  };
+
   const writeEvidenceList = (quotes?: string[], fallback = "No direct evidence quotes captured.") => {
     const values = Array.isArray(quotes) ? quotes.filter(Boolean).slice(0, 3) : [];
     if (!values.length) {
@@ -142,14 +202,13 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
   doc.text("/100", pageWidth - margin - 16, y + 57, { align: "right" });
   y += 98;
 
-  const metaLines = [
-    `Closer: ${meta.closer || "Unknown"}`,
-    `Prospect: ${meta.prospectName || "Unknown"}`,
-    `Program: ${meta.program || "Unknown"}`,
-    `Outcome: ${meta.outcome || "Unknown"}`,
-    `Date: ${formatDate(meta.date) || "Unknown"}`,
-  ];
-  writeWrapped(metaLines.join("   |   "), { size: 9, color: COLORS.muted, after: 12 });
+  drawInfoGrid([
+    ["Closer", meta.closer || "Unknown"],
+    ["Prospect", meta.prospectName || "Unknown"],
+    ["Program", meta.program || "Unknown"],
+    ["Outcome", meta.outcome || "Unknown"],
+    ["Date", formatDate(meta.date) || "Unknown"],
+  ]);
 
   if (result.prospect_summary) {
     ensureSpace(60);
@@ -160,24 +219,32 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
   }
 
   writeSectionTitle("Key Takeaways");
-  writeWrapped(`Top Strength: ${result.top_strength || "N/A"}`, { size: 10, style: "bold", color: COLORS.success, after: 4 });
-  writeWrapped(result.top_strength || "No strength provided.", { size: 10, color: COLORS.ink, x: margin + 8, width: contentWidth - 8, after: 8 });
-  writeWrapped(`Highest Leverage Improvement: ${result.top_improvement || "N/A"}`, { size: 10, style: "bold", color: COLORS.danger, after: 4 });
-  writeWrapped(result.top_improvement || "No improvement provided.", { size: 10, color: COLORS.ink, x: margin + 8, width: contentWidth - 8, after: 8 });
+  drawCallout({
+    label: "Top Strength",
+    text: result.top_strength || "No strength provided.",
+    tone: "success",
+  });
+  drawCallout({
+    label: "Highest Leverage Improvement",
+    text: result.top_improvement || "No improvement provided.",
+    tone: "danger",
+  });
 
   if (result.deterministic || result.confidence) {
     writeSectionTitle("Deterministic + Confidence");
     if (result.deterministic) {
-      writeWrapped(
-        `Weighted phase: ${result.deterministic.weightedPhaseScore} | Penalties: ${result.deterministic.penaltyPoints} | Unknown penalty: ${result.deterministic.unknownPenalty} | Final: ${result.deterministic.overallScore}`,
-        { size: 10, color: COLORS.ink, after: 8 },
-      );
+      drawCallout({
+        label: "Deterministic Breakdown",
+        text: `Weighted phase ${result.deterministic.weightedPhaseScore}. Penalties ${result.deterministic.penaltyPoints}. Unknown penalty ${result.deterministic.unknownPenalty}. Final score ${result.deterministic.overallScore}.`,
+        tone: "accent",
+      });
     }
     if (result.confidence) {
-      writeWrapped(
-        `Confidence score: ${result.confidence.score}/100 | Evidence coverage: ${percent(result.confidence.evidenceCoverage)} | Quote verification: ${percent(result.confidence.quoteVerificationRate)} | Transcript quality: ${percent(result.confidence.transcriptQuality)}`,
-        { size: 10, color: COLORS.ink, after: 8 },
-      );
+      drawCallout({
+        label: "Confidence Signal",
+        text: `Confidence ${result.confidence.score}/100. Evidence coverage ${percent(result.confidence.evidenceCoverage)}. Quote verification ${percent(result.confidence.quoteVerificationRate)}. Transcript quality ${percent(result.confidence.transcriptQuality)}.`,
+        tone: "accent",
+      });
     }
   }
 
