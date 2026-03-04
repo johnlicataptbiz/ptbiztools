@@ -17,6 +17,8 @@ import {
   normalizeV2Result,
 } from "@/components/danny/graderV2Helpers";
 import { TOOL_BADGES } from "@/constants/tool-badges";
+import { generateSalesCallPdf } from "@/utils/salesCallPdf";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "ptbiz-call-grades";
 const MIN_WORDS_REQUIRED = 120;
@@ -122,6 +124,7 @@ export default function SalesCallGrader() {
   const [prospectName, setProspectName] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null); // { name, type, text? }
   const [fileLoading, setFileLoading] = useState(false);
+  const [exportingReport, setExportingReport] = useState(false);
   const [gradingElapsed, setGradingElapsed] = useState(0);
   const [gradingStageIndex, setGradingStageIndex] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
@@ -259,64 +262,65 @@ export default function SalesCallGrader() {
     setView("report");
   };
 
-  const downloadReport = () => {
-    if (!reportData) return;
-    const d = reportData.result;
-    const scoreColor = (s) => s >= 65 ? "#16a34a" : s >= 50 ? "#ca8a04" : "#dc2626";
+  const downloadReport = async () => {
+    if (!reportData || exportingReport) return;
+    const resultData = normalizeV2Result(reportData.result);
+    if (!resultData) {
+      toast.error("Unable to export report: result data is missing.");
+      return;
+    }
 
-    const phaseRows = PHASES.map((phase, i) => {
-      const p = d.phases[phase.id];
-      if (!p) return "";
-      return `<tr style="border-bottom:1px solid #e5e7eb;background:${i % 2 === 0 ? "transparent" : "#f9fafb"}">
-        <td style="padding:10px 4px;font-weight:600;font-family:system-ui,sans-serif;vertical-align:top;white-space:nowrap">${phase.name} <span style="font-size:10px;color:#6b7280;font-weight:400">(${phase.weight}%)</span></td>
-        <td style="padding:10px 4px;text-align:center;font-weight:800;font-family:system-ui,sans-serif;color:${scoreColor(p.score)};vertical-align:top">${p.score}</td>
-        <td style="padding:10px 4px;color:#6b7280;vertical-align:top">${p.summary}</td>
-      </tr>`;
-    }).join("");
+    setExportingReport(true);
+    toast.loading("Preparing PDF report...", { id: "sales-report-export" });
+    try {
+      const fileName = await generateSalesCallPdf({
+        meta: {
+          closer: reportData.closer,
+          prospectName: reportData.prospectName,
+          outcome: reportData.outcome,
+          program: reportData.program,
+          date: reportData.date,
+        },
+        result: resultData,
+        phases: PHASES.map((phase) => ({ id: phase.id, name: phase.name, weight: phase.weight })),
+        criticalBehaviors: CRITICAL_BEHAVIORS.map((behavior) => ({ id: behavior.id, name: behavior.name })),
+      });
 
-    const behaviorRows = CRITICAL_BEHAVIORS.map((b, i) => {
-      const cb = d.critical_behaviors[b.id];
-      if (!cb) return "";
-      const status = normalizeBehaviorStatus(cb);
-      const statusColor = status === "pass" ? "#16a34a" : status === "unknown" ? "#64748b" : "#dc2626";
-      const statusText = status === "pass" ? "PASS" : status === "unknown" ? "UNKNOWN" : "FAIL";
-      return `<tr style="border-bottom:1px solid #e5e7eb;background:${i % 2 === 0 ? "transparent" : "#f9fafb"}">
-        <td style="padding:10px 4px;font-weight:600;font-family:system-ui,sans-serif;width:160px;vertical-align:top">${b.name}</td>
-        <td style="padding:10px 4px;width:50px;vertical-align:top"><span style="font-family:system-ui,sans-serif;font-weight:800;font-size:12px;color:${statusColor}">${statusText}</span></td>
-        <td style="padding:10px 4px;color:#6b7280;vertical-align:top">${cb.note}</td>
-      </tr>`;
-    }).join("");
+      await savePdfExport({
+        sessionId,
+        coachName: reportData.closer || "Unknown",
+        clientName: reportData.prospectName || "Unknown",
+        callDate: reportData.date ? String(reportData.date).slice(0, 10) : new Date().toISOString().slice(0, 10),
+        score: resultData.overall_score,
+        metadata: {
+          tool: "sales_discovery_grader_danny_v2",
+          source: "manual_report_export",
+          outcome: reportData.outcome,
+          program: reportData.program,
+          confidence: resultData.confidence?.score ?? null,
+          fileName,
+        },
+      });
 
-    const detailItems = [["Closer", reportData.closer], ["Prospect", reportData.prospectName || "—"], ["Program", reportData.program], ["Outcome", reportData.outcome], ["Date", new Date(reportData.date).toLocaleDateString()]];
-    const detailsHtml = detailItems.map(([l, v]) => `<div><span style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">${l}</span><div style="font-weight:600;font-family:system-ui,sans-serif">${v}</div></div>`).join("");
+      await logAction({
+        actionType: ActionTypes.PDF_GENERATED,
+        description: `Sales report PDF generated: ${resultData.overall_score}/100`,
+        metadata: {
+          score: resultData.overall_score,
+          closer: reportData.closer,
+          prospect: reportData.prospectName || "Unknown",
+          source: "report_view",
+        },
+        sessionId,
+      });
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Call Report - ${reportData.closer} - ${new Date(reportData.date).toLocaleDateString()}</title>
-<style>@media print{body{margin:0}}.page{max-width:700px;margin:0 auto;padding:40px;font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#111827}</style>
-</head><body><div class="page">
-<div style="border-bottom:2px solid #111827;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start">
-<div><h1 style="margin:0;font-size:22px;font-weight:700;font-family:system-ui,sans-serif;letter-spacing:-0.02em">Sales Call Performance Report</h1><p style="margin:4px 0 0;font-size:13px;color:#6b7280">PT Biz — Confidential</p></div>
-<div style="font-size:36px;font-weight:800;font-family:system-ui,sans-serif;color:${scoreColor(d.overall_score)}">${d.overall_score}</div></div>
-<div style="display:flex;gap:24px;margin-bottom:24px;font-size:14px;flex-wrap:wrap">${detailsHtml}</div>
-${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-radius:6px;margin-bottom:24px;font-size:13px;color:#6b7280;border-left:3px solid #e5e7eb">${d.prospect_summary}</div>` : ""}
-<div style="margin-bottom:28px"><h2 style="font-size:15px;font-family:system-ui,sans-serif;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280">Key Takeaways</h2>
-<div style="padding:10px 14px;border:1px solid rgba(22,163,74,0.2);border-radius:5px;border-left:3px solid #16a34a;margin-bottom:8px"><span style="font-size:10px;color:#16a34a;text-transform:uppercase;font-weight:700;font-family:system-ui,sans-serif">Top Strength</span><div style="font-size:14px;margin-top:2px">${d.top_strength}</div></div>
-<div style="padding:10px 14px;border:1px solid rgba(220,38,38,0.2);border-radius:5px;border-left:3px solid #dc2626"><span style="font-size:10px;color:#dc2626;text-transform:uppercase;font-weight:700;font-family:system-ui,sans-serif">Highest Leverage Improvement</span><div style="font-size:14px;margin-top:2px">${d.top_improvement}</div></div></div>
-<div style="margin-bottom:28px"><h2 style="font-size:15px;font-family:system-ui,sans-serif;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280">Phase-by-Phase Breakdown</h2>
-<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="border-bottom:2px solid #111827"><th style="text-align:left;padding:8px 4px;font-family:system-ui,sans-serif;font-weight:700">Phase</th><th style="text-align:center;padding:8px 4px;font-family:system-ui,sans-serif;font-weight:700;width:60px">Score</th><th style="text-align:left;padding:8px 4px;font-family:system-ui,sans-serif;font-weight:700">Assessment</th></tr></thead><tbody>${phaseRows}</tbody></table></div>
-<div style="margin-bottom:28px"><h2 style="font-size:15px;font-family:system-ui,sans-serif;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280">Critical Behaviors</h2>
-<table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${behaviorRows}</tbody></table></div>
-<div style="border-top:1px solid #e5e7eb;padding-top:12px;font-size:11px;color:#6b7280;display:flex;justify-content:space-between"><span>Generated ${new Date().toLocaleDateString()}</span><span>PT Biz Sales Performance System</span></div>
-</div></body></html>`;
-
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Call_Report_${reportData.closer}_${new Date(reportData.date).toLocaleDateString().replace(/\\//g, "-")}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      toast.success("PDF downloaded.", { id: "sales-report-export" });
+    } catch (exportError) {
+      console.error(exportError);
+      toast.error("Failed to generate report PDF.", { id: "sales-report-export" });
+    } finally {
+      setExportingReport(false);
+    }
   };
 
   const analyzeCall = async () => {
@@ -969,8 +973,17 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
       <div>
         {/* Print button - hidden when printing */}
         <div className="no-print" style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-          <button onClick={downloadReport} style={{ ...btnBase, padding: "10px 24px", background: accent, color: "#ffffff" }}>
-            Download Report
+          <button
+            onClick={downloadReport}
+            disabled={exportingReport}
+            style={{
+              ...btnBase,
+              padding: "10px 24px",
+              background: exportingReport ? "#d7cebf" : accent,
+              color: exportingReport ? textSecondary : "#ffffff",
+            }}
+          >
+            {exportingReport ? "Preparing PDF..." : "Download PDF"}
           </button>
           <button onClick={() => setView("history")} style={{ ...btnBase, padding: "10px 24px", background: "transparent", color: textSecondary, border: `1px solid ${border}` }}>
             Back to Dashboard
@@ -1031,6 +1044,36 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
             </div>
           </div>
 
+          {(d.deterministic || d.confidence || d.qualityGate) && (
+            <div style={{ marginBottom: "28px" }}>
+              <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Deterministic + Confidence</h2>
+              <div style={{ display: "grid", gap: "8px" }}>
+                {d.deterministic && (
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                    Weighted phase score <strong style={{ color: rpt.text }}>{d.deterministic.weightedPhaseScore}</strong> · Penalty points <strong style={{ color: rpt.text }}>{d.deterministic.penaltyPoints}</strong> · Unknown penalty <strong style={{ color: rpt.text }}>{d.deterministic.unknownPenalty}</strong> · Final score <strong style={{ color: rpt.text }}>{d.deterministic.overallScore}</strong>
+                  </div>
+                )}
+                {d.confidence && (
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                    Confidence <strong style={{ color: rpt.text }}>{d.confidence.score}/100</strong> · Evidence coverage <strong style={{ color: rpt.text }}>{Math.round((d.confidence.evidenceCoverage || 0) * 100)}%</strong> · Quote verification <strong style={{ color: rpt.text }}>{Math.round((d.confidence.quoteVerificationRate || 0) * 100)}%</strong> · Transcript quality <strong style={{ color: rpt.text }}>{Math.round((d.confidence.transcriptQuality || 0) * 100)}%</strong>
+                  </div>
+                )}
+                {d.qualityGate && (
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                    Quality gate: <strong style={{ color: d.qualityGate.accepted ? rpt.green : rpt.red }}>{d.qualityGate.accepted ? "Accepted" : "Rejected"}</strong>
+                    {Array.isArray(d.qualityGate.reasons) && d.qualityGate.reasons.length > 0 && (
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "18px" }}>
+                        {d.qualityGate.reasons.map((reason, index) => (
+                          <li key={`${reason}-${index}`} style={{ marginBottom: "2px" }}>{reason}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Phase Breakdown */}
           <div style={{ marginBottom: "28px" }}>
             <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Phase-by-Phase Breakdown</h2>
@@ -1061,6 +1104,22 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                 })}
               </tbody>
             </table>
+            <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
+              {PHASES.map((phase) => {
+                const p = d.phases[phase.id];
+                if (!p || !Array.isArray(p.evidence) || p.evidence.length === 0) return null;
+                return (
+                  <div key={`${phase.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{phase.name} evidence</div>
+                    {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
+                      <div key={`${phase.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
+                        "{quote}"
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Critical Behaviors */}
@@ -1087,6 +1146,22 @@ ${d.prospect_summary ? `<div style="padding:12px 16px;background:#f9fafb;border-
                 })}
               </tbody>
             </table>
+            <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
+              {CRITICAL_BEHAVIORS.map((behavior) => {
+                const behaviorResult = d.critical_behaviors[behavior.id];
+                if (!behaviorResult || !Array.isArray(behaviorResult.evidence) || behaviorResult.evidence.length === 0) return null;
+                return (
+                  <div key={`${behavior.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{behavior.name} evidence</div>
+                    {behaviorResult.evidence.slice(0, 2).map((quote, quoteIndex) => (
+                      <div key={`${behavior.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
+                        "{quote}"
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Footer */}
