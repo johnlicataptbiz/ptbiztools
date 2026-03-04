@@ -26,6 +26,7 @@ import {
 } from "@/lib/ptbiz-api";
 import { GradePreview } from "@/components/grader/GradePreview";
 import { GradeModal } from "@/components/grader/GradeModal";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const MIN_WORDS = 120
 
@@ -328,9 +329,8 @@ export default function DiscoveryCallGrader() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="header-icon">
-            <ClipboardList size={28} />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tool-page-badge discovery-tool-badge" src={TOOL_BADGES.discovery} alt="Discovery Call Grader badge" />
           <h1 className="tool-page-title">Discovery Call Grader</h1>
           <p className="tool-page-subtitle">Dynamic transcript intake, pre-grade diagnostics, and instant coaching reports.</p>
         </motion.div>

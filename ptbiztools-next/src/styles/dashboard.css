@@ -267,26 +267,29 @@
 }
 
 .tool-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   border: 1px solid var(--color-border);
 }
 
 .tool-badge {
-  width: 26px;
-  height: 26px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 10px;
+  transform: scale(1.42);
+  transform-origin: center center;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--color-accent) 44%, transparent));
 }
 
 .tool-icon-fallback {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   align-items: center;
   justify-content: center;
 }

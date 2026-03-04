@@ -17,6 +17,18 @@
   box-shadow: 0 14px 34px color-mix(in oklab, var(--foreground) 10%, transparent);
 }
 
+.tool-page-badge {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--border));
+  background: color-mix(in oklab, var(--surface) 90%, var(--background) 10%);
+  box-shadow: 0 8px 22px color-mix(in oklab, var(--foreground) 12%, transparent);
+  margin-bottom: 12px;
+}
+
 .tool-page-kicker {
   margin: 0 0 8px;
   color: var(--color-text-secondary);
