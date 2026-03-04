@@ -23,6 +23,7 @@ import {
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 import {
   getActionLogs,
   getActionStats,
@@ -72,6 +73,7 @@ interface ToolCard {
   description: string;
   href: string;
   icon: ComponentType<{ size?: number; className?: string; style?: CSSProperties }>;
+  badgeUrl?: string;
   color: string;
   adminsAndAdvisorsOnly?: boolean;
 }
@@ -100,6 +102,7 @@ const TOOL_CARDS: ToolCard[] = [
     description: "Grade and analyze discovery call transcripts with immediate coaching feedback.",
     href: "/discovery-call-grader",
     icon: Phone,
+    badgeUrl: TOOL_BADGES.discovery,
     color: "var(--accent)",
   },
   {
@@ -107,6 +110,7 @@ const TOOL_CARDS: ToolCard[] = [
     description: "Analyze clinic financial performance with benchmarks and action steps.",
     href: "/pl-calculator",
     icon: TrendingUp,
+    badgeUrl: TOOL_BADGES.pl,
     color: "var(--success)",
   },
   {
@@ -114,6 +118,7 @@ const TOOL_CARDS: ToolCard[] = [
     description: "Model compensation structures and targets with PT Biz assumptions.",
     href: "/compensation-calculator",
     icon: Calculator,
+    badgeUrl: TOOL_BADGES.comp,
     color: "var(--warning)",
   },
   {
@@ -121,6 +126,7 @@ const TOOL_CARDS: ToolCard[] = [
     description: "Run the deterministic sales discovery grading system for closer calls.",
     href: "/sales-discovery-grader",
     icon: PhoneCall,
+    badgeUrl: TOOL_BADGES.sales,
     color: "#1f6f8b",
     adminsAndAdvisorsOnly: true,
   },
@@ -479,7 +485,22 @@ export default function DashboardPage() {
               return (
                 <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
                   <div className="tool-icon" style={{ background: `${tool.color}20` }}>
-                    <Icon size={24} style={{ color: tool.color }} />
+                    {tool.badgeUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={tool.badgeUrl}
+                        alt={`${tool.title} icon`}
+                        className="tool-badge"
+                        onError={(event) => {
+                          (event.currentTarget as HTMLImageElement).style.display = "none";
+                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = "inline-flex";
+                        }}
+                      />
+                    ) : null}
+                    <span className="tool-icon-fallback" style={{ display: tool.badgeUrl ? "none" : "inline-flex" }}>
+                      <Icon size={24} style={{ color: tool.color }} />
+                    </span>
                   </div>
                   <div className="tool-content">
                     <h3>{tool.title}</h3>

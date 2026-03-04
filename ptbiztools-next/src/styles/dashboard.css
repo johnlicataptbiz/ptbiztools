@@ -277,6 +277,20 @@
   border: 1px solid var(--color-border);
 }
 
+.tool-badge {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.tool-icon-fallback {
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
 .tool-content h3 {
   margin: 0 0 8px;
   color: var(--color-text);

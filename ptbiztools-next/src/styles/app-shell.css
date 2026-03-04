@@ -74,6 +74,22 @@
   text-decoration: none;
 }
 
+.app-shell-nav-badge {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.app-shell-nav-icon-fallback {
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .app-shell-nav-link::before {
   content: "";
   position: absolute;
