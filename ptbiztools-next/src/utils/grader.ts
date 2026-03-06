@@ -2,6 +2,30 @@ export interface PhaseScore {
   name: string;
   score: number;
   maxScore: number;
+  summary?: string;
+  evidence?: string[];
+}
+
+export interface CriticalBehavior {
+  id: string;
+  name: string;
+  status: 'pass' | 'fail' | 'unknown';
+  note: string;
+  evidence?: string[];
+}
+
+export interface DeterministicScore {
+  weightedPhaseScore: number;
+  penaltyPoints: number;
+  unknownPenalty: number;
+  overallScore: number;
+}
+
+export interface ConfidenceScore {
+  score: number;
+  evidenceCoverage: number;
+  quoteVerificationRate: number;
+  transcriptQuality: number;
 }
 
 export interface GradeResult {
@@ -13,6 +37,15 @@ export interface GradeResult {
   improvements: string[];
   redFlags: string[];
   deidentifiedTranscript: string;
+  // Extended data from v2 API
+  criticalBehaviors?: CriticalBehavior[];
+  deterministic?: DeterministicScore;
+  confidence?: ConfidenceScore;
+  prospectSummary?: string;
+  evidence?: {
+    phases: Record<string, PhaseScore>;
+    criticalBehaviors: Record<string, CriticalBehavior>;
+  };
 }
 
 const PLACEHOLDERS: Record<string, string> = {

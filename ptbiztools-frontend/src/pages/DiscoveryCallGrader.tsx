@@ -90,8 +90,8 @@ function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
     },
     prospectSummary: v2.highlights.prospectSummary,
     evidence: {
-      phases: v2.phaseScores,
-      criticalBehaviors: v2.criticalBehaviors,
+      phases: v2.phaseScores as unknown as Record<string, import('../utils/grader').PhaseScore>,
+      criticalBehaviors: v2.criticalBehaviors as unknown as Record<string, import('../utils/grader').CriticalBehavior>,
     },
   }
 }
