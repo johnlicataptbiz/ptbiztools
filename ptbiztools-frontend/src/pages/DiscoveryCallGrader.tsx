@@ -49,10 +49,21 @@ function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
     name: phase.name,
     score: v2.phaseScores[phase.id].score,
     maxScore: 100,
+    summary: v2.phaseScores[phase.id].summary,
+    evidence: v2.phaseScores[phase.id].evidence,
   }))
   const redFlags = Object.entries(v2.criticalBehaviors)
     .filter(([, value]) => value.status === 'fail')
     .map(([key]) => key)
+
+  // Map critical behaviors
+  const criticalBehaviors = Object.entries(v2.criticalBehaviors).map(([id, cb]) => ({
+    id,
+    name: getBehaviorName(id),
+    status: cb.status,
+    note: cb.note,
+    evidence: cb.evidence,
+  }))
 
   return {
     score: v2.deterministic.overallScore,
@@ -63,7 +74,37 @@ function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
     improvements: [v2.highlights.topImprovement].filter(Boolean),
     redFlags,
     deidentifiedTranscript: v2.storage?.redactedTranscript || '',
+    // Extended data from v2 API
+    criticalBehaviors,
+    deterministic: {
+      weightedPhaseScore: v2.deterministic.weightedPhaseScore,
+      penaltyPoints: v2.deterministic.penaltyPoints,
+      unknownPenalty: v2.deterministic.unknownPenalty,
+      overallScore: v2.deterministic.overallScore,
+    },
+    confidence: {
+      score: v2.confidence.score,
+      evidenceCoverage: v2.confidence.evidenceCoverage,
+      quoteVerificationRate: v2.confidence.quoteVerificationRate,
+      transcriptQuality: v2.confidence.transcriptQuality,
+    },
+    prospectSummary: v2.highlights.prospectSummary,
+    evidence: {
+      phases: v2.phaseScores,
+      criticalBehaviors: v2.criticalBehaviors,
+    },
   }
+}
+
+function getBehaviorName(id: string): string {
+  const names: Record<string, string> = {
+    free_consulting: 'No Free Consulting',
+    discount_discipline: 'Discount Discipline',
+    emotional_depth: 'Emotional Depth',
+    time_management: 'Time Management',
+    personal_story: 'Story Deployment',
+  }
+  return names[id] || id
 }
 
 const transcriptTemplate = `Clinician: Thanks for taking the call. What made you reach out now?
@@ -360,7 +401,7 @@ export default function DiscoveryCallGrader() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".txt,.md,.csv,.json,.pdf"
+                  accept=".txt,.md,.csv,.json,.pdf,.docx,.doc"
                   className="grader-file-input"
                   onChange={handleFileUpload}
                 />

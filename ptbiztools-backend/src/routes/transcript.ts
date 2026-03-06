@@ -46,7 +46,7 @@ function requireAuth(req: SessionRequest, res: Response, next: NextFunction) {
   next();
 }
 
-type TranscriptSourceType = 'pdf' | 'text' | 'csv' | 'rtf' | 'xlsx' | 'image';
+type TranscriptSourceType = 'pdf' | 'text' | 'csv' | 'rtf' | 'docx' | 'xlsx' | 'image';
 
 const SUPPORTED_EXTENSIONS = new Set([
   '.txt',
@@ -55,6 +55,8 @@ const SUPPORTED_EXTENSIONS = new Set([
   '.json',
   '.rtf',
   '.pdf',
+  '.docx',
+  '.doc',
   '.xlsx',
   '.xls',
   '.png',
@@ -68,6 +70,7 @@ function inferSourceType(file: Express.Multer.File): TranscriptSourceType {
   const lowerMime = (file.mimetype || '').toLowerCase();
   if (lowerName.endsWith('.pdf') || lowerMime.includes('pdf')) return 'pdf';
   if (lowerName.endsWith('.rtf') || lowerMime.includes('rtf')) return 'rtf';
+  if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc') || lowerMime.includes('word')) return 'docx';
   if (lowerName.endsWith('.csv') || lowerMime.includes('csv')) return 'csv';
   if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls') || lowerMime.includes('sheet') || lowerMime.includes('excel')) {
     return 'xlsx';
@@ -181,6 +184,12 @@ async function extractPdfText(buffer: Buffer, maxPages = 40): Promise<string> {
   throw new Error('Unsupported pdf-parse export shape');
 }
 
+async function extractDocxText(buffer: Buffer): Promise<string> {
+  const mammoth = await import('mammoth');
+  const result = await mammoth.extractRawText({ buffer });
+  return result.value || '';
+}
+
 transcriptRouter.use(attachSessionUser);
 
 transcriptRouter.post('/extract', requireAuth, upload.single('file'), async (req: SessionRequest, res: Response) => {
@@ -192,7 +201,7 @@ transcriptRouter.post('/extract', requireAuth, upload.single('file'), async (req
 
     if (!isSupportedFile(req.file)) {
       res.status(400).json({
-        error: 'Unsupported file type. Use PDF, TXT, MD, CSV, JSON, RTF, XLSX, XLS, PNG, JPG, JPEG, or WEBP.',
+        error: 'Unsupported file type. Use PDF, DOCX, DOC, TXT, MD, CSV, JSON, RTF, XLSX, XLS, PNG, JPG, JPEG, or WEBP.',
       });
       return;
     }
@@ -222,6 +231,10 @@ transcriptRouter.post('/extract', requireAuth, upload.single('file'), async (req
       case 'rtf': {
         const raw = req.file.buffer.toString('utf-8');
         text = parseRtfToText(raw);
+        break;
+      }
+      case 'docx': {
+        text = await extractDocxText(req.file.buffer);
         break;
       }
       case 'csv':

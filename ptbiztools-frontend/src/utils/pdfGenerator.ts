@@ -12,6 +12,7 @@ const COLORS = {
   white: '#ffffff',
   lightGray: '#e0e0e0',
   textGray: '#4a4a4a',
+  mutedGray: '#6b7280',
 };
 
 const LOGO_CACHE = new Map<string, string | null>();
@@ -28,6 +29,18 @@ function getScoreLabel(score: number): string {
   if (score >= 70) return 'Decent';
   if (score >= 60) return 'Needs Work';
   return 'Significant Issues';
+}
+
+function getBehaviorStatusColor(status: string): string {
+  if (status === 'pass') return COLORS.green;
+  if (status === 'fail') return COLORS.red;
+  return COLORS.mutedGray;
+}
+
+function getBehaviorStatusLabel(status: string): string {
+  if (status === 'pass') return 'PASS';
+  if (status === 'fail') return 'FAIL';
+  return 'UNKNOWN';
 }
 
 function sanitizeFilenamePart(value: string) {
@@ -169,6 +182,19 @@ export async function generatePDF(
     }
   };
 
+  const drawQuote = (quote: string) => {
+    const lines = doc.splitTextToSize(`"${quote}"`, contentWidth - 16);
+    ensureSpace(lines.length * 4.5 + 4);
+    doc.setTextColor(COLORS.mutedGray);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    for (const line of lines) {
+      doc.text(line, margin + 8, y);
+      y += 4.5;
+    }
+    y += 2;
+  };
+
   drawHeader(false);
 
   const scoreColor = getScoreColor(grade.score);
@@ -213,6 +239,22 @@ export async function generatePDF(
   }
 
   y += topBoxHeight + 8;
+
+  // Prospect Summary (if available)
+  if (grade.prospectSummary) {
+    drawSectionTitle('Prospect Summary', COLORS.medium);
+    doc.setTextColor(COLORS.textGray);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    const summaryLines = doc.splitTextToSize(grade.prospectSummary, contentWidth);
+    ensureSpace(summaryLines.length * 5 + 4);
+    doc.text(summaryLines, margin, y);
+    y += summaryLines.length * 5 + 3;
+    doc.setDrawColor(COLORS.lightGray);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+  }
+
   drawSectionTitle('Executive Summary', COLORS.medium);
   doc.setTextColor(COLORS.textGray);
   doc.setFont('helvetica', 'italic');
@@ -233,10 +275,126 @@ export async function generatePDF(
   drawSectionTitle('What Needs Work', COLORS.amber);
   drawBulletedList(grade.improvements, COLORS.amber, 'No focused improvements were detected.');
 
-  if (grade.redFlags.length > 0) {
+  if (grade.redFlags && grade.redFlags.length > 0) {
     y += 4;
     drawSectionTitle('Red Flags', COLORS.red);
     drawBulletedList(grade.redFlags, COLORS.red, '');
+  }
+
+  // Critical Behaviors Section
+  if (grade.criticalBehaviors && grade.criticalBehaviors.length > 0) {
+    y += 8;
+    drawSectionTitle('Critical Behaviors', COLORS.medium);
+    
+    for (const behavior of grade.criticalBehaviors) {
+      ensureSpace(20);
+      const statusColor = getBehaviorStatusColor(behavior.status);
+      const statusLabel = getBehaviorStatusLabel(behavior.status);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(COLORS.dark);
+      doc.text(behavior.name, margin, y);
+      
+      // Status badge
+      const badgeX = pageWidth - margin - 25;
+      doc.setFillColor(statusColor);
+      doc.roundedRect(badgeX, y - 4, 22, 7, 1, 1, 'F');
+      doc.setTextColor(COLORS.white);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.text(statusLabel, badgeX + 11, y + 0.5, { align: 'center' });
+      
+      y += 6;
+      
+      // Note
+      if (behavior.note) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(COLORS.textGray);
+        const noteLines = doc.splitTextToSize(behavior.note, contentWidth - 10);
+        for (const line of noteLines) {
+          ensureSpace(4);
+          doc.text(line, margin + 4, y);
+          y += 4;
+        }
+      }
+      
+      // Evidence quotes (max 2)
+      if (behavior.evidence && behavior.evidence.length > 0) {
+        const evidenceToShow = behavior.evidence.slice(0, 2);
+        for (const quote of evidenceToShow) {
+          drawQuote(quote);
+        }
+      }
+      
+      y += 4;
+    }
+  }
+
+  // Confidence & Deterministic Breakdown
+  if (grade.confidence || grade.deterministic) {
+    y += 8;
+    ensureSpace(35);
+    
+    doc.setDrawColor('#d8e0ec');
+    doc.setFillColor('#f7f9fc');
+    doc.roundedRect(margin, y, contentWidth, 30, 2, 2, 'FD');
+    
+    let infoY = y + 8;
+    doc.setTextColor(COLORS.medium);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Scoring Details', margin + 3, infoY);
+    
+    infoY += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    
+    if (grade.deterministic) {
+      doc.setTextColor(COLORS.textGray);
+      doc.text(`Weighted Phase Score: ${grade.deterministic.weightedPhaseScore}`, margin + 3, infoY);
+      infoY += 5;
+      doc.text(`Penalty Points: -${grade.deterministic.penaltyPoints}`, margin + 3, infoY);
+      infoY += 5;
+      doc.text(`Unknown Penalty: -${grade.deterministic.unknownPenalty}`, margin + 3, infoY);
+      infoY += 5;
+    }
+    
+    if (grade.confidence) {
+      doc.setTextColor(COLORS.textGray);
+      doc.text(`Confidence: ${grade.confidence.score}/100`, margin + contentWidth / 2, y + 8);
+      const confY = y + 14;
+      doc.text(`Evidence: ${Math.round(grade.confidence.evidenceCoverage * 100)}%`, margin + contentWidth / 2, confY);
+      doc.text(`Quotes: ${Math.round(grade.confidence.quoteVerificationRate * 100)}%`, margin + contentWidth / 2, confY + 5);
+    }
+    
+    y += 35;
+  }
+
+  // Phase Evidence (quotes from each phase)
+  if (grade.phaseScores) {
+    for (const phase of grade.phaseScores) {
+      if (phase.evidence && phase.evidence.length > 0) {
+        y += 4;
+        drawSectionTitle(phase.name, COLORS.medium);
+        
+        if (phase.summary) {
+          doc.setTextColor(COLORS.textGray);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(10);
+          const summaryLines = doc.splitTextToSize(phase.summary, contentWidth);
+          ensureSpace(summaryLines.length * 5 + 4);
+          doc.text(summaryLines, margin, y);
+          y += summaryLines.length * 5 + 4;
+        }
+        
+        const evidenceToShow = phase.evidence.slice(0, 2);
+        for (const quote of evidenceToShow) {
+          drawQuote(quote);
+        }
+      }
+    }
   }
 
   const totalPages = doc.getNumberOfPages();
@@ -258,3 +416,4 @@ export async function generatePDF(
   const clientSlug = sanitizeFilenamePart(clientName || 'Client');
   doc.save(`Discovery_Call_Audit_${clientSlug}_${dateSlug}.pdf`);
 }
+
