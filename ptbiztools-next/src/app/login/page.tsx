@@ -6,19 +6,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
   CheckCircle2, 
-  ChevronDown, 
   Clock, 
+  Dumbbell,
+  Heart,
   LockKeyhole, 
   Palette, 
   Search,
   ShieldCheck, 
   Star, 
+  Stethoscope,
   UserRound, 
+  Users,
   Eye, 
-  EyeOff 
+  EyeOff,
+  Briefcase,
+  GraduationCap,
+  AlertCircle,
+  RotateCcw,
+  X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { LOGIN_LOGO_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
@@ -30,6 +38,17 @@ const JACK_NAME = "jack licata";
 const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a11935a3ac5d-512";
 
 const DEPARTMENTS = ["All", "Coaches", "Partners", "Client Success", "Advisors", "Acquisitions", "Internal"] as const;
+
+// Department icons for visual recognition
+const DEPARTMENT_ICONS: Record<string, React.ReactNode> = {
+  "All": <Users size={14} />,
+  "Coaches": <Dumbbell size={14} />,
+  "Partners": <Briefcase size={14} />,
+  "Client Success": <Heart size={14} />,
+  "Advisors": <GraduationCap size={14} />,
+  "Acquisitions": <Stethoscope size={14} />,
+  "Internal": <Star size={14} />,
+};
 
 type MemberProfile = {
   badge: string;
@@ -428,6 +447,27 @@ function getCredentialStyle(cred: string): string {
   return 'credential-default';
 }
 
+// Credential full names for tooltips
+function getCredentialFullName(cred: string): string {
+  const c = cred.trim().toUpperCase();
+  const names: Record<string, string> = {
+    'DPT': 'Doctor of Physical Therapy',
+    'PT': 'Physical Therapist',
+    'MSPT': 'Master of Science in Physical Therapy',
+    'OCS': 'Orthopaedic Clinical Specialist',
+    'SCS': 'Sports Clinical Specialist',
+    'CSCS': 'Certified Strength & Conditioning Specialist',
+    'PES': 'Performance Enhancement Specialist',
+    'RN': 'Registered Nurse',
+    'BIZ': 'Business Operations',
+    'OWNER': 'Business Owner',
+    'OPS': 'Operations',
+    'LEAD': 'Leadership',
+    'ADVR': 'Advisor',
+  };
+  return names[c] || cred;
+}
+
 // Get unique first letters for alphabet index
 function getAlphabetIndex(members: TeamMember[]): string[] {
   const letters = new Set<string>();
@@ -490,6 +530,35 @@ export default function LoginPage() {
   
   // Active letter for alphabet index
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
+
+  // Search input ref for keyboard shortcuts
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts: / to focus search, Esc to clear
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        if (e.key === 'Escape') {
+          // Clear search when Esc is pressed in search input
+          if (e.target === searchInputRef.current) {
+            setSearchTerm("");
+            (e.target as HTMLInputElement).blur();
+          }
+        }
+        return;
+      }
+
+      // / to focus search
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const teamQuery = useQuery({
     queryKey: ["auth", "team"],
@@ -708,14 +777,84 @@ export default function LoginPage() {
     }, 1500);
   };
 
-  if (sessionLoading || teamQuery.isLoading) {
+  // Skeleton loading component for profile cards
+  function ProfileSkeleton() {
+    return (
+      <div className="profile-card skeleton">
+        <div className="skeleton-avatar" />
+        <div className="skeleton-info">
+          <div className="skeleton-line skeleton-name" />
+          <div className="skeleton-line skeleton-title" />
+          <div className="skeleton-badges">
+            <div className="skeleton-badge" />
+            <div className="skeleton-badge" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error boundary component for failed loading
+  function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+    return (
+      <div className="login-error-state">
+        <div className="error-icon">
+          <AlertCircle size={48} />
+        </div>
+        <h3>Unable to load team members</h3>
+        <p>{error?.message || "Something went wrong while loading the team directory."}</p>
+        <button onClick={onRetry} className="error-retry-btn">
+          <RotateCcw size={16} />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (sessionLoading) {
     return (
       <div className="login-shell">
         <div className="login-card">
           <div className="login-loading">
             <div className="login-spinner" />
-            <p>Loading team members...</p>
+            <p>Checking session...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (teamQuery.isLoading) {
+    return (
+      <div className="login-shell">
+        <div className="login-card">
+          <header className="login-header">
+            <div className="login-logo-hero">
+              <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
+            </div>
+            <h1>Welcome Back</h1>
+            <p>Loading team directory...</p>
+          </header>
+          <section className="member-picker">
+            <div className="profile-grid">
+              {[...Array(6)].map((_, i) => (
+                <ProfileSkeleton key={i} />
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  if (teamQuery.error) {
+    return (
+      <div className="login-shell">
+        <div className="login-card">
+          <ErrorState 
+            error={teamQuery.error as Error} 
+            onRetry={() => teamQuery.refetch()} 
+          />
         </div>
       </div>
     );
@@ -785,12 +924,24 @@ export default function LoginPage() {
                 <Search size={18} />
               </div>
               <input
+                ref={searchInputRef}
                 type="text"
-                placeholder="Search by name or title..."
+                placeholder="Search by name or title... (Press / to focus)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
+                aria-label="Search team members"
               />
+              {searchTerm && (
+                <button 
+                  className="search-clear"
+                  onClick={() => setSearchTerm("")}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
+              <kbd className="search-shortcut">/</kbd>
             </div>
 
             {/* Department Tabs */}
@@ -800,8 +951,10 @@ export default function LoginPage() {
                   key={dept}
                   onClick={() => setSelectedDepartment(dept)}
                   className={`department-tab ${selectedDepartment === dept ? 'active' : ''}`}
+                  aria-pressed={selectedDepartment === dept}
                 >
-                  {dept}
+                  {DEPARTMENT_ICONS[dept]}
+                  <span>{dept}</span>
                   <span className="department-count">{departmentCounts[dept] || 0}</span>
                 </button>
               ))}
@@ -887,16 +1040,16 @@ export default function LoginPage() {
 
             <div className="selected-user-card">
               <TeamAvatar
-                name={selectedUser?.name || ""}
-                imageUrl={selectedUser?.imageUrl}
+                name={selectedUser.name}
+                imageUrl={selectedUser.imageUrl}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />
               <div>
-                <h2>{selectedUser?.name}</h2>
-                <p>{selectedUser?.title}</p>
-                <span>{selectedUser?.teamSection}</span>
-                {!!selectedUserBadgeTokens.length && selectedUser && (
+                <h2>{selectedUser.name}</h2>
+                <p>{selectedUser.title}</p>
+                <span>{selectedUser.teamSection}</span>
+                {selectedUserBadgeTokens.length > 0 && (
                   <div className="selected-user-badge-list">
                     {selectedUserBadgeTokens.map((badgeToken) => (
                       <small key={`${selectedUser.id}-${badgeToken}`} className="selected-user-badge-chip">
