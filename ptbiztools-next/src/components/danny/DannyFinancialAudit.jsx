@@ -4,8 +4,23 @@ import { useState, useRef, useCallback } from "react";
 import { extractDannyPLFromPdf, logAction, savePdfExport } from "@/lib/ptbiz-api";
 import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 import { TOOL_BADGES } from "@/constants/tool-badges";
+import "@/styles/danny-tools.css";
 
-const B = { blue:"#2E86F5", blueLt:"#5BA0F7", blueDk:"#1A6AD4", glow:"rgba(46,134,245,0.25)", dark:"#1A1A1E", surf:"#242428", bdr:"#35353A", bdrLt:"#45454B", wht:"#F5F5F7", gray:"#9A9AA0", grayDk:"#6A6A70", grayXDk:"#4A4A50" };
+// Light theme color palette
+const B = { 
+  blue:"#2E86F5", 
+  blueLt:"#5BA0F7", 
+  blueDk:"#1A6AD4", 
+  glow:"rgba(46,134,245,0.15)", 
+  dark:"#FAFAFB", 
+  surf:"#FFFFFF", 
+  bdr:"#E5E7EB", 
+  bdrLt:"#D1D5DB", 
+  wht:"#111827", 
+  gray:"#6B7280", 
+  grayDk:"#9CA3AF", 
+  grayXDk:"#D1D5DB" 
+};
 const REF = { rev:961260, rent:46807, util:4909, staff:278433, ptax:25785, ben:15596, owner:61539, mkt:58137, merch:28764, sw:11489, dues:15967, oSup:10109, ptSup:7172, med:0, prof:16874, cont:0, ins:5092, ce:3170, meal:5157, trav:5348, int:2095, oth:8721 };
 
 const BM = [
@@ -82,9 +97,9 @@ function stat(v, bm) {
 }
 
 const SX = {
-  healthy: { bg:"#0D2818", tx:"#34D399", ac:"#059669", lb:"HEALTHY" },
-  caution: { bg:"#2D1F00", tx:"#FBBF24", ac:"#D97706", lb:"CAUTION" },
-  critical: { bg:"#2D0A0A", tx:"#F87171", ac:"#DC2626", lb:"CRITICAL" },
+  healthy: { bg:"#ECFDF5", tx:"#059669", ac:"#047857", lb:"HEALTHY" },
+  caution: { bg:"#FFFBEB", tx:"#D97706", ac:"#B45309", lb:"CAUTION" },
+  critical: { bg:"#FEF2F2", tx:"#DC2626", ac:"#B91C1C", lb:"CRITICAL" },
   none: { bg:B.surf, tx:B.gray, ac:B.grayXDk, lb:"—" }
 };
 const PSX = { healthy:"#047857", caution:"#B45309", critical:"#DC2626", none:"#6B7280" };
@@ -594,10 +609,10 @@ export default function DannyFinancialAudit() {
     maxWidth:980,
     margin:"0 auto",
     padding:"24px 24px 26px",
-    background:B.dark,
+    background:B.surf,
     border:"1px solid " + B.bdr,
     borderRadius:16,
-    boxShadow:"0 20px 48px rgba(5, 8, 20, 0.36)",
+    boxShadow:"0 4px 24px rgba(0, 0, 0, 0.08)",
     color:B.wht,
     fontFamily:"'Barlow',sans-serif",
   };

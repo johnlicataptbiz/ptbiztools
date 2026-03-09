@@ -1,0 +1,460 @@
+/* Danny Tools - Standardized Styles */
+/* Lighter, cleaner design system for Financial Audit and Compensation Calculator */
+
+.danny-tool-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.danny-canvas {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Barlow', sans-serif;
+  color: var(--color-text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.danny-canvas-narrow {
+  max-width: 760px;
+}
+
+.danny-section {
+  background: color-mix(in oklab, var(--surface) 98%, var(--background) 2%);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+
+.danny-section h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* Form Elements */
+.danny-input-group {
+  margin-bottom: 12px;
+}
+
+.danny-input-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 3px;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.danny-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.danny-input-wrap input,
+.danny-input-wrap select {
+  flex: 1;
+  padding: 9px 10px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  width: 100%;
+}
+
+.danny-input-prefix {
+  padding: 7px 0 7px 10px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Button Groups */
+.danny-btn-group {
+  display: flex;
+  gap: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.danny-btn-group button {
+  flex: 1;
+  padding: 9px 6px;
+  background: var(--background);
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+}
+
+.danny-btn-group button:hover {
+  background: color-mix(in oklab, var(--accent) 10%, var(--background) 90%);
+}
+
+.danny-btn-group button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Cards */
+.danny-card {
+  background: color-mix(in oklab, var(--surface) 98%, var(--background) 2%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+
+.danny-card-highlight {
+  border-left: 4px solid var(--accent);
+}
+
+/* Upload Area */
+.danny-upload {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: color-mix(in oklab, var(--surface) 98%, var(--background) 2%);
+  border-radius: 14px;
+  border: 2px dashed var(--border);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.danny-upload:hover {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 5%, var(--surface) 95%);
+}
+
+.danny-upload.active {
+  border: 2px solid var(--accent);
+}
+
+/* Status Colors */
+.danny-status-healthy { color: #059669; }
+.danny-status-caution { color: #D97706; }
+.danny-status-critical { color: #DC2626; }
+.danny-status-info { color: var(--accent); }
+
+.danny-bg-healthy { background: #ECFDF5; }
+.danny-bg-caution { background: #FFFBEB; }
+.danny-bg-critical { background: #FEF2F2; }
+
+/* Tables */
+.danny-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.danny-table th {
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-family: 'Barlow Condensed', sans-serif;
+  border-bottom: 1px solid var(--border);
+}
+
+.danny-table td {
+  padding: 7px 14px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+}
+
+.danny-table td.numeric {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Primary Button */
+.danny-btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: 0 4px 20px color-mix(in oklab, var(--accent) 25%, transparent);
+  transition: all 0.15s ease;
+}
+
+.danny-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.danny-btn-primary:disabled {
+  background: var(--border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Secondary Button */
+.danny-btn-secondary {
+  padding: 10px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+}
+
+.danny-btn-secondary:hover {
+  background: color-mix(in oklab, var(--accent) 10%, var(--surface) 90%);
+  border-color: var(--accent);
+}
+
+/* Score Ring */
+.danny-score-ring {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.danny-score-ring svg {
+  transform: rotate(-90deg);
+}
+
+/* Tag/Badge */
+.danny-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+
+/* Grid layouts */
+.danny-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.danny-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.danny-grid-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Header */
+.danny-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.danny-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.danny-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+.danny-header-text {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+}
+
+/* Results specific */
+.danny-result-card {
+  background: var(--background);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.danny-result-value {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
+}
+
+.danny-result-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+/* Range bar */
+.danny-range-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+.danny-range-segment {
+  position: absolute;
+  height: 100%;
+}
+
+/* Info box */
+.danny-info-box {
+  background: color-mix(in oklab, var(--accent) 10%, var(--background) 90%);
+  border: 1px solid color-mix(in oklab, var(--accent) 33%, var(--border) 67%);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.danny-info-box-title {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 600;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+/* CTA Section */
+.danny-cta {
+  background: color-mix(in oklab, var(--accent) 12%, var(--background) 88%);
+  border-radius: 12px;
+  padding: 28px 24px;
+  border: 1px solid color-mix(in oklab, var(--accent) 33%, var(--border) 67%);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.danny-cta h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.danny-cta p {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.danny-cta a {
+  display: inline-block;
+  padding: 12px 32px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: all 0.15s ease;
+}
+
+.danny-cta a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+/* Footer */
+.danny-footer {
+  text-align: center;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+}
+
+.danny-footer p {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  margin: 0 0 3px;
+}
+
+/* Utility */
+.danny-flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.danny-flex-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.danny-text-muted {
+  color: var(--color-text-muted);
+}
+
+.danny-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.danny-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.danny-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

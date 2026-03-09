@@ -3,10 +3,26 @@
 // @ts-nocheck
 import { useState, useCallback } from "react";
 import { TOOL_BADGES } from "@/constants/tool-badges";
+import "@/styles/danny-tools.css";
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
-const B = {bg:"#0e0e12",surf:"#18181f",dark:"#111115",bdr:"#2a2a33",blue:"#2E86F5",wht:"#F1F2F6",gray:"#9CA3AF",grayDk:"#6B7280",grayXDk:"#4B5563",green:"#34D399",yellow:"#FBBF24",red:"#F87171",glow:"#2E86F520"};
+// Light theme color palette
+const B = {
+  bg:"#FAFAFB",
+  surf:"#FFFFFF", 
+  dark:"#F3F4F6", 
+  bdr:"#E5E7EB", 
+  blue:"#2E86F5", 
+  wht:"#111827", 
+  gray:"#6B7280", 
+  grayDk:"#9CA3AF", 
+  grayXDk:"#D1D5DB", 
+  green:"#059669", 
+  yellow:"#D97706", 
+  red:"#DC2626", 
+  glow:"rgba(46,134,245,0.15)"
+};
 
 const $ = v => v === null || v === undefined || isNaN(v) ? "—" : "$" + Math.round(v).toLocaleString("en-US");
 const $k = v => v >= 1000 ? "$" + (v/1000).toFixed(v % 1000 === 0 ? 0 : 1) + "K" : $(v);
@@ -25,10 +41,10 @@ function parseNumericInput(value) {
 function Inp({ label, value, name, onChange, hint, prefix }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <label style={{ display:"block", fontSize:10, fontWeight:600, color:B.gray, marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</label>
+      <label style={{ display:"block", fontSize:10, fontWeight:600, color:"#6B7280", marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</label>
       <div style={{ position:"relative" }}>
-        {prefix && <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:B.grayDk, fontSize:13, fontFamily:"'JetBrains Mono',monospace", pointerEvents:"none" }}>{prefix}</span>}
-        <input type="text" value={value} name={name} onChange={onChange} placeholder={hint || ""} style={{ width:"100%", padding:"9px 11px", paddingLeft:prefix ? 24 : 11, background:B.dark, border:"1px solid " + B.bdr, borderRadius:6, color:B.wht, fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }} />
+        {prefix && <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"#9CA3AF", fontSize:13, fontFamily:"'JetBrains Mono',monospace", pointerEvents:"none" }}>{prefix}</span>}
+        <input type="text" value={value} name={name} onChange={onChange} placeholder={hint || ""} style={{ width:"100%", padding:"9px 11px", paddingLeft:prefix ? 24 : 11, background:"#FFFFFF", border:"1px solid #E5E7EB", borderRadius:6, color:"#111827", fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }} />
       </div>
     </div>
   );
@@ -112,18 +128,18 @@ export default function App() {
     margin:"0 auto",
     padding:"24px 24px 26px",
     fontFamily:"'Barlow',sans-serif",
-    color:B.wht,
-    background:B.bg,
-    border:"1px solid " + B.bdr,
+    color:"#111827",
+    background:"#FFFFFF",
+    border:"1px solid #E5E7EB",
     borderRadius:16,
-    boxShadow:"0 20px 48px rgba(5, 8, 20, 0.36)",
+    boxShadow:"0 4px 24px rgba(0, 0, 0, 0.08)",
   };
   const sectionStyle = {
-    background:B.surf,
+    background:"#F3F4F6",
     borderRadius:14,
     padding:"18px 20px",
     marginBottom:14,
-    border:"1px solid " + B.bdr,
+    border:"1px solid #E5E7EB",
   };
 
   // ── INPUT VIEW ──
@@ -149,8 +165,8 @@ export default function App() {
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Location</h3>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 14px" }}>
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:"block", fontSize:10, fontWeight:600, color:B.gray, marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>State</label>
-              <select name="state" value={f.state} onChange={handleChange} style={{ width:"100%", padding:"9px 11px", background:B.dark, border:"1px solid " + B.bdr, borderRadius:6, color:B.wht, fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }}>
+              <label style={{ display:"block", fontSize:10, fontWeight:600, color:"#6B7280", marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>State</label>
+              <select name="state" value={f.state} onChange={handleChange} style={{ width:"100%", padding:"9px 11px", background:"#FFFFFF", border:"1px solid #E5E7EB", borderRadius:6, color:"#111827", fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }}>
                 {STATES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -161,9 +177,9 @@ export default function App() {
         {/* Revenue Inputs */}
         <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Provider Revenue</h3>
-          <div style={{ display:"flex", gap:0, borderRadius:6, overflow:"hidden", border:"1px solid " + B.bdr, marginBottom:14 }}>
+          <div style={{ display:"flex", gap:0, borderRadius:6, overflow:"hidden", border:"1px solid #E5E7EB", marginBottom:14 }}>
             {[["visits","Calculate from Visits"],["gross","Enter Gross Revenue"]].map(([v, lb]) => (
-              <button key={v} onClick={() => setF(p => ({ ...p, useGross: v === "gross" }))} style={{ flex:1, padding:"9px 6px", background:(v === "gross") === f.useGross ? B.blue : B.dark, border:"none", color:(v === "gross") === f.useGross ? "#fff" : B.grayDk, fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>{lb}</button>
+              <button key={v} onClick={() => setF(p => ({ ...p, useGross: v === "gross" }))} style={{ flex:1, padding:"9px 6px", background:(v === "gross") === f.useGross ? "#2E86F5" : "#F3F4F6", border:"none", color:(v === "gross") === f.useGross ? "#fff" : "#6B7280", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>{lb}</button>
             ))}
           </div>
           {!f.useGross ? (
