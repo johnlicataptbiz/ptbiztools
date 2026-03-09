@@ -55,15 +55,16 @@ const ROLE_SECTIONS: RoleSection[] = [
 ];
 
 const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
+  // Coaches (12)
   "ashley speights": {
-    badge: "PT,DPT",
+    badge: "PT, DPT, PES",
     credentials: "Coach; PT, DPT, PES",
     clinic: "Founder & Owner - The PHYT Collective (Washington, DC)",
     experience: "Athlete-focused cash practice with strong community education",
     clinicLogoUrl: "https://logos.hunter.io/phytcollective.com",
   },
   "brooke miller": {
-    badge: "DPT,OCS",
+    badge: "PT, DPT, OCS",
     credentials: "Coach; PT, DPT, OCS",
     clinic: "Owner - PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
     experience: "Pelvic health + orthopedic performance specialist clinic owner",
@@ -91,35 +92,35 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinicLogoUrl: "https://logos.hunter.io/teamnaturalwellness.com",
   },
   "daniel laughlin": {
-    badge: "PT,DPT",
+    badge: "PT, DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Owner - Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
     experience: "Converted from insurance model to high-performing hybrid practice",
     clinicLogoUrl: "https://logos.hunter.io/lpptkc.com",
   },
   "dj haskins": {
-    badge: "PT,DPT",
+    badge: "PT, DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Founder - Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
     experience: "Pelvic health practice helping women return to confident movement",
     clinicLogoUrl: "https://logos.hunter.io/blisspelvichealth.com",
   },
   "elizabeth rudd": {
-    badge: "DPT,OCS",
+    badge: "PT, DPT, OCS, CSCS",
     credentials: "Coach; PT, DPT, OCS, CSCS",
     clinic: "Founder/Owner - Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
     experience: "Sports performance, rehab, and pain-management specialist",
     clinicLogoUrl: "https://logos.hunter.io/wellequiptpt.com",
   },
   "jaxie meth": {
-    badge: "PT,DPT",
+    badge: "PT, DPT",
     credentials: "Coach; PT, DPT",
     clinic: "Founder/Owner - The METHOD Performance and Physical Therapy (Boston, MA area)",
     experience: "Pelvic floor specialist for fitness athletes",
     clinicLogoUrl: "https://logos.hunter.io/themethodpt.com",
   },
   "michael sclafani": {
-    badge: "DPT,SCS",
+    badge: "DPT, SCS, CSCS",
     credentials: "Coach; DPT, SCS, CSCS",
     clinic: "Founder/Owner - Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
     experience: "Sports residency trained; published IJSPT author; DPT faculty contributor",
@@ -133,24 +134,26 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinicLogoUrl: "https://logos.hunter.io/bulletproofpt.com",
   },
   "ziad dahdul": {
-    badge: "DPT,OCS",
+    badge: "DPT, OCS",
     credentials: "Coach; DPT, OCS",
     clinic: "Founder/Owner - Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
     experience: "11+ years with athletes; USC DPT; functional performance focus",
     clinicLogoUrl: "https://logos.hunter.io/ignitephyzio.com",
   },
-  "danny matta": {
-    badge: "DPT,OCS",
-    credentials: "Partner; CEO; DPT, OCS, CSCS",
-    clinic: "Co-founder/Co-owner (with Ashley Matta) - Athletes' Potential (Decatur/Atlanta, GA)",
-    experience: "Former U.S. Army Physical Therapist; co-founded PT Biz and scaled Athletes' Potential before selling in 2023",
-  },
+
+  // Partners (3)
   "yves gege": {
-    badge: "PT",
-    credentials: "Partner; Head of Customer Success & Coaching; PT",
+    badge: "MSPT",
+    credentials: "Partner; Head of Customer Success & Coaching; MSPT",
     clinic: "Founder - Made 2 Move Physical Therapy (Charleston, SC area)",
     experience: "Grew to multiple locations/providers; sold in 2020; remains mentor",
     clinicLogoUrl: "https://logos.hunter.io/made2movept.com",
+  },
+  "danny matta": {
+    badge: "DPT, OCS, CSCS",
+    credentials: "Partner; CEO; DPT, OCS, CSCS",
+    clinic: "Co-founder/Co-owner (with Ashley Matta) - Athletes' Potential (Decatur/Atlanta, GA)",
+    experience: "Former U.S. Army Physical Therapist; co-founded PT Biz and scaled Athletes' Potential before selling in 2023",
   },
   "jerred moon": {
     badge: "BIZ",
@@ -158,19 +161,8 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "PT Biz CFO + acquisitions leader; USAF veteran; 8-figure digital operator; author of Killing Comfort",
   },
-  "john licata": {
-    badge: "BIZ",
-    credentials: "Advisor; Senior Advisor",
-    clinic: "Senior Advisor - PT Biz",
-    experience: "30+ years in consumer goods leadership, sales strategy, and executive consulting",
-  },
-  "toni counts": {
-    badge: "PT,DPT",
-    credentials: "Advisor; Business Advisor; PT, DPT",
-    clinic: "Founder/Owner - Off The Block Performance Physical Therapy (Central/Easley, SC area)",
-    experience: "Multiple locations with husband Cole",
-    clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
-  },
+
+  // Client Success (5)
   "amy gege": {
     badge: "OPS",
     credentials: "Client Success; Events & Operations",
@@ -202,6 +194,29 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "Outpatient neuro background; movement, education, and operations focus",
   },
+  "jack licata": {
+    badge: "BIZ",
+    credentials: "Client Success; Acquisitions Support; PT Biz Coach Tools Creator",
+    clinic: "",
+    experience: "Supports advisor sales process and helps execute web, AI, and workflow fulfillment",
+  },
+
+  // Advisors (2)
+  "john licata": {
+    badge: "BIZ",
+    credentials: "Advisor; Senior Advisor",
+    clinic: "Senior Advisor - PT Biz",
+    experience: "30+ years in consumer goods leadership, sales strategy, and executive consulting",
+  },
+  "toni counts": {
+    badge: "PT, DPT",
+    credentials: "Advisor; Business Advisor; PT, DPT",
+    clinic: "Founder/Owner - Off The Block Performance Physical Therapy (Central/Easley, SC area)",
+    experience: "Multiple locations with husband Cole",
+    clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
+  },
+
+  // Acquisitions (5)
   "e'an verdugo": {
     badge: "OPS",
     credentials: "Acquisitions; Creative Director",
@@ -226,11 +241,13 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "Leads website builds and acquisition support",
   },
-  "jack licata": {
-    badge: "BIZ",
-    credentials: "Client Success; Acquisitions Support; PT Biz Coach Tools Creator",
+
+  // Internal (1)
+  "pd": {
+    badge: "OPS",
+    credentials: "Internal; PTBiz Dev Tester",
     clinic: "",
-    experience: "Supports advisor sales process and helps execute web, AI, and workflow fulfillment",
+    experience: "Development and testing operations",
   },
 };
 
@@ -779,7 +796,7 @@ export default function LoginPage() {
             {/* Profile Grid */}
             <div className="profile-grid">
               {filteredMembers && filteredMembers.length > 0 ? (
-                filteredMembers.map((member: TeamMember) => {
+                filteredMembers.map((member) => {
                   const profile = getMemberProfile(member);
                   const badgeTokens = getBadgeTokens(profile);
                   const isJack = normalizeText(member.name) === JACK_NAME;
@@ -813,16 +830,20 @@ export default function LoginPage() {
                         )}
                       </div>
                       <div className="profile-card-info">
-                        <div className="profile-name">{member.name}</div>
+                        <div className="profile-name-row">
+                          <div className="profile-name">{member.name}</div>
+                          {badgeTokens.length > 0 && (
+                            <div 
+                              className="profile-credential-badge" 
+                              title={`Credentials: ${profile.credentials}`}
+                            >
+                              {badgeTokens.slice(0, 2).join(", ")}
+                              {badgeTokens.length > 2 && "+"}
+                            </div>
+                          )}
+                        </div>
                         <div className="profile-title">{member.title || "Team Member"}</div>
                         <div className="profile-department">{getMemberDepartment(member)}</div>
-                        {badgeTokens.length > 0 && (
-                          <div className="profile-badges">
-                            {badgeTokens.map((badge) => (
-                              <span key={badge} className="profile-badge">{badge}</span>
-                            ))}
-                          </div>
-                        )}
                       </div>
                       <div className="profile-card-action">Select</div>
                     </motion.button>

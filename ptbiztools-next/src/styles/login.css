@@ -442,6 +442,13 @@
   width: 100%;
 }
 
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
 .profile-name {
   color: var(--foreground);
   font-size: 16px;
@@ -451,6 +458,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.profile-credential-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in oklab, var(--accent) 15%, var(--surface));
+  color: var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  border-radius: 12px;
+  cursor: help;
+  white-space: nowrap;
 }
 
 .profile-title {
