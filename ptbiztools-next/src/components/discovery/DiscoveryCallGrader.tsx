@@ -851,7 +851,6 @@ export default function DiscoveryCallGrader() {
             className="tool-page-badge discovery-tool-badge" 
             src={TOOL_BADGES.discovery} 
             alt="Discovery Call Grader badge" 
-            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
           />
           <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
             Discovery Grader

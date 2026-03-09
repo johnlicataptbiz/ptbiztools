@@ -613,7 +613,6 @@ export default function DannyFinancialAudit() {
             className="tool-page-badge" 
             src={TOOL_BADGES.pl} 
             alt="P&L Calculator badge" 
-            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
           />
           <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
             P&amp;L Audit
@@ -728,7 +727,6 @@ export default function DannyFinancialAudit() {
           className="tool-page-badge" 
           src={TOOL_BADGES.pl} 
           alt="P&L Calculator badge" 
-          style={{ width: "64px", height: "64px", marginBottom: "12px" }}
         />
         <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
           P&amp;L Report

@@ -1279,7 +1279,6 @@ export default function SalesCallGrader() {
             className="tool-page-badge" 
             src={TOOL_BADGES.sales} 
             alt="Sales Grader badge" 
-            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
           />
           <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
             Call Grader
