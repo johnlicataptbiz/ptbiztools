@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PT Biz Tools - Next.js Application
 
-## Getting Started
+**Production URL**: [https://www.ptbizcoach.com](https://www.ptbizcoach.com)  
+**Vercel Dashboard**: [https://vercel.com/jack-licatas-projects/ptbiztools-next](https://vercel.com/jack-licatas-projects/ptbiztools-next)
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+PT Biz Tools is a comprehensive business intelligence platform for physical therapy practice owners. Built with Next.js 16, React 19, and modern web technologies.
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 16.1.6 (App Router) |
+| UI Library | React 19.2.3 |
+| Language | TypeScript 5.x |
+| Styling | Tailwind CSS 4.x |
+| AI/ML | AI SDK + Workflow AI |
+| Database | ElectricSQL PGLite (local-first) |
+| Auth | Cookie-based sessions |
+| Validation | Zod |
+| Icons | Lucide React |
+| Animations | Framer Motion |
+| PDF/DOCX | jsPDF + DOCX libraries |
+
+## Project Structure
+
+```
+ptbiztools-next/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (app)/             # App layout group
+│   │   ├── api/               # API routes
+│   │   ├── login/             # Auth pages
+│   │   └── stack-lab/         # Dev tools (gated)
+│   ├── components/            # React components
+│   │   ├── agent/             # AI agent components
+│   │   ├── analyses/          # Analysis history
+│   │   ├── auth/              # Auth components
+│   │   ├── danny/             # Danny tools (P&L, Compensation)
+│   │   ├── discovery/         # Discovery call grader
+│   │   ├── grader/            # Grader components
+│   │   ├── layout/            # App shell, navigation
+│   │   └── tour/              # Onboarding tour
+│   ├── lib/                   # Core libraries
+│   │   ├── agent/             # Agent protocol
+│   │   ├── auth/              # Session management
+│   │   ├── local-first/       # PGLite database
+│   │   ├── theme/             # Theme context
+│   │   └── tour/              # Tour system
+│   ├── constants/             # App constants
+│   ├── styles/                # CSS files
+│   ├── utils/                 # Utilities (PDF, grading)
+│   └── workflows/             # Workflow definitions
+├── docs/                      # Documentation
+├── public/                    # Static assets
+└── .vercel/                   # Vercel config
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Available Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev          # Start dev server with Turbopack
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run workflow:web # Start workflow web UI
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Core Features
 
-## Learn More
+### 1. Discovery Call Grader
+- Upload sales call recordings (audio/video)
+- AI-powered analysis and scoring
+- Export results as PDF or DOCX
+- Historical analysis tracking
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Danny P&L Financial Audit
+- Practice financial analysis
+- Compensation benchmarking
+- Revenue optimization insights
+- Report generation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Danny Compensation Calculator
+- Employee compensation modeling
+- Market rate comparisons
+- Total cost analysis
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Sales Discovery Grader
+- Role-gated access
+- Sales performance tracking
+- Team analytics
 
-## Deploy on Vercel
+### 5. Agent Surface (AI)
+- Workflow-based AI agents
+- Real-time streaming responses
+- Local-first data architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Environment Variables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Required
+NEXT_PUBLIC_ENABLE_STACK_LAB=true  # Enable dev tools (optional)
+
+# Database (PGLite - local-first)
+# No external DB required - runs in browser
+```
+
+## Development
+
+### Setup
+```bash
+cd ptbiztools-main/ptbiztools-next
+npm install
+npm run dev
+```
+
+### Build & Deploy
+```bash
+npm run build
+vercel --prod  # or push to main branch
+```
+
+## Architecture
+
+See [docs/architecture.md](./docs/architecture.md) for detailed system design.
+
+## Agent Development
+
+See [docs/agent-development.md](./docs/agent-development.md) for AI agent guidelines.
+
+## Migration Status
+
+See [docs/migration-status.md](./docs/migration-status.md) for legacy-to-Next.js migration details.
+
+## License
+
+Private - PT Biz Coach
