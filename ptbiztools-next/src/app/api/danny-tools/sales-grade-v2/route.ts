@@ -141,7 +141,7 @@ const GradingResultSchema = z.object({
   }),
   metadata: z.object({
     closer: z.string(),
-    outcome: z.string().optional(),
+    outcome: z.string(),
     model: z.string(),
   }),
 });
