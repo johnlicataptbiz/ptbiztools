@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
 
 // VTT/SRT timestamp patterns to strip
 const TIMESTAMP_PATTERNS = {
@@ -83,6 +86,125 @@ interface GradeRequest {
   };
 }
 
+// AI Grading Schema
+const PhaseSchema = z.object({
+  score: z.number().min(0).max(100),
+  summary: z.string(),
+  evidence: z.array(z.string()),
+});
+
+const BehaviorSchema = z.object({
+  status: z.enum(["pass", "fail", "unknown"]),
+  note: z.string(),
+  evidence: z.array(z.string()),
+});
+
+const GradingResultSchema = z.object({
+  version: z.literal("v2"),
+  programProfile: z.enum(["Rainmaker", "Mastermind"]),
+  phases: z.object({
+    connection: PhaseSchema,
+    discovery: PhaseSchema,
+    gap_creation: PhaseSchema,
+    temp_check: PhaseSchema,
+    solution: PhaseSchema,
+    close: PhaseSchema,
+    followup: PhaseSchema,
+  }),
+  criticalBehaviors: z.object({
+    free_consulting: BehaviorSchema,
+    discount_discipline: BehaviorSchema,
+    emotional_depth: BehaviorSchema,
+    time_management: BehaviorSchema,
+    personal_story: BehaviorSchema,
+  }),
+  deterministic: z.object({
+    weightedPhaseScore: z.number(),
+    penaltyPoints: z.number(),
+    unknownPenalty: z.number(),
+    overallScore: z.number(),
+  }),
+  confidence: z.object({
+    score: z.number().min(0).max(100),
+    evidenceCoverage: z.number(),
+    quoteVerificationRate: z.number(),
+    transcriptQuality: z.number(),
+  }),
+  qualityGate: z.object({
+    accepted: z.boolean(),
+    reasons: z.array(z.string()),
+  }),
+  highlights: z.object({
+    topStrength: z.string(),
+    topImprovement: z.string(),
+    prospectSummary: z.string(),
+  }),
+  metadata: z.object({
+    closer: z.string(),
+    outcome: z.string().optional(),
+    model: z.string(),
+  }),
+});
+
+/**
+ * Build the grading prompt for the AI
+ */
+function buildGradingPrompt(params: {
+  transcript: string;
+  closer: string;
+  outcome?: "Won" | "Lost";
+  program: "Rainmaker" | "Mastermind";
+  prospectName?: string;
+  callMeta?: { durationMinutes?: number };
+}): string {
+  const { transcript, closer, outcome, program, prospectName, callMeta } = params;
+
+  return `You are an expert sales coach evaluating a PT (Physical Therapy) business coaching sales call.
+
+CLOSER: ${closer}
+PROGRAM: ${program}
+OUTCOME: ${outcome || "Unknown"}
+${prospectName ? `PROSPECT: ${prospectName}` : ""}
+${callMeta?.durationMinutes ? `CALL DURATION: ~${callMeta.durationMinutes} minutes` : ""}
+
+TRANSCRIPT:
+"""
+${transcript}
+"""
+
+Evaluate this call using the 7-phase framework:
+
+1. CONNECTION & AGENDA (10%): Rapport building, agenda setting, tone establishment
+2. DISCOVERY (25%): Facts, Feelings, Future — emotional depth, not just KPIs
+3. GAP CREATION (20%): Cost of inaction, math exercise, skills gap identification
+4. TEMPERATURE CHECK (10%): Did they gauge readiness? Did they act on it appropriately?
+5. SOLUTION PRESENTATION (15%): Calibrated to prospect, personal story deployed, not a platform demo
+6. INVESTMENT & CLOSE (15%): Price presentation, objection handling, the ask, discount discipline
+7. FOLLOW-UP / WRAP (5%): Clean exit, next steps scheduled, no lingering free consulting
+
+CRITICAL BEHAVIORS to evaluate:
+- No Free Consulting: Did NOT give away actionable advice before commitment
+- Discount Discipline: No unprompted concessions or ad-hoc discounts
+- Emotional Depth: Went beyond surface answers to uncover real feelings/fears
+- Time Management: Call stayed under 60 min, didn't linger after clear 'no'
+- Story Deployment: Used personal or client transformation story effectively
+
+Provide specific evidence (direct quotes) for each phase score. Score each phase 0-100 based on the rubric.
+
+Return a complete grading result with all fields in the specified schema.`;
+}
+
+/**
+ * Simple hash function for transcript integrity
+ */
+async function hashTranscript(transcript: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(transcript);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as GradeRequest;
@@ -121,38 +243,61 @@ export async function POST(request: NextRequest) {
       charDiff: body.transcript.length - cleanedTranscript.length,
     });
 
-    // TODO: Forward to actual AI grading service
-    // For now, return a mock response indicating the cleaning worked
-    // In production, this would call your AI service with cleanedTranscript
+    // Check for OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "AI grading service not configured", reasons: ["OPENAI_API_KEY not set"] },
+        { status: 503 }
+      );
+    }
 
-    // Example integration with external AI service:
-    // const aiResponse = await fetch("https://your-ai-service.com/grade", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.AI_API_KEY}` },
-    //   body: JSON.stringify({
-    //     transcript: cleanedTranscript,
-    //     closer: body.closer,
-    //     outcome: body.outcome,
-    //     program: body.program,
-    //     prospectName: body.prospectName,
-    //     callMeta: body.callMeta,
-    //   }),
-    // });
-    // const aiResult = await aiResponse.json();
+    // Call AI grading service with cleaned transcript
+    try {
+      const aiResult = await generateObject({
+        model: openai("gpt-4.1-mini"),
+        schema: GradingResultSchema,
+        prompt: buildGradingPrompt({
+          transcript: cleanedTranscript,
+          closer: body.closer,
+          outcome: body.outcome,
+          program: body.program,
+          prospectName: body.prospectName,
+          callMeta: body.callMeta,
+        }),
+      });
 
-    // Return success with metadata about the cleaning
-    return NextResponse.json({
-      version: "v2",
-      programProfile: body.program,
-      processing: {
-        subtitleFormatDetected: wasSubtitleFormat,
-        originalLength: body.transcript.length,
-        cleanedLength: cleanedTranscript.length,
-        charactersRemoved: body.transcript.length - cleanedTranscript.length,
-      },
-      // TODO: Replace with actual AI grading result
-      note: "Transcript cleaned successfully. Connect to AI grading service for full results.",
-    });
+      // Transform AI result to match expected frontend format
+      const result = {
+        ...aiResult.object,
+        overall_score: aiResult.object.deterministic.overallScore,
+        top_strength: aiResult.object.highlights.topStrength,
+        top_improvement: aiResult.object.highlights.topImprovement,
+        prospect_summary: aiResult.object.highlights.prospectSummary,
+        phases: aiResult.object.phases,
+        critical_behaviors: aiResult.object.criticalBehaviors,
+        storage: {
+          redactedTranscript: cleanedTranscript.slice(0, 1000), // Store first 1000 chars for reference
+          transcriptHash: await hashTranscript(cleanedTranscript),
+        },
+      };
+
+      return NextResponse.json(result);
+    } catch (aiError) {
+      console.error("[sales-grade-v2] AI grading failed:", aiError);
+      return NextResponse.json(
+        { 
+          error: "AI grading failed", 
+          reasons: [aiError instanceof Error ? aiError.message : "Unknown AI error"],
+          processing: {
+            subtitleFormatDetected: wasSubtitleFormat,
+            originalLength: body.transcript.length,
+            cleanedLength: cleanedTranscript.length,
+            charactersRemoved: body.transcript.length - cleanedTranscript.length,
+          },
+        },
+        { status: 502 }
+      );
+    }
 
   } catch (error) {
     console.error("[sales-grade-v2] Error processing request:", error);
