@@ -10,7 +10,6 @@ import {
   Dumbbell,
   Heart,
   LockKeyhole, 
-  Palette, 
   Search,
   ShieldCheck, 
   Star, 
@@ -30,7 +29,6 @@ import { type FormEvent, useEffect, useMemo, useState, useCallback, useRef } fro
 import { LOGIN_LOGO_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
-import { useTheme } from "@/lib/theme/theme-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
@@ -506,7 +504,6 @@ function saveRecentUser(userId: string) {
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: sessionLoading, login } = useSession();
-  const { theme, setTheme, options } = useTheme();
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -884,36 +881,14 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <header className="login-header">
-          <div className="login-theme-row">
-            <label className="login-theme-control">
-              <span className="login-theme-label">
-                <Palette size={13} />
-                Theme
-              </span>
-              <select
-                className="login-theme-select"
-                value={theme}
-                onChange={(event) => setTheme(event.target.value as typeof theme)}
-                aria-label="Select theme"
-              >
-                {options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          
-          <div className="login-logo-hero">
+        <header className="login-header" style={{ padding: "24px 24px 16px" }}>
+          <div className="login-logo-hero" style={{ marginBottom: "16px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
-            <span className="login-tagline">PTBizCoach Workspace - Empowering Cash-Based PT Leaders</span>
+            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" style={{ maxHeight: "48px" }} />
           </div>
           
-          <h1>Welcome Back</h1>
-          <p>Select your profile to securely access your coaching tools.</p>
+          <h1 style={{ fontSize: "22px", margin: "0 0 4px 0" }}>Welcome Back</h1>
+          <p style={{ fontSize: "13px", margin: 0, opacity: 0.7 }}>Select your profile to sign in.</p>
         </header>
 
         {!selectedUser && (
