@@ -1,0 +1,388 @@
+/* Changelog Modal Styles */
+
+.changelog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+}
+
+.changelog-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 90%;
+  max-width: 600px;
+  height: 100vh;
+  background: #0f172a;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.changelog-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #1e293b;
+  background: #1e293b;
+}
+
+.changelog-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.changelog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f8fafc;
+}
+
+.changelog-title h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.changelog-title svg {
+  color: #22c55e;
+}
+
+.changelog-badge {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.changelog-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.changelog-close:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+/* Stats Row */
+.changelog-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.changelog-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #1e293b;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.changelog-stat:hover {
+  border-color: var(--stat-color, #94a3b8);
+  color: var(--stat-color, #94a3b8);
+}
+
+.changelog-stat.active {
+  background: var(--stat-color, #22c55e);
+  border-color: var(--stat-color, #22c55e);
+  color: white;
+}
+
+.changelog-stat small {
+  text-transform: capitalize;
+  margin-left: 2px;
+}
+
+/* Controls */
+.changelog-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.changelog-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.filter-btn.active {
+  background: var(--filter-color, #22c55e);
+  border-color: var(--filter-color, #22c55e);
+  color: white;
+}
+
+.changelog-expand-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.control-btn:hover {
+  color: #f8fafc;
+}
+
+/* Content */
+.changelog-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.changelog-loading,
+.changelog-error,
+.changelog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  gap: 12px;
+}
+
+.changelog-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #1e293b;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.changelog-error button {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.changelog-empty svg {
+  color: #334155;
+}
+
+/* Timeline */
+.changelog-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.changelog-date-group {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.changelog-date-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.changelog-date-header:hover {
+  background: #334155;
+}
+
+.date-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-label {
+  font-weight: 600;
+}
+
+.date-count {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/* Entries */
+.changelog-entries {
+  border-top: 1px solid #334155;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.changelog-entry {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #0f172a;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+.entry-type-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.entry-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.entry-type-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.entry-category {
+  background: #334155;
+  color: #94a3b8;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.entry-hash {
+  font-family: monospace;
+  font-size: 11px;
+  color: #64748b;
+  background: #1e293b;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.entry-message {
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+  word-break: break-word;
+}
+
+.entry-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.entry-author,
+.entry-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Footer */
+.changelog-footer {
+  padding: 12px 24px;
+  border-top: 1px solid #1e293b;
+  text-align: center;
+}
+
+.changelog-footer p {
+  color: #64748b;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .changelog-modal {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .changelog-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .changelog-filters {
+    justify-content: center;
+  }
+
+  .changelog-expand-controls {
+    justify-content: center;
+  }
+}

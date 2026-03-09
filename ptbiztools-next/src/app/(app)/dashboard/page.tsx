@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useMemo, type ComponentType, type CSSProperties } from "react";
+import { useState, useMemo, type ComponentType, type CSSProperties } from "react";
 import {
   Activity,
   BarChart3,
@@ -24,6 +24,8 @@ import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";
 import { TOOL_BADGES } from "@/constants/tool-badges";
+import { ChangelogModal } from "@/components/changelog/ChangelogModal";
+import { History } from "lucide-react";
 import {
   getActionLogs,
   getActionStats,
@@ -269,6 +271,7 @@ function getInitials(name?: string) {
 
 export default function DashboardPage() {
   const { user } = useSession();
+  const [changelogOpen, setChangelogOpen] = useState(false);
 
   const role = getEffectiveRole(user);
   const isAdmin = role === "admin";
@@ -379,8 +382,20 @@ export default function DashboardPage() {
     <div className="home">
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
         <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
-          <h1>{greeting}</h1>
-          <p>{isAdmin ? "Admin usage dashboard" : "Your coaching tools are ready."}</p>
+          <div className="dashboard-header-content">
+            <div>
+              <h1>{greeting}</h1>
+              <p>{isAdmin ? "Admin usage dashboard" : "Your coaching tools are ready."}</p>
+            </div>
+            <button 
+              className="changelog-trigger-btn"
+              onClick={() => setChangelogOpen(true)}
+              title="View changelog"
+            >
+              <History size={18} />
+              <span>Updates</span>
+            </button>
+          </div>
         </motion.section>
 
         <motion.section variants={itemVariants} className="stats-grid">
@@ -661,6 +676,8 @@ export default function DashboardPage() {
           </div>
         </motion.section>
       </motion.div>
+      
+      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
     </div>
   );
 }
