@@ -844,11 +844,18 @@ export default function DiscoveryCallGrader() {
           className="page-header tool-page-hero"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: "center", marginBottom: "16px" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="tool-page-badge discovery-tool-badge" src={TOOL_BADGES.discovery} alt="Discovery Call Grader badge" />
-          <h1 className="tool-page-title">Discovery Call Grader</h1>
-          <p className="tool-page-subtitle">Dynamic transcript intake, pre-grade diagnostics, and instant coaching reports.</p>
+          <img 
+            className="tool-page-badge discovery-tool-badge" 
+            src={TOOL_BADGES.discovery} 
+            alt="Discovery Call Grader badge" 
+            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+          />
+          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+            Discovery Grader
+          </h1>
         </motion.div>
 
         {/* Tab Navigation */}

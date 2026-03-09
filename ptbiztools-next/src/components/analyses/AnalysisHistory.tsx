@@ -117,17 +117,12 @@ export default function AnalysisHistory() {
 
   return (
     <div className="analysis-history tool-page">
-      <div className="analysis-history-header tool-page-hero">
-        <div>
-          <h1 className="tool-page-title">{isAdmin ? "Team Activity Records" : "My Saved Records"}</h1>
-          <p className="tool-page-subtitle">
-            {isAdmin
-              ? "View all coach/advisor/admin generated analyses, P&L audits, and PDF exports"
-              : "Your generated discovery analyses, P&L audits, and exports"}
-          </p>
-        </div>
+      <div className="analysis-history-header tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
+        <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+          {isAdmin ? "Team Records" : "My Records"}
+        </h1>
 
-        <div className="analysis-history-controls">
+        <div className="analysis-history-controls" style={{ marginTop: "16px", justifyContent: "center" }}>
           <label>
             Limit
             <select value={limit} onChange={(event) => setLimit(Number(event.target.value))}>

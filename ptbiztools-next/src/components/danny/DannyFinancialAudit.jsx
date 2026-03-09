@@ -607,11 +607,17 @@ export default function DannyFinancialAudit() {
     return (
       <div className="tool-page">
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-        <section className="tool-page-hero">
+        <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="tool-page-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
-          <h1 className="tool-page-title">P&amp;L Calculator</h1>
-          <p className="tool-page-subtitle">Enter your P&amp;L data for an instant financial health score, cash flow analysis, and a 90-day profit improvement plan.</p>
+          <img 
+            className="tool-page-badge" 
+            src={TOOL_BADGES.pl} 
+            alt="P&L Calculator badge" 
+            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+          />
+          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+            P&amp;L Audit
+          </h1>
         </section>
         <div style={pageShellStyle}>
           <div style={canvasStyle}>
@@ -716,11 +722,17 @@ export default function DannyFinancialAudit() {
   return (
     <div className="tool-page">
       <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-      <section className="tool-page-hero">
+      <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="tool-page-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
-        <h1 className="tool-page-title">P&amp;L Audit Report</h1>
-        <p className="tool-page-subtitle">Review performance benchmarks, cash flow pressure points, and a prioritized 90-day plan from your clinic financials.</p>
+        <img 
+          className="tool-page-badge" 
+          src={TOOL_BADGES.pl} 
+          alt="P&L Calculator badge" 
+          style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+        />
+        <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+          P&amp;L Report
+        </h1>
       </section>
       <div style={pageShellStyle}>
         <div style={canvasStyle}>

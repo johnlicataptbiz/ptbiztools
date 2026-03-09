@@ -130,11 +130,17 @@ export default function App() {
   if (step === "input") {
     return (
       <div className="tool-page">
-        <section className="tool-page-hero">
+        <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="tool-page-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
-          <h1 className="tool-page-title">Compensation Calculator</h1>
-          <p className="tool-page-subtitle">Build competitive, sustainable compensation models for staff clinicians.</p>
+          <img 
+            className="tool-page-badge" 
+            src={TOOL_BADGES.comp} 
+            alt="Compensation Calculator badge" 
+            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+          />
+          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+            Comp Calculator
+          </h1>
         </section>
         <div style={pageShellStyle}>
           <div style={canvasStyle}>
@@ -227,11 +233,17 @@ export default function App() {
   // ── RESULTS VIEW ──
   return (
     <div className="tool-page">
-      <section className="tool-page-hero">
+      <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="tool-page-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
-        <h1 className="tool-page-title">Recommended Compensation</h1>
-        <p className="tool-page-subtitle">{f.city ? f.city + ", " : ""}{f.state} · {expLevel === "newgrad" ? "New Grad" : expLevel === "moderate" ? "1-3 Years" : expLevel === "experienced" ? "3-5 Years" : "Senior"} · {$(grossMonthly)}/month gross</p>
+        <img 
+          className="tool-page-badge" 
+          src={TOOL_BADGES.comp} 
+          alt="Compensation Calculator badge" 
+          style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+        />
+        <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+          Comp Results
+        </h1>
       </section>
       <div style={pageShellStyle}>
         <div style={canvasStyle}>
