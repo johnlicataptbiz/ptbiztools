@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { execSync } from "child_process";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 
 interface ChangelogEntry {
   hash: string;
@@ -22,20 +24,25 @@ function parseCommitType(message: string): ChangelogEntry["type"] {
 }
 
 function extractCategory(message: string): string | undefined {
-  // Look for patterns like "(login)" or "[dashboard]" in the message
   const match = message.match(/[\(\[]([^)\]]+)[\)\]]/);
   return match ? match[1] : undefined;
 }
 
-export async function GET() {
+function generateChangelogData(): {
+  success: boolean;
+  totalCommits: number;
+  dates: string[];
+  entries: Record<string, ChangelogEntry[]>;
+  lastUpdated: string;
+} {
   try {
-    // Get git log with structured format
+    // Try to get git log
     const gitLog = execSync(
       'git log --pretty=format:"%H|%an|%ae|%ad|%s|%b<END>" --date=short -100',
       { 
         cwd: process.cwd(),
         encoding: "utf-8",
-        maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large logs
+        maxBuffer: 10 * 1024 * 1024
       }
     );
 
@@ -51,10 +58,9 @@ export async function GET() {
       if (parts.length >= 5) {
         const [hash, author, email, date, message] = parts;
         
-        // Only include commits by Jack Licata
         if (author.toLowerCase().includes("jack") || email.toLowerCase().includes("jack")) {
           entries.push({
-            hash: hash.slice(0, 7), // Short hash
+            hash: hash.slice(0, 7),
             author,
             email,
             date,
@@ -66,7 +72,6 @@ export async function GET() {
       }
     }
 
-    // Group by date
     const grouped = entries.reduce((acc, entry) => {
       if (!acc[entry.date]) {
         acc[entry.date] = [];
@@ -75,28 +80,70 @@ export async function GET() {
       return acc;
     }, {} as Record<string, ChangelogEntry[]>);
 
-    // Sort dates descending
     const sortedDates = Object.keys(grouped).sort((a, b) => 
       new Date(b).getTime() - new Date(a).getTime()
     );
 
-    return NextResponse.json({
+    return {
       success: true,
       totalCommits: entries.length,
       dates: sortedDates,
       entries: grouped,
       lastUpdated: new Date().toISOString(),
-    });
-
+    };
   } catch (error) {
-    console.error("[changelog] Error fetching git history:", error);
-    return NextResponse.json(
-      { 
-        success: false,
-        error: "Failed to fetch changelog",
-        message: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    );
+    console.error("[changelog] Error generating from git:", error);
+    throw error;
   }
+}
+
+// Generate data at build time
+let cachedData: ReturnType<typeof generateChangelogData> | null = null;
+let cacheTime: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function getChangelogData() {
+  const now = Date.now();
+  
+  // Return cached data if still valid
+  if (cachedData && (now - cacheTime) < CACHE_DURATION) {
+    return cachedData;
+  }
+
+  // Try to read from pre-generated JSON file (build time)
+  const dataPath = join(process.cwd(), "public", "changelog-data.json");
+  if (existsSync(dataPath)) {
+    try {
+      const fileData = JSON.parse(readFileSync(dataPath, "utf-8"));
+      cachedData = fileData;
+      cacheTime = now;
+      return fileData;
+    } catch (e) {
+      console.error("[changelog] Error reading cached file:", e);
+    }
+  }
+
+  // Try to generate from git (works in dev/local)
+  try {
+    const data = generateChangelogData();
+    cachedData = data;
+    cacheTime = now;
+    return data;
+  } catch (error) {
+    console.error("[changelog] Failed to generate data:", error);
+    
+    // Return empty fallback
+    return {
+      success: true,
+      totalCommits: 0,
+      dates: [],
+      entries: {},
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+}
+
+export async function GET() {
+  const data = getChangelogData();
+  return NextResponse.json(data);
 }
