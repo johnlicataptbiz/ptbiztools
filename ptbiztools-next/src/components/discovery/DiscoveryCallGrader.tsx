@@ -628,6 +628,39 @@ export default function DiscoveryCallGrader() {
       return
     }
 
+    // Diagnostic: Check for close section in transcript
+    const closeSectionIndicators = ['close', 'book', 'schedule', 'appointment', 'next step', 'follow up', 'investment', 'price', 'cost', 'payment'];
+    const hasCloseSection = closeSectionIndicators.some(indicator => 
+      transcript.toLowerCase().includes(indicator)
+    );
+    
+    // Check for end-of-call indicators
+    const endIndicators = ['goodbye', 'bye', 'thank you', 'thanks', 'have a great', 'talk soon', 'see you'];
+    const hasEndIndicator = endIndicators.some(indicator => 
+      transcript.toLowerCase().includes(indicator)
+    );
+
+    console.log('[DiscoveryCallGrader] Transcript diagnostics:', {
+      charCount: transcript.length,
+      wordCount: stats.wordCount,
+      lineCount: stats.lineCount,
+      hasCloseSection,
+      hasEndIndicator,
+      last200Chars: transcript.slice(-200),
+    });
+
+    // Warning for very long transcripts that might hit token limits
+    const ESTIMATED_TOKENS_PER_WORD = 1.3;
+    const estimatedTokens = stats.wordCount * ESTIMATED_TOKENS_PER_WORD;
+    const MAX_SAFE_TOKENS = 12000; // Leave room for system prompt and response
+    
+    if (estimatedTokens > MAX_SAFE_TOKENS) {
+      toast.warning(`Transcript is very long (~${Math.round(estimatedTokens)} tokens). This may cause truncation. Consider focusing on the most relevant sections.`, {
+        duration: 8000,
+        id: 'long-transcript-warning',
+      });
+    }
+
     setIsGrading(true)
     toast.loading('Grading transcript...', { id: 'grading' })
 
@@ -637,6 +670,9 @@ export default function DiscoveryCallGrader() {
       metadata: {
         transcriptLength: transcript.length,
         transcriptWordCount: stats.wordCount,
+        estimatedTokens: Math.round(estimatedTokens),
+        hasCloseSection,
+        hasEndIndicator,
       },
       sessionId,
     })
@@ -644,11 +680,20 @@ export default function DiscoveryCallGrader() {
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
+      // Ensure we're sending the COMPLETE transcript - no truncation
       const payload = {
-        transcript,
+        transcript, // Full transcript - never sliced
         program: 'Rainmaker',
         closer: coachName.trim() || 'Unknown',
         prospectName: clientName.trim() || undefined,
+        // Add metadata to help backend processing
+        metadata: {
+          originalLength: transcript.length,
+          wordCount: stats.wordCount,
+          hasCloseSection,
+          hasEndIndicator,
+          clientTimestamp: new Date().toISOString(),
+        }
       } as const
 
       let response = await gradeDannySalesCallV2(payload)

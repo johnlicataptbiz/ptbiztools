@@ -331,6 +331,39 @@ export default function SalesCallGrader() {
       return;
     }
 
+    // Diagnostic: Check for close section in transcript before grading
+    const closeSectionIndicators = ['close', 'book', 'schedule', 'appointment', 'next step', 'follow up', 'investment', 'price', 'cost', 'payment', 'sign up', 'enroll'];
+    const hasCloseSection = closeSectionIndicators.some(indicator => 
+      transcriptForValidation.toLowerCase().includes(indicator)
+    );
+    
+    // Check for end-of-call indicators
+    const endIndicators = ['goodbye', 'bye', 'thank you', 'thanks', 'have a great', 'talk soon', 'see you', 'take care'];
+    const hasEndIndicator = endIndicators.some(indicator => 
+      transcriptForValidation.toLowerCase().includes(indicator)
+    );
+
+    console.log('[DannyCloserCallGrader] Pre-grading transcript diagnostics:', {
+      charCount: transcriptForValidation.length,
+      wordCount: transcriptForValidation.split(/\s+/).filter(Boolean).length,
+      hasCloseSection,
+      hasEndIndicator,
+      last300Chars: transcriptForValidation.slice(-300),
+    });
+
+    // Warning for very long transcripts that might hit token limits
+    const wordCount = transcriptForValidation.split(/\s+/).filter(Boolean).length;
+    const ESTIMATED_TOKENS_PER_WORD = 1.3;
+    const estimatedTokens = wordCount * ESTIMATED_TOKENS_PER_WORD;
+    const MAX_SAFE_TOKENS = 12000; // Leave room for system prompt and response
+    
+    if (estimatedTokens > MAX_SAFE_TOKENS) {
+      toast.warning(`Transcript is very long (~${Math.round(estimatedTokens)} tokens). This may cause truncation. Consider focusing on the most relevant sections.`, {
+        duration: 8000,
+        id: 'long-transcript-warning-danny',
+      });
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -338,16 +371,25 @@ export default function SalesCallGrader() {
       await logAction({
         actionType: ActionTypes.TRANSCRIPT_PASTED,
         description: "Prepared transcript for Danny sales call grading",
-        metadata: { wordCount: (transcriptText || "").split(/\s+/).filter(Boolean).length },
+        metadata: { 
+          wordCount: (transcriptText || "").split(/\s+/).filter(Boolean).length,
+          estimatedTokens: Math.round(estimatedTokens),
+          hasCloseSection,
+          hasEndIndicator,
+        },
         sessionId,
       });
 
       const graded = await gradeDannySalesCallV2({
-        transcript: transcriptText,
+        transcript: transcriptText, // NEVER truncate - full transcript
         closer,
         outcome,
         program,
         prospectName: prospectName.trim() || undefined,
+        // Add metadata to help backend processing
+        callMeta: {
+          durationMinutes: Math.round(wordCount / 145), // ~145 words per minute
+        },
       });
 
       if (graded.error || !graded.data) {
@@ -359,6 +401,16 @@ export default function SalesCallGrader() {
       if (typeof parsed?.overall_score !== "number" || !parsed?.phases || !parsed?.critical_behaviors) {
         throw new Error("Grading response was incomplete.");
       }
+
+      // Diagnostic logging for close phase detection
+      console.log('[DannyCloserCallGrader] Grading results:', {
+        overallScore: parsed.overall_score,
+        closePhaseScore: parsed.phases?.close?.score,
+        closePhaseSummary: parsed.phases?.close?.summary,
+        followupPhaseScore: parsed.phases?.followup?.score,
+        transcriptLength: transcriptText.length,
+        transcriptWordCount: transcriptText.split(/\s+/).filter(Boolean).length,
+      });
 
       const entry = {
         id: Date.now(),
@@ -401,8 +453,8 @@ export default function SalesCallGrader() {
           redFlags: Object.entries(parsed.critical_behaviors || {})
             .filter(([, value]) => value && value.status === "fail")
             .map(([key]) => key),
-          transcript: transcriptText,
-          deidentifiedTranscript: parsed.storage?.redactedTranscript || transcriptText.slice(0, 20000),
+          transcript: transcriptText, // NEVER truncate - send full transcript
+          deidentifiedTranscript: parsed.storage?.redactedTranscript || transcriptText, // NEVER truncate
           gradingVersion: "v2",
           deterministic: parsed.deterministic,
           criticalBehaviors: parsed.critical_behaviors,
