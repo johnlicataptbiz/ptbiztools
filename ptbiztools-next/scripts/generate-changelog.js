@@ -21,17 +21,25 @@ function generateChangelog() {
   try {
     console.log("[generate-changelog] Fetching git history...");
     
-    const gitLog = execSync(
-      'git log --pretty=format:"%H|%an|%ae|%ad|%s|%b<END>" --date=short -100',
-      { 
-        cwd: process.cwd(),
-        encoding: "utf-8",
-        maxBuffer: 10 * 1024 * 1024
-      }
-    );
+    // Check if we're in a git repository
+    let gitLog = "";
+    try {
+      gitLog = execSync(
+        'git log --pretty=format:"%H|%an|%ae|%ad|%s|%b<END>" --date=short -100',
+        { 
+          cwd: process.cwd(),
+          encoding: "utf-8",
+          maxBuffer: 10 * 1024 * 1024
+        }
+      );
+    } catch (gitError) {
+      console.log("[generate-changelog] Git not available or not a git repo, using empty changelog");
+      // In Vercel or other CI environments, git may not be available
+      // Continue with empty gitLog which will result in empty entries
+    }
 
     const entries = [];
-    const commits = gitLog.split("<END>").filter(Boolean);
+    const commits = gitLog ? gitLog.split("<END>").filter(Boolean) : [];
 
     for (const commit of commits) {
       const lines = commit.trim().split("\n");
