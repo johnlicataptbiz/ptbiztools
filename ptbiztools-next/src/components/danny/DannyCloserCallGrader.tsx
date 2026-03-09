@@ -14,8 +14,6 @@ import {
   normalizeBehaviorStatus,
   normalizeV2Result,
 } from "@/components/danny/graderV2Helpers";
-import { TOOL_BADGES } from "@/constants/tool-badges";
-import { generateSalesCallPdf } from "@/utils/salesCallPdf";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "ptbiz-call-grades";
@@ -1273,16 +1271,13 @@ export default function SalesCallGrader() {
       `}</style>
       <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
-        <div className="no-print tool-page-hero" style={{ marginBottom: "16px", textAlign: "center" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            className="tool-page-badge" 
-            src={TOOL_BADGES.sales} 
-            alt="Sales Grader badge" 
-          />
-          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-            Call Grader
+        <div className="no-print" style={{ textAlign: "center", marginBottom: "24px" }}>
+          <h1 className="tool-page-title" style={{ margin: "0 0 8px 0", fontSize: "28px" }}>
+            PT Biz Call Grader
           </h1>
+          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "15px" }}>
+            Score calls against the 7-phase framework. Track closer performance over time.
+          </p>
         </div>
 
         {/* Nav */}

@@ -32,7 +32,6 @@ import {
 } from "@/lib/ptbiz-api";
 import { GradePreview } from "@/components/grader/GradePreview";
 import { GradeModal } from "@/components/grader/GradeModal";
-import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const MIN_WORDS = 120
 
@@ -841,20 +840,17 @@ export default function DiscoveryCallGrader() {
     <div className="grader-page">
       <div className="container tool-page">
         <motion.div
-          className="page-header tool-page-hero"
+          className="page-header"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ textAlign: "center", marginBottom: "16px" }}
+          style={{ textAlign: "center", marginBottom: "24px" }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            className="tool-page-badge discovery-tool-badge" 
-            src={TOOL_BADGES.discovery} 
-            alt="Discovery Call Grader badge" 
-          />
-          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-            Discovery Grader
+          <h1 className="tool-page-title" style={{ margin: "0 0 8px 0", fontSize: "28px" }}>
+            Discovery Call Grader
           </h1>
+          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "15px" }}>
+            Score calls against the 7-phase framework. Track coach performance over time.
+          </p>
         </motion.div>
 
         {/* Tab Navigation */}
