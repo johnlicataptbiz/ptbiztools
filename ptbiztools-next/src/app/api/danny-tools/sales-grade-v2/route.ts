@@ -3,9 +3,6 @@ import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
-// Maximum transcript length to send to AI (to stay within context limits)
-const MAX_TRANSCRIPT_LENGTH = 20000;
-
 // VTT/SRT timestamp patterns to strip
 const TIMESTAMP_PATTERNS = {
   // VTT/SRT timestamp lines: "00:00:21.660 --> 00:00:22.810" or "00:00:21,660 --> 00:00:22,810"
@@ -241,31 +238,6 @@ Return complete grading with all fields.`;
 }
 
 /**
- * Truncates transcript to maximum length while preserving complete sentences
- */
-function truncateTranscript(transcript: string, maxLength: number): string {
-  if (!transcript || transcript.length <= maxLength) {
-    return transcript;
-  }
-
-  // Find the last complete sentence within the limit
-  const truncated = transcript.slice(0, maxLength);
-  const lastSentenceEnd = Math.max(
-    truncated.lastIndexOf('.'),
-    truncated.lastIndexOf('!'),
-    truncated.lastIndexOf('?')
-  );
-
-  if (lastSentenceEnd > maxLength * 0.8) {
-    // If we found a sentence end reasonably close to the limit, use it
-    return truncated.slice(0, lastSentenceEnd + 1);
-  }
-
-  // Otherwise just truncate at the limit with an ellipsis indicator
-  return truncated.slice(0, maxLength - 3) + '...';
-}
-
-/**
  * Simple hash function for transcript integrity
  */
 async function hashTranscript(transcript: string): Promise<string> {
@@ -306,17 +278,11 @@ export async function POST(request: NextRequest) {
     const wasSubtitleFormat = isSubtitleFormat(body.transcript);
     const cleanedTranscript = cleanSubtitleFormat(body.transcript);
 
-    // Truncate if necessary to stay within AI context limits
-    const truncatedTranscript = truncateTranscript(cleanedTranscript, MAX_TRANSCRIPT_LENGTH);
-    const wasTruncated = truncatedTranscript.length < cleanedTranscript.length;
-
     // Log for debugging
     console.log("[sales-grade-v2] Transcript processing:", {
       originalLength: body.transcript.length,
       cleanedLength: cleanedTranscript.length,
-      truncatedLength: truncatedTranscript.length,
       wasSubtitleFormat,
-      wasTruncated,
       charDiff: body.transcript.length - cleanedTranscript.length,
     });
 
@@ -334,7 +300,7 @@ export async function POST(request: NextRequest) {
         model: openai("gpt-4.1-mini"),
         schema: GradingResultSchema,
         prompt: buildGradingPrompt({
-          transcript: truncatedTranscript,
+          transcript: cleanedTranscript,
           closer: body.closer,
           outcome: body.outcome,
           program: body.program,
@@ -355,9 +321,6 @@ export async function POST(request: NextRequest) {
         storage: {
           redactedTranscript: cleanedTranscript.slice(0, 1000), // Store first 1000 chars for reference
           transcriptHash: await hashTranscript(cleanedTranscript),
-          wasTruncated,
-          originalLength: body.transcript.length,
-          processedLength: truncatedTranscript.length,
         },
       };
 
@@ -372,8 +335,6 @@ export async function POST(request: NextRequest) {
             subtitleFormatDetected: wasSubtitleFormat,
             originalLength: body.transcript.length,
             cleanedLength: cleanedTranscript.length,
-            truncatedLength: truncatedTranscript.length,
-            wasTruncated,
             charactersRemoved: body.transcript.length - cleanedTranscript.length,
           },
         },
