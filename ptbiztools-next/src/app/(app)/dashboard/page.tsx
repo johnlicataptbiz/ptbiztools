@@ -8,7 +8,6 @@ import {
   Activity,
   BarChart3,
   Calculator,
-  CheckCircle2,
   ClipboardList,
   Clock,
   FileText,
@@ -493,19 +492,20 @@ export default function DashboardPage() {
         </motion.section>
 
         <motion.section variants={itemVariants} className="tools-section" data-tour={TourAnchors.dashboard.tools}>
-          <h2>{isAdmin ? "Coach & Advisor Tools" : "Your Coaching Tools"}</h2>
+          <h2>{isAdmin ? "Tools" : "Your Tools"}</h2>
           <div className="tools-grid">
             {toolCards.map((tool) => {
               const Icon = tool.icon;
               return (
                 <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
-                  <div className="tool-icon" style={{ background: `${tool.color}20` }}>
+                  <div className="tool-icon" style={{ background: `${tool.color}20`, width: "56px", height: "56px", borderRadius: "14px" }}>
                     {tool.badgeUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tool.badgeUrl}
                         alt={`${tool.title} icon`}
                         className="tool-badge"
+                        style={{ width: "40px", height: "40px" }}
                         onError={(event) => {
                           (event.currentTarget as HTMLImageElement).style.display = "none";
                           const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
@@ -514,16 +514,11 @@ export default function DashboardPage() {
                       />
                     ) : null}
                     <span className="tool-icon-fallback" style={{ display: tool.badgeUrl ? "none" : "inline-flex" }}>
-                      <Icon size={24} style={{ color: tool.color }} />
+                      <Icon size={28} style={{ color: tool.color }} />
                     </span>
                   </div>
                   <div className="tool-content">
                     <h3>{tool.title}</h3>
-                    <p>{tool.description}</p>
-                  </div>
-                  <div className="tool-ready-chip">
-                    <CheckCircle2 size={13} />
-                    <span>Ready</span>
                   </div>
                 </Link>
               );
