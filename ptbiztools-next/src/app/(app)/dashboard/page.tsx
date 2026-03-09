@@ -495,14 +495,13 @@ export default function DashboardPage() {
               const Icon = tool.icon;
               return (
                 <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
-                  <div className="tool-icon" style={{ background: `${tool.color}20`, width: "56px", height: "56px", borderRadius: "14px" }}>
+                  <div className="tool-icon" style={{ background: `${tool.color}20` }}>
                     {tool.badgeUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tool.badgeUrl}
                         alt={`${tool.title} icon`}
                         className="tool-badge"
-                        style={{ width: "40px", height: "40px" }}
                         onError={(event) => {
                           (event.currentTarget as HTMLImageElement).style.display = "none";
                           const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
