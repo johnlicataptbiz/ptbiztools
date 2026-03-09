@@ -312,9 +312,9 @@
 }
 
 .tool-icon {
-  width: 96px;
-  height: 96px;
-  border-radius: 20px;
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -324,11 +324,11 @@
 }
 
 .tool-badge {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
-  border-radius: 12px;
-  filter: drop-shadow(0 2px 8px color-mix(in oklab, var(--color-accent) 30%, transparent));
+  border-radius: 16px;
+  filter: drop-shadow(0 2px 12px color-mix(in oklab, var(--color-accent) 30%, transparent));
 }
 
 .tool-icon-fallback {
