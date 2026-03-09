@@ -180,7 +180,12 @@ Evaluate this call using the 7-phase framework:
 4. TEMPERATURE CHECK (10%): Did they gauge readiness? Did they act on it appropriately?
 5. SOLUTION PRESENTATION (15%): Calibrated to prospect, personal story deployed, not a platform demo
 6. INVESTMENT & CLOSE (15%): Price presentation, objection handling, the ask, discount discipline
-7. FOLLOW-UP / WRAP (5%): Clean exit, next steps scheduled, no lingering free consulting
+7. FOLLOW-UP / WRAP (5%): Clean exit, next steps scheduled (ONLY if outcome is not "Won"), no lingering free consulting
+
+IMPORTANT: The outcome of this call was ${outcome || "Unknown"}. 
+- If outcome is "Won", the deal is already closed so DO NOT penalize for "next steps" in the followup phase - instead look for clean handoff to onboarding/implementation.
+- If outcome is "Lost", evaluate whether appropriate next steps were left for future follow-up.
+- If outcome is "Unknown", evaluate next steps as normal.
 
 CRITICAL BEHAVIORS to evaluate:
 - No Free Consulting: Did NOT give away actionable advice before commitment
