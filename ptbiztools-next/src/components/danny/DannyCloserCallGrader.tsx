@@ -1,6 +1,4 @@
 // @ts-nocheck
-"use client";
-
 import { useState, useEffect } from "react";
 import {
   extractTranscriptFromFile,
@@ -48,24 +46,24 @@ const GRADING_PROGRESS_STAGES = [
   { title: "Saving analysis + report metadata", detail: "Persisting this run for dashboard and analyses retrieval." },
 ];
 
-const scoreColorValue = (score) => (score >= 65 ? "#22c55e" : score >= 50 ? "#eab308" : "#ef4444");
+const scoreColorValue = (score: number) => (score >= 65 ? "#22c55e" : score >= 50 ? "#eab308" : "#ef4444");
 
-const formatElapsed = (seconds) => {
+const formatElapsed = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 };
 
 
-function ScoreBar({ score, size = "md" }) {
-  const getColor = (s) => {
+function ScoreBar({ score, size = "md" }: { score: number; size?: "md" | "lg" }) {
+  const getColor = (s: number) => {
     if (s >= 80) return "#22c55e";
     if (s >= 65) return "#84cc16";
     if (s >= 50) return "#eab308";
     if (s >= 35) return "#f97316";
     return "#ef4444";
   };
-  const getLabel = (s) => {
+  const getLabel = (s: number) => {
     if (s >= 80) return "Strong";
     if (s >= 65) return "Solid";
     if (s >= 50) return "Needs Work";
@@ -84,7 +82,7 @@ function ScoreBar({ score, size = "md" }) {
   );
 }
 
-function PassFail({ status }) {
+function PassFail({ status }: { status: string }) {
   const normalized = status === "pass" || status === "fail" || status === "unknown" ? status : "unknown";
   const isPass = normalized === "pass";
   const isUnknown = normalized === "unknown";
@@ -106,23 +104,39 @@ function PassFail({ status }) {
   );
 }
 
+interface HistoryEntry {
+  id: number;
+  date: string;
+  closer: string;
+  outcome: string;
+  program: string;
+  prospectName: string;
+  result: any;
+}
+
+interface UploadedFile {
+  name: string;
+  type: string;
+  text: string;
+}
+
 export default function SalesCallGrader() {
-  const [view, setView] = useState("grade"); // grade | results | history | report
+  const [view, setView] = useState<"grade" | "results" | "history" | "report">("grade");
   const [transcript, setTranscript] = useState("");
-  const [chunks, setChunks] = useState([]);
+  const [chunks, setChunks] = useState<string[]>([]);
   const [closer, setCloser] = useState("John");
-  const [outcome, setOutcome] = useState("Won");
-  const [program, setProgram] = useState("Rainmaker");
+  const [outcome, setOutcome] = useState<"Won" | "Lost">("Won");
+  const [program, setProgram] = useState<"Rainmaker" | "Mastermind">("Rainmaker");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [selectedHistory, setSelectedHistory] = useState<HistoryEntry | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  const [timePeriod, setTimePeriod] = useState("all"); // week | month | quarter | all
-  const [reportData, setReportData] = useState(null); // for PDF export view
+  const [timePeriod, setTimePeriod] = useState<"week" | "month" | "quarter" | "all">("all");
+  const [reportData, setReportData] = useState<HistoryEntry | null>(null);
   const [prospectName, setProspectName] = useState("");
-  const [uploadedFile, setUploadedFile] = useState(null); // { name, type, text? }
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [exportingReport, setExportingReport] = useState(false);
   const [gradingElapsed, setGradingElapsed] = useState(0);
@@ -243,6 +257,15 @@ export default function SalesCallGrader() {
   const transcriptForValidation = uploadedFile?.text || fullTranscript;
   const totalWords = transcriptForValidation ? transcriptForValidation.split(/\s+/).filter(Boolean).length : 0;
   const meetsWordThreshold = canSubmitByWordCount(totalWords, MIN_WORDS_REQUIRED);
+
+  // Detect subtitle format (VTT/SRT) that may confuse the AI
+  const isSubtitleFormat = (text: string): boolean => {
+    // Check for VTT/SRT timestamp patterns like "00:00:21.660 --> 00:00:22.810"
+    const timestampPattern = /\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/;
+    return timestampPattern.test(text);
+  };
+
+  const hasSubtitleFormat = transcriptForValidation && isSubtitleFormat(transcriptForValidation);
 
   const getTimeBoundary = (period) => {
     const now = new Date();
@@ -742,6 +765,16 @@ export default function SalesCallGrader() {
                 );
               })}
             </div>
+          </div>
+        )}
+        {hasSubtitleFormat && (
+          <div style={{ marginTop: "12px", padding: "12px 14px", background: "rgba(234,179,8,0.1)", border: "1px solid rgba(234,179,8,0.3)", borderRadius: "6px", color: "#eab308", fontSize: "13px" }}>
+            <strong>⚠️ Subtitle format detected</strong>
+            <p style={{ margin: "4px 0 0", fontSize: "12px" }}>
+              Your transcript appears to be in VTT/SRT subtitle format with timestamps. 
+              This may cause the AI to incorrectly interpret the call as ending early. 
+              For best results, paste a plain text transcript without timestamps.
+            </p>
           </div>
         )}
         {error && <div style={{ marginTop: "12px", padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "6px", color: "#ef4444", fontSize: "13px" }}>{error}</div>}
