@@ -1273,20 +1273,17 @@ export default function SalesCallGrader() {
       `}</style>
       <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
-        <div className="no-print tool-page-hero" style={{ marginBottom: "20px" }}>
+        <div className="no-print tool-page-hero" style={{ marginBottom: "16px", textAlign: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="tool-page-badge" src={TOOL_BADGES.sales} alt="Sales Grader badge" />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "4px", flexWrap: "wrap" }}>
-            <h1 className="tool-page-title" style={{ margin: 0 }}>
-              PT Biz Call Grader
-            </h1>
-            <span style={{ fontSize: "11px", padding: "4px 10px", background: accent, color: "#ffffff", borderRadius: "999px", fontWeight: 700, fontFamily: fontSans }}>
-              v1.0
-            </span>
-          </div>
-          <p className="tool-page-subtitle" style={{ marginTop: "6px" }}>
-            Score calls against the 7-phase framework. Track closer performance over time.
-          </p>
+          <img 
+            className="tool-page-badge" 
+            src={TOOL_BADGES.sales} 
+            alt="Sales Grader badge" 
+            style={{ width: "64px", height: "64px", marginBottom: "12px" }}
+          />
+          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
+            Call Grader
+          </h1>
         </div>
 
         {/* Nav */}
