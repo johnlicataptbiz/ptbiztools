@@ -1,5 +1,6 @@
 "use client";
 
+import "@/styles/login-credential-badges.css";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -412,6 +413,19 @@ function getBadgeTokens(profile?: { badge: string } | null) {
     .split(",")
     .map((token) => token.trim().toUpperCase())
     .filter(Boolean);
+}
+
+// Individual credential badge themes
+function getCredentialStyle(cred: string): string {
+  const c = cred.trim().toUpperCase();
+  if (['DPT'].includes(c)) return 'credential-dpt';
+  if (['PT', 'MSPT'].includes(c)) return 'credential-pt';
+  if (['OCS', 'SCS'].includes(c)) return 'credential-ocs';
+  if (['CSCS'].includes(c)) return 'credential-cscs';
+  if (['PES'].includes(c)) return 'credential-pes';
+  if (['RN'].includes(c)) return 'credential-rn';
+  if (['BIZ', 'OWNER', 'OPS'].includes(c)) return 'credential-ops';
+  return 'credential-default';
 }
 
 // Get unique first letters for alphabet index
@@ -830,19 +844,24 @@ export default function LoginPage() {
                         )}
                       </div>
                       <div className="profile-card-info">
-                        <div className="profile-name-row">
-                          <div className="profile-name">{member.name}</div>
-                          {badgeTokens.length > 0 && (
-                            <div 
-                              className="profile-credential-badge" 
-                              title={`Credentials: ${profile.credentials}`}
-                            >
-                              {badgeTokens.slice(0, 2).join(", ")}
-                              {badgeTokens.length > 2 && "+"}
-                            </div>
-                          )}
-                        </div>
+                        <div className="profile-name">{member.name}</div>
                         <div className="profile-title">{member.title || "Team Member"}</div>
+                        
+                        {/* Individual themed credential badges */}
+                        {badgeTokens.length > 0 && (
+                          <div className="profile-credential-badges">
+                            {badgeTokens.map((cred, index) => (
+                              <span 
+                                key={`${member.id}-${cred}-${index}`} 
+                                className={`profile-credential-badge ${getCredentialStyle(cred)}`}
+                                title={cred}
+                              >
+                                {cred}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
                         <div className="profile-department">{getMemberDepartment(member)}</div>
                       </div>
                       <div className="profile-card-action">Select</div>
@@ -868,16 +887,16 @@ export default function LoginPage() {
 
             <div className="selected-user-card">
               <TeamAvatar
-                name={selectedUser.name}
-                imageUrl={selectedUser.imageUrl}
+                name={selectedUser?.name || ""}
+                imageUrl={selectedUser?.imageUrl}
                 className="selected-user-photo"
                 fallbackClassName="selected-user-photo-fallback"
               />
               <div>
-                <h2>{selectedUser.name}</h2>
-                <p>{selectedUser.title}</p>
-                <span>{selectedUser.teamSection}</span>
-                {!!selectedUserBadgeTokens.length && (
+                <h2>{selectedUser?.name}</h2>
+                <p>{selectedUser?.title}</p>
+                <span>{selectedUser?.teamSection}</span>
+                {!!selectedUserBadgeTokens.length && selectedUser && (
                   <div className="selected-user-badge-list">
                     {selectedUserBadgeTokens.map((badgeToken) => (
                       <small key={`${selectedUser.id}-${badgeToken}`} className="selected-user-badge-chip">
@@ -900,7 +919,7 @@ export default function LoginPage() {
                     checked={identityConfirmed}
                     onChange={(event) => setIdentityConfirmed(event.target.checked)}
                   />
-                  <span>I confirm I am {selectedUser.name}</span>
+                  <span>I confirm I am {selectedUser?.name}</span>
                 </label>
 
                 <div className="password-input-wrapper">

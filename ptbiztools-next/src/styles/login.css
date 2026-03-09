@@ -9,7 +9,6 @@
   align-items: center;
   justify-content: center;
   padding: clamp(16px, 2.4vw, 30px);
-  /* Minimalist gradient: soft charcoal-to-deep teal */
   background: 
     radial-gradient(ellipse 80% 60% at 50% 120%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 60%),
     radial-gradient(ellipse 60% 50% at 20% -20%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 50%),
@@ -23,7 +22,6 @@
   isolation: isolate;
 }
 
-/* Subtle background texture - very desaturated */
 .login-shell::before {
   content: '';
   position: absolute;
@@ -49,10 +47,7 @@
   opacity: 0.6;
 }
 
-/* ==========================================================================
-   Main Card - Premium Floating Design
-   ========================================================================== */
-
+/* Main Card */
 .login-card {
   position: relative;
   z-index: 1;
@@ -75,7 +70,6 @@
   backdrop-filter: blur(20px);
 }
 
-/* Subtle top gradient line */
 .login-card::before {
   content: '';
   position: absolute;
@@ -91,7 +85,6 @@
   opacity: 0.6;
 }
 
-/* Inset border for depth */
 .login-card::after {
   content: '';
   position: absolute;
@@ -101,10 +94,7 @@
   pointer-events: none;
 }
 
-/* ==========================================================================
-   Header - Branding & Welcome
-   ========================================================================== */
-
+/* Header */
 .login-header {
   margin-bottom: 32px;
   display: flex;
@@ -125,7 +115,6 @@
   z-index: 10;
 }
 
-/* Premium Theme Selector Pills */
 .login-theme-control {
   display: inline-flex;
   align-items: center;
@@ -170,7 +159,6 @@
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
-/* Logo Section */
 .login-logo-hero {
   width: 100%;
   display: flex;
@@ -197,7 +185,6 @@
   font-weight: 500;
 }
 
-/* Main Headline */
 .login-header h1 {
   margin: 16px 0 0;
   font-size: clamp(32px, 5vw, 42px);
@@ -221,19 +208,16 @@
   line-height: 1.5;
 }
 
-/* ==========================================================================
-   Profile Selection - Search & Filter
-   ========================================================================== */
-
+/* Member Picker */
 .member-picker {
   display: grid;
   gap: 16px;
 }
 
-/* Search Container */
+/* Search */
 .search-container {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .search-icon {
@@ -247,20 +231,19 @@
 
 .search-input {
   width: 100%;
-  min-height: 52px;
+  padding: 14px 16px 14px 44px;
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--foreground);
-  padding: 14px 16px 14px 48px;
   font-size: 15px;
   transition: all 0.2s ease;
 }
 
 .search-input:focus {
+  outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
-  outline: none;
 }
 
 .search-input::placeholder {
@@ -273,17 +256,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 }
 
 .department-tab {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
-  border-radius: 24px;
+  padding: 8px 16px;
+  border-radius: 20px;
   border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  background: var(--surface);
   color: var(--muted-foreground);
   font-size: 13px;
   font-weight: 500;
@@ -292,8 +275,7 @@
 }
 
 .department-tab:hover {
-  border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
-  background: var(--surface);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
   color: var(--foreground);
 }
 
@@ -301,7 +283,7 @@
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
-  box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 30%, transparent);
 }
 
 .department-count {
@@ -310,40 +292,29 @@
   padding: 2px 8px;
   border-radius: 12px;
   background: color-mix(in oklab, var(--border) 50%, transparent);
-  color: var(--muted-foreground);
 }
 
 .department-tab.active .department-count {
-  background: color-mix(in oklab, #fff 20%, transparent);
-  color: #fff;
+  background: color-mix(in oklab, white 20%, transparent);
 }
 
-/* No Results */
-.no-results {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--muted-foreground);
-}
-
-.no-results p {
-  font-size: 15px;
-}
-
-/* ==========================================================================
-   Profile Grid - Card Layout
-   ========================================================================== */
-
+/* Profile Grid */
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
 }
 
-/* Profile Card - Modern Design */
+/* Profile Cards */
 .profile-card {
   border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
+  border-radius: 16px;
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
+    );
   padding: 20px;
   text-align: center;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -356,65 +327,45 @@
   overflow: hidden;
 }
 
-.profile-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
 .profile-card:hover {
   border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
   transform: translateY(-4px) scale(1.02);
   box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.1),
     0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
-.profile-card:hover::before {
-  opacity: 1;
-}
-
-.profile-card:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
-}
-
-/* Profile Avatar */
 .profile-card-avatar {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   flex-shrink: 0;
 }
 
 .profile-avatar-img {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   object-fit: cover;
+  display: block;
   border-radius: 50%;
-  border: 3px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.15),
-    0 0 0 4px color-mix(in oklab, var(--surface) 50%, transparent);
+    0 0 0 3px color-mix(in oklab, var(--surface) 50%, transparent);
   transition: all 0.25s ease;
 }
 
 .profile-card:hover .profile-avatar-img {
   border-color: var(--accent);
   box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.2),
-    0 0 24px color-mix(in oklab, var(--accent) 30%, transparent),
-    0 0 0 4px color-mix(in oklab, var(--surface) 50%, transparent);
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    0 0 20px color-mix(in oklab, var(--accent) 25%, transparent);
   transform: scale(1.05);
 }
 
 .profile-avatar-fallback {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -424,29 +375,14 @@
   color: #fff;
   letter-spacing: 0.02em;
   background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
-  border: 3px solid color-mix(in oklab, var(--accent) 30%, var(--border));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.25s ease;
+  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
 }
 
-.profile-card:hover .profile-avatar-fallback {
-  border-color: var(--accent);
-  box-shadow: 0 0 24px color-mix(in oklab, var(--accent) 30%, transparent);
-}
-
-/* Profile Info */
 .profile-card-info {
   display: grid;
   gap: 4px;
   min-width: 0;
   width: 100%;
-}
-
-.profile-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
 }
 
 .profile-name {
@@ -458,21 +394,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.profile-credential-badge {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: color-mix(in oklab, var(--accent) 15%, var(--surface));
-  color: var(--accent);
-  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
-  border-radius: 12px;
-  cursor: help;
-  white-space: nowrap;
 }
 
 .profile-title {
@@ -490,32 +411,11 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: 0.8;
-}
-
-/* Profile Badges */
-.profile-badges {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
   margin-top: 4px;
 }
 
-.profile-badge {
-  color: var(--accent-strong);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
-  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
-}
-
-/* Profile Card Action */
 .profile-card-action {
-  margin-top: 4px;
+  margin-top: 8px;
   border-radius: 20px;
   border: 1px solid var(--accent);
   background: transparent;
@@ -535,398 +435,14 @@
   box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
-/* ==========================================================================
-   Profile Selection - Accordion Sections
-   ========================================================================== */
-
-/* Section Headers - Accordion Style */
-.member-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--surface) 60%, var(--background) 40%);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-.member-section-header:hover {
-  background: var(--surface);
-  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
-}
-
-.member-section-header:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
-}
-
-.member-section-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.member-section-title h2 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--foreground);
-  letter-spacing: -0.01em;
-}
-
-.member-section-count {
-  font-size: 12px;
-  color: var(--muted-foreground);
-  background: color-mix(in oklab, var(--border) 50%, transparent);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 500;
-}
-
-.member-section-chevron {
-  color: var(--muted-foreground);
-  transition: transform 0.25s ease;
-}
-
-.member-section-chevron.expanded {
-  transform: rotate(180deg);
-}
-
-/* Section Content - Grid Layout */
-.member-section-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-  padding: 16px 4px;
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease;
-}
-
-.member-section-content.expanded {
-  max-height: 2000px;
-  opacity: 1;
-  padding: 16px 4px;
-}
-
-/* ==========================================================================
-   Profile Cards - Premium Design
-   ========================================================================== */
-
-.member-row-card {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: 
-    linear-gradient(
-      145deg,
-      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
-      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
-    );
-  padding: 16px;
+.no-results {
+  grid-column: 1 / -1;
   text-align: center;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.member-row-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--accent) 8%, transparent) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.member-row-card:hover {
-  border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.1),
-    0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
-}
-
-.member-row-card:hover::before {
-  opacity: 1;
-}
-
-.member-row-card:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
-}
-
-/* Avatar - Larger circular with glow */
-.team-avatar-shell {
-  position: relative;
-  display: block;
-  isolation: isolate;
-}
-
-.member-list-photo-shell {
-  width: 80px;
-  height: 80px;
-  flex-shrink: 0;
-}
-
-.member-list-photo {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  display: block;
-  border-radius: 50%;
-  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.15),
-    0 0 0 3px color-mix(in oklab, var(--surface) 50%, transparent);
-  transition: all 0.25s ease;
-}
-
-.member-row-card:hover .member-list-photo {
-  border-color: var(--accent);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    0 0 20px color-mix(in oklab, var(--accent) 25%, transparent),
-    0 0 0 4px color-mix(in oklab, var(--surface) 50%, transparent);
-  transform: scale(1.05);
-}
-
-.member-list-photo-fallback {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.02em;
-  background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
-  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
-  transition: all 0.25s ease;
-}
-
-.member-row-card:hover .member-list-photo-fallback {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 25%, transparent);
-}
-
-/* Member Info */
-.member-row-meta {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  width: 100%;
-}
-
-.member-row-meta strong {
-  color: var(--foreground);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.member-row-meta span {
+  padding: 40px;
   color: var(--muted-foreground);
-  font-size: 13px;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.member-row-meta em {
-  color: var(--muted-foreground);
-  font-style: normal;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.8;
-}
-
-/* Badge Chips */
-.member-row-badge-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.member-row-badge-chip {
-  color: var(--accent-strong);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
-  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
-}
-
-/* Select Button - Premium Pill */
-.member-row-action {
-  margin-top: 4px;
-  border-radius: 20px;
-  border: 1px solid var(--accent);
-  background: transparent;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 6px 16px;
-  transition: all 0.2s ease;
-}
-
-.member-row-card:hover .member-row-action {
-  background: var(--accent);
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent);
-}
-
-/* ==========================================================================
-   Alphabetical Index - Quick Scan Aid
-   ========================================================================== */
-
-.alphabet-index {
-  position: fixed;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 100;
-  background: color-mix(in oklab, var(--surface) 90%, transparent);
-  backdrop-filter: blur(8px);
-  padding: 8px 4px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-}
-
-.alphabet-letter {
-  width: 22px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.alphabet-letter:hover {
-  background: var(--accent);
-  color: #fff;
-}
-
-.alphabet-letter.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-/* ==========================================================================
-   Most Recent / Pinned Section
-   ========================================================================== */
-
-.most-recent-section {
-  margin-bottom: 20px;
-  padding: 16px;
-  border-radius: 16px;
-  background: 
-    linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--accent) 6%, var(--surface)) 0%,
-      color-mix(in oklab, var(--accent) 3%, var(--surface)) 100%
-    );
-  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
-}
-
-.most-recent-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.most-recent-header h3 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.most-recent-grid {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.most-recent-item {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.most-recent-item:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.most-recent-item .team-avatar-shell {
-  width: 48px;
-  height: 48px;
-}
-
-.most-recent-item .member-list-photo,
-.most-recent-item .member-list-photo-fallback {
-  width: 48px;
-  height: 48px;
-  font-size: 16px;
-}
-
-.most-recent-item strong {
-  font-size: 12px;
-  color: var(--foreground);
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   Selected User Section
-   ========================================================================== */
-
+/* Selected User Section */
 .selected-user-section {
   display: grid;
   gap: 20px;
@@ -1044,10 +560,7 @@
   background: color-mix(in oklab, var(--accent) 12%, var(--surface));
 }
 
-/* ==========================================================================
-   Auth Form - Password Entry
-   ========================================================================== */
-
+/* Auth Form */
 .auth-form {
   display: grid;
   gap: 16px;
@@ -1076,7 +589,6 @@
   color: var(--muted-foreground);
 }
 
-/* Trust Elements */
 .auth-trust {
   display: flex;
   align-items: center;
@@ -1092,7 +604,6 @@
   color: var(--success);
 }
 
-/* Form Fields */
 .auth-form label {
   display: grid;
   gap: 6px;
@@ -1132,7 +643,6 @@
   opacity: 0.6;
 }
 
-/* Password Toggle */
 .password-input-wrapper {
   position: relative;
 }
@@ -1156,7 +666,6 @@
   color: var(--foreground);
 }
 
-/* Checkbox */
 .checkbox-row {
   display: inline-flex;
   align-items: center;
@@ -1172,7 +681,6 @@
   accent-color: var(--accent);
 }
 
-/* Links */
 .auth-links {
   display: flex;
   justify-content: space-between;
@@ -1190,7 +698,6 @@
   color: var(--accent);
 }
 
-/* Primary Button */
 .login-primary-btn {
   margin-top: 8px;
   border-radius: 14px;
@@ -1228,7 +735,6 @@
   cursor: not-allowed;
 }
 
-/* Error State */
 .auth-error {
   display: flex;
   align-items: center;
@@ -1248,7 +754,6 @@
   40%, 80% { transform: translateX(6px); }
 }
 
-/* Success Animation */
 .login-success {
   display: flex;
   flex-direction: column;
@@ -1287,10 +792,6 @@
   color: var(--foreground);
 }
 
-/* ==========================================================================
-   Message Display
-   ========================================================================== */
-
 .login-message {
   margin-top: 16px;
   border-radius: 12px;
@@ -1304,10 +805,7 @@
   gap: 8px;
 }
 
-/* ==========================================================================
-   Responsive Design
-   ========================================================================== */
-
+/* Responsive */
 @media (max-width: 768px) {
   .login-shell {
     padding: 12px;
@@ -1340,31 +838,29 @@
     display: none;
   }
 
-  /* Accordion sections stack on mobile */
-  .member-section-content {
+  .profile-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 12px;
   }
 
-  .member-list-photo-shell,
-  .member-list-photo,
-  .member-list-photo-fallback {
+  .profile-card {
+    padding: 16px;
+  }
+
+  .profile-card-avatar,
+  .profile-avatar-img,
+  .profile-avatar-fallback {
     width: 64px;
     height: 64px;
     font-size: 20px;
   }
 
-  .member-row-meta strong {
+  .profile-name {
     font-size: 14px;
   }
 
-  .member-row-meta span {
+  .profile-title {
     font-size: 12px;
-  }
-
-  /* Hide alphabet index on mobile */
-  .alphabet-index {
-    display: none;
   }
 
   .selected-user-card {
@@ -1388,64 +884,31 @@
 }
 
 @media (max-width: 480px) {
-  .member-section-content {
+  .profile-grid {
     grid-template-columns: 1fr;
   }
 
-  .member-row-card {
+  .profile-card {
     flex-direction: row;
     text-align: left;
     padding: 12px;
     gap: 12px;
   }
 
-  .member-row-card .team-avatar-shell {
-    width: 56px;
-    height: 56px;
+  .profile-card-avatar {
     flex-shrink: 0;
   }
 
-  .member-row-card .member-list-photo,
-  .member-row-card .member-list-photo-fallback {
-    width: 56px;
-    height: 56px;
-    font-size: 18px;
+  .profile-card-info {
+    text-align: left;
   }
 
-  .member-row-action {
-    margin-left: auto;
-    margin-top: 0;
+  .department-tabs {
+    gap: 6px;
+  }
+
+  .department-tab {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
-
-/* ==========================================================================
-   Loading State
-   ========================================================================== */
-
-.login-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 48px;
-}
-
-.login-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.login-loading p {
-  color: var(--muted-foreground);
-  font-size: 14px;
-}
-
