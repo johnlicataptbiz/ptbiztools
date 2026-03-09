@@ -32,6 +32,7 @@ import {
 } from "@/lib/ptbiz-api";
 import { GradePreview } from "@/components/grader/GradePreview";
 import { GradeModal } from "@/components/grader/GradeModal";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const MIN_WORDS = 120
 
@@ -183,6 +184,38 @@ function getBehaviorName(id: string): string {
     personal_story: 'Story Deployment',
   }
   return names[id] || id
+}
+
+// Adapter to convert legacy GradeResult to new GraderResultData format
+function adaptLegacyGradeToResult(grade: GradeResult): import('@/components/grader/types').GraderResultData {
+  return {
+    score: grade.score,
+    outcome: grade.outcome,
+    summary: grade.summary,
+    phaseScores: grade.phaseScores.map(p => ({
+      name: p.name,
+      score: p.score,
+      maxScore: p.maxScore,
+      summary: p.summary,
+      evidence: p.evidence,
+    })),
+    strengths: grade.strengths,
+    improvements: grade.improvements,
+    redFlags: grade.redFlags,
+    criticalBehaviors: grade.criticalBehaviors?.map(cb => ({
+      id: cb.id,
+      name: cb.name,
+      status: cb.status,
+      note: cb.note,
+      evidence: cb.evidence,
+    })),
+    deterministic: grade.deterministic,
+    confidence: grade.confidence,
+    prospectSummary: grade.prospectSummary,
+    evidence: grade.evidence,
+    qualityGate: (grade as any).qualityGate,
+    storage: (grade as any).storage,
+  }
 }
 
 function shouldRetryGrading(response: { error?: string; reasons?: string[] }) {
@@ -1181,7 +1214,11 @@ export default function DiscoveryCallGrader() {
           <GradeModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            grade={grade}
+            result={adaptLegacyGradeToResult(grade)}
+            badgeSrc={TOOL_BADGES.discovery}
+            badgeAlt="Discovery Call Grader"
+            title="Discovery Call Audit"
+            subtitle="AI-powered call analysis & coaching insights"
             coachName={coachName}
             setCoachName={setCoachName}
             clientName={clientName}

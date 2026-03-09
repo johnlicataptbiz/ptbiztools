@@ -1,18 +1,193 @@
 {
   "success": true,
-  "totalCommits": 99,
+  "totalCommits": 100,
   "dates": [
     "2026-03-09",
     "2026-03-06",
     "2026-03-04",
     "2026-03-03",
-    "2026-03-02",
-    "2026-03-01",
-    "2026-02-28",
-    "2026-02-27"
+    "2026-03-02"
   ],
   "entries": {
     "2026-03-09": [
+      {
+        "hash": "908804d",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: remove subtitle format warning since backend handles it automatically",
+        "type": "fix"
+      },
+      {
+        "hash": "8a9bab0",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: sales call grader UI/UX - clean headers, proper modal styling with badge inside",
+        "type": "fix"
+      },
+      {
+        "hash": "703f2a3",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: add missing React import to DannyCloserCallGrader and standardize Danny tools UI with light theme",
+        "type": "fix"
+      },
+      {
+        "hash": "85b1e2c",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "revert: remove 20k character limit from sales-grade-v2 API",
+        "type": "other"
+      },
+      {
+        "hash": "794a40e",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "feat: add 20,000 char transcript limit to sales-grade-v2 API to prevent context overflow",
+        "type": "feature"
+      },
+      {
+        "hash": "728c741",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: remove inline 64px styles from tool page badges - now using CSS class sizes (160px)",
+        "type": "fix",
+        "category": "160px"
+      },
+      {
+        "hash": "ad31255",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: significantly larger badges - 160px container, 128px badge on dashboard and tool pages",
+        "type": "other"
+      },
+      {
+        "hash": "4079fd2",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: remove inline styles overriding badge sizes on dashboard",
+        "type": "fix"
+      },
+      {
+        "hash": "e939d0c",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: even larger badges - 120px container, 96px badge on dashboard and tool pages",
+        "type": "other"
+      },
+      {
+        "hash": "4d3d33a",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: larger badges/icons - 96px container, 72px badge on dashboard, 96px on tool pages",
+        "type": "other"
+      },
+      {
+        "hash": "6d86966",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: simplify app shell - cleaner header, remove tour buttons, minimal footer",
+        "type": "other"
+      },
+      {
+        "hash": "c4dfdb2",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: simplify login page header - remove theme selector, smaller logo, shorter subtitle",
+        "type": "other"
+      },
+      {
+        "hash": "7e59e0d",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: simplify dashboard header - single line greeting, icon-only updates button",
+        "type": "other"
+      },
+      {
+        "hash": "f6b355d",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: optimize dashboard tool cards - larger icons, remove descriptions and ready chips, shorter section title",
+        "type": "other"
+      },
+      {
+        "hash": "11a796e",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: simplify headers across all tool pages - larger badges, shorter titles, removed subtitles",
+        "type": "other"
+      },
+      {
+        "hash": "d7d107e",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "ui: simplify header - larger badge, shorter title, removed subtitle",
+        "type": "other"
+      },
+      {
+        "hash": "c6e900f",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: stricter AI grading rubric and enhanced PDF depth",
+        "type": "fix",
+        "category": "Exceptional/Good/Average/Below Average/Poor"
+      },
+      {
+        "hash": "799b35c",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: update grading prompt to consider outcome when evaluating followup phase - don't penalize won deals for lacking next steps",
+        "type": "fix"
+      },
+      {
+        "hash": "b9408ad",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: make outcome required in metadata schema for OpenAI strict validation",
+        "type": "fix"
+      },
+      {
+        "hash": "fb63309",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "chore: trigger redeploy for OPENAI_API_KEY env var",
+        "type": "chore"
+      },
+      {
+        "hash": "5be00e6",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: add missing React import to DannyCloserCallGrader to resolve useState error",
+        "type": "fix"
+      },
+      {
+        "hash": "4e4df38",
+        "author": "Jack Licata",
+        "email": "jack@physicaltherapybiz.com",
+        "date": "2026-03-09",
+        "message": "fix: make changelog work in Vercel serverless environment",
+        "type": "fix"
+      },
       {
         "hash": "e33bff4",
         "author": "Jack Licata",
@@ -649,185 +824,7 @@
         "message": "Implement guided KPI UX, branding refresh, and structured PDF exports",
         "type": "other"
       }
-    ],
-    "2026-03-01": [
-      {
-        "hash": "4ff8545",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-03-01",
-        "message": "Redesign PL and discovery UX; simplify intro to single autoplay video",
-        "type": "other"
-      },
-      {
-        "hash": "1298432",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-03-01",
-        "message": "Add PT Biz knowledge docs and enforce no-RAG, code-encoded PL scoring",
-        "type": "other"
-      },
-      {
-        "hash": "2c38de6",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-03-01",
-        "message": "Update brand logo URL and apply white CSS mask treatment",
-        "type": "other"
-      },
-      {
-        "hash": "4e4987b",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-03-01",
-        "message": "Update Jack title and tighten login headshot crop",
-        "type": "other"
-      },
-      {
-        "hash": "b5c3533",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-03-01",
-        "message": "Add PL import batch persistence, mastermind sync, and frontend ordering/build fixes",
-        "type": "other"
-      }
-    ],
-    "2026-02-28": [
-      {
-        "hash": "0806f4c",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "chore: harden intro media seeding and keep firecrawl outputs ignored",
-        "type": "chore"
-      },
-      {
-        "hash": "82f2942",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "chore(git): ignore local playwright and output artifacts",
-        "type": "other",
-        "category": "git"
-      },
-      {
-        "hash": "b07da6f",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "chore(node): standardize backend and dev env on node 22",
-        "type": "other",
-        "category": "node"
-      },
-      {
-        "hash": "36794db",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "fix(frontend): remove install/build warnings",
-        "type": "other",
-        "category": "frontend"
-      },
-      {
-        "hash": "3a69087",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Polish login UX and stage onboarding intro unlock flow",
-        "type": "other"
-      },
-      {
-        "hash": "5209d09",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Improve login branding, Corex controls, and add Jack Licata profile",
-        "type": "other"
-      },
-      {
-        "hash": "c159db2",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Add advisor/admin Sales Discovery Grader stub route and nav",
-        "type": "other"
-      },
-      {
-        "hash": "f499a79",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Add role tiers and user-scoped history for analyses and exports",
-        "type": "other"
-      },
-      {
-        "hash": "5528aa5",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Use Ean headshot and switch login picker to scrollable profile list",
-        "type": "other"
-      },
-      {
-        "hash": "beea6f4",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Fix Railway CORS for Vercel and clarify unlock labels",
-        "type": "other"
-      },
-      {
-        "hash": "f26923f",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Implement login onboarding, intro sequencing, and SQL usage wiring",
-        "type": "other"
-      },
-      {
-        "hash": "b9ae05f",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Fix IntroVideo audio triggers: handleAudioEnd plays danny; useEffect plays audioRef",
-        "type": "other"
-      },
-      {
-        "hash": "87d6bf3",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Fix IntroVideo audio flow: logo-fade -> audio -> danny",
-        "type": "other"
-      },
-      {
-        "hash": "0813cfd",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Fix build errors and IntroVideo Audio Intro flow - Fixed x27 encoding in App.tsx - Fixed IntroVideo.tsx: Added dannyRef ref for Danny video, removed stray duplicate setTimeout code in handleAudioEnd - Created basic Layout.tsx and Login.tsx stubs to fix routing - Fixed api.ts to use import.meta.env for Vite compatibility",
-        "type": "other"
-      },
-      {
-        "hash": "2e357fd",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-28",
-        "message": "Fix discovery call grader UI blocking issue and add audio intro for Danny's video",
-        "type": "other",
-        "category": "audio -> danny -> done"
-      }
-    ],
-    "2026-02-27": [
-      {
-        "hash": "473f218",
-        "author": "Jack Licata",
-        "email": "jack@physicaltherapybiz.com",
-        "date": "2026-02-27",
-        "message": "Initial commit: PT Biz Tools - Discovery Call Grader + P&L Calculator",
-        "type": "other"
-      }
     ]
   },
-  "lastUpdated": "2026-03-09T19:56:41.371Z"
+  "lastUpdated": "2026-03-09T22:34:28.326Z"
 }

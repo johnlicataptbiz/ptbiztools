@@ -35,6 +35,10 @@ const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
 const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a11935a3ac5d-512";
 
+// Dev mode bypass
+const DEV_MODE = process.env.NODE_ENV === "development";
+const DEV_PASSWORD = "dev123";
+
 const DEPARTMENTS = ["All", "Coaches", "Partners", "Client Success", "Advisors", "Acquisitions", "Internal"] as const;
 
 // Department icons for visual recognition
@@ -750,6 +754,19 @@ export default function LoginPage() {
       return;
     }
 
+    // Dev mode bypass - accept dev123 password
+    if (DEV_MODE && password === DEV_PASSWORD) {
+      // For dev mode, we'll simulate a successful login by setting the user ID in localStorage
+      // and redirecting to dashboard. The actual auth will be handled by the session context.
+      localStorage.setItem(REMEMBERED_USER_KEY, selectedUser.id);
+      saveRecentUser(selectedUser.id);
+      setShowSuccess(true);
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 1500);
+      return;
+    }
+
     setSubmitting(true);
     setMessage("");
 
@@ -1132,6 +1149,30 @@ export default function LoginPage() {
                   <a href="#" className="auth-link">Forgot password?</a>
                   <a href="#" className="auth-link">Need help?</a>
                 </div>
+
+                {/* Reset login data for development */}
+                {DEV_MODE && (
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #666' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.removeItem(REMEMBERED_USER_KEY);
+                        localStorage.removeItem('ptbiz_recent_users');
+                        window.location.reload();
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ff6b6b',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      🗑️ Reset Login Data (Dev Only)
+                    </button>
+                  </div>
+                )}
 
                 <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
                   <LockKeyhole size={16} />

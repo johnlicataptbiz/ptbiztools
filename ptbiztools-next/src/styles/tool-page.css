@@ -326,6 +326,251 @@
   transform: translateY(-1px);
 }
 
+/* Grader Input Modal Styles */
+.grade-input-modal {
+  max-width: 800px;
+}
+
+.grader-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.grader-selection-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.grader-selection-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.grader-selection-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.grader-pill-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grader-pill {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.grader-pill:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.grader-pill.active {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+.grader-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.grader-input-section {
+  margin-bottom: 16px;
+}
+
+.grader-dropzone {
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 12px;
+}
+
+.grader-dropzone.dragging {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.grader-dropzone:hover:not(.dragging) {
+  border-color: #cbd5e1;
+}
+
+.grader-dropzone-icon {
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.grader-dropzone-text {
+  display: block;
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.grader-dropzone-link {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.grader-dropzone-hint {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.grader-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+  background: white;
+  resize: vertical;
+  min-height: 120px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.grader-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.grader-textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.grader-file-uploaded {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.grader-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #16a34a;
+}
+
+.grader-file-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.grader-file-stats {
+  font-size: 12px;
+  color: #22c55e;
+  margin-left: 8px;
+}
+
+.grader-file-remove {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.grader-file-remove:hover:not(:disabled) {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.grader-file-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.grader-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.grader-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grader-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.grader-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #334155;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.grader-stat-value.valid {
+  color: #16a34a;
+}
+
+.grader-stat-value.invalid {
+  color: #dc2626;
+}
+
+.grader-validation {
+  margin-left: auto;
+}
+
+.grader-validation-success {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.grader-validation-error {
+  font-size: 13px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
 @media (max-width: 640px) {
   .grade-modal-form {
     grid-template-columns: 1fr;
@@ -342,5 +587,23 @@
   
   .grade-modal-score-number {
     font-size: 28px;
+  }
+  
+  .grader-meta-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .grader-selection-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .grader-stats-bar {
+    gap: 16px;
+  }
+  
+  .grader-validation {
+    margin-left: 0;
+    width: 100%;
   }
 }
