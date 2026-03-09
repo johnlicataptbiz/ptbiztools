@@ -1,8 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, LockKeyhole, Palette, UserRound } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ArrowLeft, 
+  CheckCircle2, 
+  ChevronDown, 
+  Clock, 
+  LockKeyhole, 
+  Palette, 
+  ShieldCheck, 
+  Star, 
+  UserRound, 
+  Eye, 
+  EyeOff 
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { LOGIN_LOGO_URL } from "@/constants/branding";
@@ -23,101 +35,117 @@ type MemberProfile = {
   clinicLogoUrl?: string;
 };
 
+// Role categories for accordion sections
+type RoleSection = {
+  id: string;
+  label: string;
+  priority: number;
+};
+
+const ROLE_SECTIONS: RoleSection[] = [
+  { id: "coach", label: "Coaches", priority: 0 },
+  { id: "partner", label: "Partners", priority: 1 },
+  { id: "client success", label: "Client Success", priority: 2 },
+  { id: "advisor", label: "Advisors", priority: 3 },
+  { id: "acquisitions", label: "Acquisitions", priority: 4 },
+  { id: "internal", label: "Internal", priority: 5 },
+];
+
 const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
   "ashley speights": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT, PES",
-    clinic: "Founder & Owner — The PHYT Collective (Washington, DC)",
+    clinic: "Founder & Owner - The PHYT Collective (Washington, DC)",
     experience: "Athlete-focused cash practice with strong community education",
     clinicLogoUrl: "https://logos.hunter.io/phytcollective.com",
   },
   "brooke miller": {
     badge: "DPT,OCS",
     credentials: "Coach; PT, DPT, OCS",
-    clinic: "Owner — PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
+    clinic: "Owner - PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
     experience: "Pelvic health + orthopedic performance specialist clinic owner",
     clinicLogoUrl: "https://logos.hunter.io/peakrxtherapy.com",
   },
   "chris robl": {
     badge: "DPT",
     credentials: "Coach; DPT",
-    clinic: "Founder/Owner — Physio Room (Colorado; hybrid model)",
+    clinic: "Founder/Owner - Physio Room (Colorado; hybrid model)",
     experience: "10+ years clinical practice; built multi-location hybrid business",
     clinicLogoUrl: "https://logos.hunter.io/physioroomco.com",
   },
   "colleen davis": {
     badge: "DPT",
     credentials: "Coach; DPT",
-    clinic: "Founder & Owner — GOAT Physical Therapy and Wellness (Gales Ferry, CT)",
+    clinic: "Founder & Owner - GOAT Physical Therapy and Wellness (Gales Ferry, CT)",
     experience: "Scaled to a 3,500 sq ft clinic with four therapists",
     clinicLogoUrl: "https://logos.hunter.io/goatpt.com",
   },
   "courtney morse": {
     badge: "DPT",
     credentials: "Head Coach; DPT",
-    clinic: "Owner/Founder — Natural Wellness Physiotherapy (Wichita, KS)",
+    clinic: "Owner/Founder - Natural Wellness Physiotherapy (Wichita, KS)",
     experience: "Built team-run cash clinic and now focuses on systems + leadership",
     clinicLogoUrl: "https://logos.hunter.io/teamnaturalwellness.com",
   },
   "daniel laughlin": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
-    clinic: "Owner — Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
+    clinic: "Owner - Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
     experience: "Converted from insurance model to high-performing hybrid practice",
     clinicLogoUrl: "https://logos.hunter.io/lpptkc.com",
   },
   "dj haskins": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
-    clinic: "Founder — Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
+    clinic: "Founder - Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
     experience: "Pelvic health practice helping women return to confident movement",
     clinicLogoUrl: "https://logos.hunter.io/blisspelvichealth.com",
   },
   "elizabeth rudd": {
     badge: "DPT,OCS",
     credentials: "Coach; PT, DPT, OCS, CSCS",
-    clinic: "Founder/Owner — Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
+    clinic: "Founder/Owner - Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
     experience: "Sports performance, rehab, and pain-management specialist",
     clinicLogoUrl: "https://logos.hunter.io/wellequiptpt.com",
   },
   "jaxie meth": {
     badge: "PT,DPT",
     credentials: "Coach; PT, DPT",
-    clinic: "Founder/Owner — The METHOD Performance and Physical Therapy (Boston, MA area)",
+    clinic: "Founder/Owner - The METHOD Performance and Physical Therapy (Boston, MA area)",
     experience: "Pelvic floor specialist for fitness athletes",
     clinicLogoUrl: "https://logos.hunter.io/themethodpt.com",
   },
   "michael sclafani": {
     badge: "DPT,SCS",
     credentials: "Coach; DPT, SCS, CSCS",
-    clinic: "Founder/Owner — Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
+    clinic: "Founder/Owner - Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
     experience: "Sports residency trained; published IJSPT author; DPT faculty contributor",
     clinicLogoUrl: "https://logos.hunter.io/tidelinesportsperformance.com",
   },
   "tyler humphries": {
     badge: "DPT",
     credentials: "Coach; DPT",
-    clinic: "Founder/Owner — Bulletproof Physical Therapy (Houston, TX)",
+    clinic: "Founder/Owner - Bulletproof Physical Therapy (Houston, TX)",
     experience: "Performance-based rehab model for active adults and athletes",
     clinicLogoUrl: "https://logos.hunter.io/bulletproofpt.com",
   },
   "ziad dahdul": {
     badge: "DPT,OCS",
     credentials: "Coach; DPT, OCS",
-    clinic: "Founder/Owner — Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
+    clinic: "Founder/Owner - Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
     experience: "11+ years with athletes; USC DPT; functional performance focus",
     clinicLogoUrl: "https://logos.hunter.io/ignitephyzio.com",
   },
   "danny matta": {
     badge: "DPT,OCS",
     credentials: "Partner; CEO; DPT, OCS, CSCS",
-    clinic: "Co-founder/Co-owner (with Ashley Matta) — Athletes' Potential (Decatur/Atlanta, GA)",
+    clinic: "Co-founder/Co-owner (with Ashley Matta) - Athletes' Potential (Decatur/Atlanta, GA)",
     experience: "Former U.S. Army Physical Therapist; co-founded PT Biz and scaled Athletes' Potential before selling in 2023",
   },
   "yves gege": {
     badge: "PT",
     credentials: "Partner; Head of Customer Success & Coaching; PT",
-    clinic: "Founder — Made 2 Move Physical Therapy (Charleston, SC area)",
+    clinic: "Founder - Made 2 Move Physical Therapy (Charleston, SC area)",
     experience: "Grew to multiple locations/providers; sold in 2020; remains mentor",
     clinicLogoUrl: "https://logos.hunter.io/made2movept.com",
   },
@@ -130,13 +158,13 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
   "john licata": {
     badge: "BIZ",
     credentials: "Advisor; Senior Advisor",
-    clinic: "Senior Advisor — PT Biz",
+    clinic: "Senior Advisor - PT Biz",
     experience: "30+ years in consumer goods leadership, sales strategy, and executive consulting",
   },
   "toni counts": {
     badge: "PT,DPT",
     credentials: "Advisor; Business Advisor; PT, DPT",
-    clinic: "Founder/Owner — Off The Block Performance Physical Therapy (Central/Easley, SC area)",
+    clinic: "Founder/Owner - Off The Block Performance Physical Therapy (Central/Easley, SC area)",
     experience: "Multiple locations with husband Cole",
     clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
   },
@@ -149,7 +177,7 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
   "ashley matta": {
     badge: "OWNER",
     credentials: "Client Success; First Lady of PT Biz",
-    clinic: "Co-owner (with Danny Matta) — Athletes' Potential",
+    clinic: "Co-owner (with Danny Matta) - Athletes' Potential",
     experience: "Built and operated cash practice for 8+ years; sold in 2023",
     clinicLogoUrl: "https://logos.hunter.io/athletespotential.com",
   },
@@ -287,24 +315,16 @@ function sanitizeProfile(profile: MemberProfile) {
   };
 }
 
-function ClinicContext({
-  clinic,
-  clinicLogoUrl,
-}: {
-  clinic: string;
-  clinicLogoUrl?: string;
-}) {
-  return (
-    <small className="member-row-context member-row-context-with-logo">
-      {clinicLogoUrl && (
-        <span className="clinic-logo-chip" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={clinicLogoUrl} alt="" className="clinic-logo-img" loading="lazy" />
-        </span>
-      )}
-      <span className="member-row-context-text">{clinic}</span>
-    </small>
-  );
+function getSectionForMember(member: TeamMember): string {
+  const section = normalizeText(member.teamSection);
+  const title = normalizeText(member.title);
+  
+  if (section.includes("coach") || title.includes("coach")) return "coach";
+  if (section.includes("partner") || title.includes("partner")) return "partner";
+  if (section.includes("client success")) return "client success";
+  if (section.includes("advisor") || title.includes("advisor")) return "advisor";
+  if (section.includes("acquisitions")) return "acquisitions";
+  return "internal";
 }
 
 function getInitials(name: string) {
@@ -364,6 +384,41 @@ function getBadgeTokens(profile?: { badge: string } | null) {
     .filter(Boolean);
 }
 
+// Get unique first letters for alphabet index
+function getAlphabetIndex(members: TeamMember[]): string[] {
+  const letters = new Set<string>();
+  members.forEach(member => {
+    const firstChar = member.name.charAt(0).toUpperCase();
+    if (firstChar.match(/[A-Z]/)) {
+      letters.add(firstChar);
+    }
+  });
+  return Array.from(letters).sort();
+}
+
+// Get recent users from localStorage
+function getRecentUsers(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem("ptbiz_recent_users");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save recent user
+function saveRecentUser(userId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const recent = getRecentUsers();
+    const updated = [userId, ...recent.filter(id => id !== userId)].slice(0, 5);
+    localStorage.setItem("ptbiz_recent_users", JSON.stringify(updated));
+  } catch {
+    // Ignore errors
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: sessionLoading, login } = useSession();
@@ -379,6 +434,16 @@ export default function LoginPage() {
   const [identityConfirmed, setIdentityConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Accordion state - default expanded sections
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
+    return new Set(["coach"]); // Default: Coaches section expanded
+  });
+  
+  // Active letter for alphabet index
+  const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
   const teamQuery = useQuery({
     queryKey: ["auth", "team"],
@@ -400,6 +465,38 @@ export default function LoginPage() {
     [visibleMembers],
   );
 
+  // Group members by section
+  const membersBySection = useMemo(() => {
+    const grouped: Record<string, TeamMember[]> = {};
+    ROLE_SECTIONS.forEach(section => {
+      grouped[section.id] = [];
+    });
+    
+    orderedTeamMembers.forEach(member => {
+      const section = getSectionForMember(member);
+      if (grouped[section]) {
+        grouped[section].push(member);
+      } else {
+        // Default to internal
+        grouped["internal"].push(member);
+      }
+    });
+    
+    return grouped;
+  }, [orderedTeamMembers]);
+
+  // Alphabet index
+  const alphabetIndex = useMemo(() => getAlphabetIndex(orderedTeamMembers), [orderedTeamMembers]);
+  
+  // Recent users
+  const recentUserIds = useMemo(() => getRecentUsers(), []);
+  const recentUsers = useMemo(() => {
+    return recentUserIds
+      .map(id => visibleMembers.find(m => m.id === id))
+      .filter((m): m is TeamMember => m !== undefined)
+      .slice(0, 5);
+  }, [recentUserIds, visibleMembers]);
+
   useEffect(() => {
     if (user) {
       router.replace("/dashboard");
@@ -415,16 +512,43 @@ export default function LoginPage() {
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
 
+  // Toggle accordion section
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  };
+
+  // Handle alphabet letter click
+  const handleLetterClick = (letter: string) => {
+    setActiveLetter(letter);
+    // Find first member with this letter and scroll to it
+    const element = document.getElementById(`member-${letter.toLowerCase()}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    // Reset after delay
+    setTimeout(() => setActiveLetter(null), 1000);
+  };
+
   const resetInputs = () => {
     setPassword("");
     setConfirmPassword("");
     setIdentityConfirmed(false);
     setMessage("");
+    setShowPassword(false);
   };
 
   const handleUserSelect = (userId: string) => {
     setSelectedUserId(userId);
     localStorage.setItem(REMEMBERED_USER_KEY, userId);
+    saveRecentUser(userId);
     resetInputs();
   };
 
@@ -432,6 +556,7 @@ export default function LoginPage() {
     setSelectedUserId(null);
     localStorage.removeItem(REMEMBERED_USER_KEY);
     resetInputs();
+    setShowSuccess(false);
   };
 
   const handleSetupPassword = async (event: FormEvent) => {
@@ -492,14 +617,26 @@ export default function LoginPage() {
     }
 
     localStorage.setItem(REMEMBERED_USER_KEY, selectedUser.id);
-    router.replace("/dashboard");
+    saveRecentUser(selectedUser.id);
+    
+    // Show success animation
+    setShowSuccess(true);
+    setSubmitting(false);
+    
+    // Redirect after animation
+    setTimeout(() => {
+      router.replace("/dashboard");
+    }, 1500);
   };
 
   if (sessionLoading || teamQuery.isLoading) {
     return (
       <div className="login-shell">
         <div className="login-card">
-          <p>Loading team members...</p>
+          <div className="login-loading">
+            <div className="login-spinner" />
+            <p>Loading team members...</p>
+          </div>
         </div>
       </div>
     );
@@ -507,11 +644,27 @@ export default function LoginPage() {
 
   return (
     <div className="login-shell">
+      {/* Alphabet Index - Quick Scan Aid */}
+      {alphabetIndex.length > 0 && !selectedUser && (
+        <div className="alphabet-index" role="navigation" aria-label="Alphabetical index">
+          {alphabetIndex.map(letter => (
+            <button
+              key={letter}
+              className={`alphabet-letter ${activeLetter === letter ? 'active' : ''}`}
+              onClick={() => handleLetterClick(letter)}
+              aria-label={`Jump to ${letter}`}
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
+      )}
+
       <motion.div
         className="login-card"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.3 }}
       >
         <header className="login-header">
           <div className="login-theme-row">
@@ -534,71 +687,130 @@ export default function LoginPage() {
               </select>
             </label>
           </div>
+          
           <div className="login-logo-hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
+            <span className="login-tagline">PTBizCoach Workspace - Empowering Cash-Based PT Leaders</span>
           </div>
-          <h1>Sign in</h1>
-          <p>Select your profile and enter your password.</p>
+          
+          <h1>Welcome Back</h1>
+          <p>Select your profile to securely access your coaching tools.</p>
         </header>
 
         {!selectedUser && (
           <section className="member-picker">
-            <div className="member-picker-header">
-              <h2>Choose your profile</h2>
-              <span>{orderedTeamMembers.length} team members</span>
-            </div>
-            <div className="member-dropdown-list" role="listbox" aria-label="Team member profiles">
-              {orderedTeamMembers.map((member) => {
-                const profile = getMemberProfile(member);
-                const badgeTokens = getBadgeTokens(profile);
-
-                return (
-                  <motion.button
-                    key={member.id}
-                    className="member-row-card"
-                    onClick={() => handleUserSelect(member.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.995 }}
-                  >
+            {/* Most Recent Section */}
+            {recentUsers.length > 0 && (
+              <div className="most-recent-section">
+                <div className="most-recent-header">
+                  <Clock size={14} />
+                  <h3>Most Recent</h3>
+                </div>
+                <div className="most-recent-grid">
+                  {recentUsers.map(member => (
+                    <button
+                      key={member.id}
+                      className="most-recent-item"
+                      onClick={() => handleUserSelect(member.id)}
+                    >
                       <TeamAvatar
                         name={member.name}
                         imageUrl={member.imageUrl}
                         className="member-list-photo"
                         fallbackClassName="member-list-photo-fallback"
                       />
-                      <div className="member-row-meta">
-                        <strong>{member.name}</strong>
-                        <span>{member.title || "Team Member"}</span>
-                        <em>{member.teamSection || "PT Biz Team"}</em>
-                        {!!badgeTokens.length && (
-                          <div className="member-row-badge-list" aria-label={`${member.name} credentials`}>
-                            {badgeTokens.map((badgeToken) => (
-                              <small key={`${member.id}-${badgeToken}`} className="member-row-badge-chip">
-                                {badgeToken}
-                              </small>
-                            ))}
-                          </div>
-                        )}
-                        <div className="member-row-detail-grid">
-                          <small className="member-row-cred">{profile.credentials}</small>
-                          {profile.clinic && (
-                            <ClinicContext clinic={profile.clinic} clinicLogoUrl={profile.clinicLogoUrl} />
-                          )}
-                          {profile.experience && <small className="member-row-context">{profile.experience}</small>}
-                        </div>
-                      </div>
-                    <div className="member-row-action" aria-hidden="true">
-                      Select
+                      <strong>{member.name.split(' ')[0]}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Accordion Sections by Role */}
+            {ROLE_SECTIONS.map(section => {
+              const sectionMembers = membersBySection[section.id] || [];
+              if (sectionMembers.length === 0) return null;
+              
+              const isExpanded = expandedSections.has(section.id);
+              
+              return (
+                <div key={section.id} className="member-section">
+                  <button
+                    className="member-section-header"
+                    onClick={() => toggleSection(section.id)}
+                    aria-expanded={isExpanded}
+                  >
+                    <div className="member-section-title">
+                      <h2>{section.label}</h2>
+                      <span className="member-section-count">{sectionMembers.length} members</span>
                     </div>
-                  </motion.button>
-                );
-              })}
-            </div>
+                    <ChevronDown 
+                      size={18} 
+                      className={`member-section-chevron ${isExpanded ? 'expanded' : ''}`}
+                    />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        className={`member-section-content ${isExpanded ? 'expanded' : ''}`}
+                        initial={{ opacity: 0, maxHeight: 0 }}
+                        animate={{ opacity: 1, maxHeight: 2000 }}
+                        exit={{ opacity: 0, maxHeight: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {sectionMembers.map(member => {
+                          const profile = getMemberProfile(member);
+                          const badgeTokens = getBadgeTokens(profile);
+                          const firstLetter = member.name.charAt(0).toUpperCase();
+                          
+                          return (
+                            <motion.button
+                              key={member.id}
+                              id={`member-${firstLetter.toLowerCase()}`}
+                              className="member-row-card"
+                              onClick={() => handleUserSelect(member.id)}
+                              whileHover={{ y: -3 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <TeamAvatar
+                                name={member.name}
+                                imageUrl={member.imageUrl}
+                                className="member-list-photo"
+                                fallbackClassName="member-list-photo-fallback"
+                              />
+                              <div className="member-row-meta">
+                                <strong>{member.name}</strong>
+                                <span>{member.title || "Team Member"}</span>
+                                <em>{member.teamSection || "PT Biz Team"}</em>
+                                {!!badgeTokens.length && (
+                                  <div className="member-row-badge-list">
+                                    {badgeTokens.slice(0, 2).map((badgeToken) => (
+                                      <small key={`${member.id}-${badgeToken}`} className="member-row-badge-chip">
+                                        {badgeToken}
+                                      </small>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="member-row-action" aria-hidden="true">
+                                Select
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </section>
         )}
 
-        {selectedUser && (
+        {/* Password Entry Flow */}
+        {selectedUser && !showSuccess && (
           <section className="selected-user-section">
             <button className="change-user-btn" onClick={handleBackToSelection}>
               <ArrowLeft size={14} />
@@ -617,34 +829,13 @@ export default function LoginPage() {
                 <p>{selectedUser.title}</p>
                 <span>{selectedUser.teamSection}</span>
                 {!!selectedUserBadgeTokens.length && (
-                  <div className="selected-user-badge-list" aria-label={`${selectedUser.name} credentials`}>
+                  <div className="selected-user-badge-list">
                     {selectedUserBadgeTokens.map((badgeToken) => (
                       <small key={`${selectedUser.id}-${badgeToken}`} className="selected-user-badge-chip">
                         {badgeToken}
                       </small>
                     ))}
                   </div>
-                )}
-                {selectedUserProfile && (
-                  <>
-                    <div className="selected-user-detail-grid">
-                      <small className="selected-user-cred">{selectedUserProfile.credentials}</small>
-                      {selectedUserProfile.clinic && (
-                        <small className="selected-user-context selected-user-context-with-logo">
-                          {selectedUserProfile.clinicLogoUrl && (
-                            <span className="clinic-logo-chip" aria-hidden="true">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={selectedUserProfile.clinicLogoUrl} alt="" className="clinic-logo-img" loading="lazy" />
-                            </span>
-                          )}
-                          <span className="member-row-context-text">{selectedUserProfile.clinic}</span>
-                        </small>
-                      )}
-                      {selectedUserProfile.experience && (
-                        <small className="selected-user-context">{selectedUserProfile.experience}</small>
-                      )}
-                    </div>
-                  </>
                 )}
               </div>
             </div>
@@ -663,21 +854,40 @@ export default function LoginPage() {
                   <span>I confirm I am {selectedUser.name}</span>
                 </label>
 
-                <CorexInput
-                  label="New password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={submitting}
-                />
+                <div className="password-input-wrapper">
+                  <CorexInput
+                    label="New password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={submitting}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
 
-                <CorexInput
-                  label="Confirm password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  disabled={submitting}
-                />
+                <div className="password-input-wrapper">
+                  <CorexInput
+                    label="Confirm password"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    disabled={submitting}
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div className="auth-trust">
+                  <ShieldCheck size={12} />
+                  <span>Encrypted & secure team access</span>
+                </div>
 
                 <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
                   <CheckCircle2 size={16} />
@@ -689,13 +899,24 @@ export default function LoginPage() {
                 <h3>Sign in</h3>
                 <p>Use your saved profile and enter your password.</p>
 
-                <CorexInput
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={submitting}
-                />
+                <div className="password-input-wrapper">
+                  <CorexInput
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={submitting}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
 
                 <label className="checkbox-row">
                   <input
@@ -703,8 +924,18 @@ export default function LoginPage() {
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
                   />
-                  <span>Keep me logged in</span>
+                  <span>Stay signed in on this device</span>
                 </label>
+
+                <div className="auth-trust">
+                  <ShieldCheck size={12} />
+                  <span>Encrypted & secure team access</span>
+                </div>
+
+                <div className="auth-links">
+                  <a href="#" className="auth-link">Forgot password?</a>
+                  <a href="#" className="auth-link">Need help?</a>
+                </div>
 
                 <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
                   <LockKeyhole size={16} />
@@ -715,8 +946,23 @@ export default function LoginPage() {
           </section>
         )}
 
-        {message && (
-          <div className="login-message">
+        {/* Success Animation */}
+        {showSuccess && selectedUser && (
+          <motion.div
+            className="login-success"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="success-checkmark">
+              <CheckCircle2 size={32} />
+            </div>
+            <p>Welcome back, {selectedUser.name.split(' ')[0]}!</p>
+          </motion.div>
+        )}
+
+        {message && !showSuccess && (
+          <div className={message.toLowerCase().includes('incorrect') || message.toLowerCase().includes('invalid') ? "auth-error" : "login-message"}>
             <UserRound size={14} />
             <span>{message}</span>
           </div>
@@ -725,3 +971,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

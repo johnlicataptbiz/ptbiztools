@@ -1,3 +1,7 @@
+/* ==========================================================================
+   Login Page - Unified Premium Redesign
+   ========================================================================== */
+
 .login-shell {
   min-height: 100vh;
   position: relative;
@@ -5,253 +9,355 @@
   align-items: center;
   justify-content: center;
   padding: clamp(16px, 2.4vw, 30px);
-  background:
-    radial-gradient(70% 80% at 8% -8%, color-mix(in oklab, var(--brand-accent) 18%, transparent), transparent 70%),
-    radial-gradient(62% 72% at 94% 110%, color-mix(in oklab, var(--brand-medium) 14%, transparent), transparent 75%),
+  /* Minimalist gradient: soft charcoal-to-deep teal */
+  background: 
+    radial-gradient(ellipse 80% 60% at 50% 120%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% -20%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 50%),
     linear-gradient(
-      145deg,
-      color-mix(in oklab, var(--background) 96%, white 4%) 0%,
-      color-mix(in oklab, var(--ui-bg-secondary) 94%, white 6%) 45%,
-      color-mix(in oklab, var(--background) 92%, black 8%) 100%
+      165deg,
+      color-mix(in oklab, var(--background) 100%, transparent) 0%,
+      color-mix(in oklab, var(--background) 98%, transparent) 50%,
+      var(--background) 100%
     );
-  overflow: hidden;
+  overflow-x: hidden;
   isolation: isolate;
 }
 
+/* Subtle background texture - very desaturated */
 .login-shell::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--brand-accent) 18%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--brand-accent) 18%, transparent) 1px, transparent 1px);
-  background-size: 56px 56px;
-  opacity: 0.5;
+  background-image: 
+    radial-gradient(circle at 2% 3%, var(--brand-accent) 0.5%, transparent 0.5%),
+    radial-gradient(circle at 98% 97%, var(--brand-medium) 0.3%, transparent 0.3%);
+  background-size: 100% 100%;
+  opacity: 0.15;
+  filter: blur(80px);
 }
 
 .login-shell::after {
   content: '';
   position: absolute;
-  inset: -12%;
+  inset: -20%;
   pointer-events: none;
-  background:
-    radial-gradient(36% 38% at 10% 92%, color-mix(in oklab, var(--brand-accent) 16%, transparent), transparent 68%),
-    radial-gradient(34% 40% at 90% 8%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 66%);
-  filter: blur(32px);
-  opacity: 0.8;
+  background: 
+    radial-gradient(ellipse 50% 40% at 15% 85%, color-mix(in oklab, var(--brand-accent) 8%, transparent), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 85% 15%, color-mix(in oklab, var(--brand-medium) 6%, transparent), transparent 50%);
+  filter: blur(60px);
+  opacity: 0.6;
 }
+
+/* ==========================================================================
+   Main Card - Premium Floating Design
+   ========================================================================== */
 
 .login-card {
   position: relative;
   z-index: 1;
-  width: min(920px, 100%);
-  border-radius: 28px;
-  border: 1px solid var(--color-border);
-  background: var(--color-card);
-  box-shadow:
-    0 4px 6px rgba(0, 0, 0, 0.04),
-    0 16px 48px rgba(0, 0, 0, 0.08),
-    0 0 0 1px var(--color-border);
-  padding: clamp(14px, 1.5vw, 22px);
+  width: min(700px, 100%);
+  border-radius: 24px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: 
+    linear-gradient(
+      165deg,
+      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
+    );
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--border) 40%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 50%, transparent);
+  padding: clamp(24px, 4vw, 48px);
   overflow: hidden;
+  backdrop-filter: blur(20px);
 }
 
+/* Subtle top gradient line */
 .login-card::before {
   content: '';
   position: absolute;
-  left: 4%;
-  right: 4%;
+  left: 8%;
+  right: 8%;
   top: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(91, 127, 166, 0.4), transparent);
-  opacity: 0.8;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    color-mix(in oklab, var(--brand-accent) 30%, transparent) 50%, 
+    transparent 100%
+  );
+  opacity: 0.6;
 }
 
+/* Inset border for depth */
 .login-card::after {
   content: '';
   position: absolute;
-  inset: 10px;
-  border-radius: 22px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  inset: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--border) 15%, transparent);
   pointer-events: none;
 }
 
+/* ==========================================================================
+   Header - Branding & Welcome
+   ========================================================================== */
+
 .login-header {
-  margin-bottom: 14px;
+  margin-bottom: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .login-theme-row {
   width: 100%;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 10;
 }
 
+/* Premium Theme Selector Pills */
 .login-theme-control {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .login-theme-label {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 11px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  font-weight: 700;
+  color: var(--muted-foreground);
+  font-weight: 600;
 }
 
 .login-theme-select {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-card);
-  color: var(--color-text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--foreground);
   font-size: 12px;
   font-weight: 600;
-  padding: 6px 28px 6px 9px;
+  padding: 6px 32px 6px 14px;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23615a4f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 9px center;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .login-theme-select:hover {
-  border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  border-color: var(--accent);
+  background-color: var(--surface);
 }
 
 .login-theme-select:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-accent) 22%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
+/* Logo Section */
 .login-logo-hero {
-  width: min(560px, 90vw);
+  width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 0;
+  justify-content: center;
+  margin-bottom: 8px;
 }
 
 .login-logo-image {
   display: block;
-  width: min(100%, 460px);
-  height: clamp(48px, 8vw, 82px);
+  width: min(100%, 320px);
+  height: clamp(56px, 10vw, 88px);
   object-fit: contain;
   image-rendering: auto;
-  filter:
-    saturate(1.03)
-    contrast(1.03)
-    drop-shadow(0 10px 18px rgba(6, 9, 20, 0.5));
+  filter: var(--logo-filter);
 }
 
+.login-tagline {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+/* Main Headline */
 .login-header h1 {
-  margin: 0;
-  font-size: clamp(30px, 3.2vw, 44px);
+  margin: 16px 0 0;
+  font-size: clamp(32px, 5vw, 42px);
+  font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: var(--color-text);
+  line-height: 1.1;
+  color: var(--foreground);
+  font-family: var(--font-brand-sans), system-ui, -apple-system, sans-serif;
 }
 
 .login-header p {
-  margin: 0;
+  margin: 8px 0 0;
   width: 100%;
-  max-width: min(460px, 100%);
+  max-width: 480px;
   display: block;
   white-space: normal;
   overflow-wrap: anywhere;
   text-wrap: balance;
-  color: var(--color-text-secondary);
-  font-size: clamp(15px, 1.2vw, 18px);
-  line-height: 1.42;
+  color: var(--muted-foreground);
+  font-size: clamp(14px, 1.4vw, 16px);
+  line-height: 1.5;
 }
+
+/* ==========================================================================
+   Profile Selection - Accordion Sections
+   ========================================================================== */
 
 .member-picker {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
-.member-picker h2 {
-  margin: 0;
-  font-size: clamp(22px, 1.6vw, 30px);
-  letter-spacing: -0.02em;
-}
-
-.member-picker-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 2px;
-}
-
-.member-picker-header span {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.member-dropdown-list {
-  display: grid;
-  gap: 10px;
-  max-height: 50vh;
-  overflow: auto;
-  padding: 9px;
-  border-radius: 18px;
-  border: 1px solid var(--color-border);
-  background: color-mix(in oklab, var(--color-bg-secondary) 88%, white 12%);
-}
-
-.member-dropdown-list::-webkit-scrollbar {
-  width: 9px;
-}
-
-.member-dropdown-list::-webkit-scrollbar-track {
-  background: var(--color-border);
-  border-radius: 999px;
-}
-
-.member-dropdown-list::-webkit-scrollbar-thumb {
-  background: var(--color-border-light);
-  border-radius: 999px;
-}
-
-.member-row-card {
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  background:
-    linear-gradient(
-      140deg,
-      color-mix(in oklab, var(--color-card) 94%, white 6%),
-      color-mix(in oklab, var(--color-card) 96%, var(--color-bg-secondary) 4%)
-    );
-  box-shadow: var(--shadow-card);
-  padding: 12px;
-  text-align: left;
-  transition: var(--transition);
+/* Section Headers - Accordion Style */
+.member-section-header {
   display: flex;
   align-items: center;
-  gap: 13px;
-  width: 100%;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface) 60%, var(--background) 40%);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.member-section-header:hover {
+  background: var(--surface);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+}
+
+.member-section-header:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.member-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-section-title h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.member-section-count {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--border) 50%, transparent);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.member-section-chevron {
+  color: var(--muted-foreground);
+  transition: transform 0.25s ease;
+}
+
+.member-section-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Section Content - Grid Layout */
+.member-section-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 16px 4px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease;
+}
+
+.member-section-content.expanded {
+  max-height: 2000px;
+  opacity: 1;
+  padding: 16px 4px;
+}
+
+/* ==========================================================================
+   Profile Cards - Premium Design
+   ========================================================================== */
+
+.member-row-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
+    );
+  padding: 16px;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-row-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--accent) 8%, transparent) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
 .member-row-card:hover {
-  border-color: rgba(91, 127, 166, 0.4);
-  transform: translateY(-1px);
-  background: var(--color-card);
-  box-shadow: var(--shadow-hover);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
+.member-row-card:hover::before {
+  opacity: 1;
+}
+
+.member-row-card:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+/* Avatar - Larger circular with glow */
 .team-avatar-shell {
   position: relative;
   display: block;
@@ -259,257 +365,353 @@
 }
 
 .member-list-photo-shell {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
 }
 
 .member-list-photo {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
   display: block;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 0 3px color-mix(in oklab, var(--surface) 50%, transparent);
+  transition: all 0.25s ease;
 }
 
-.jack-headshot-tight {
-  object-position: center 24%;
+.member-row-card:hover .member-list-photo {
+  border-color: var(--accent);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    0 0 20px color-mix(in oklab, var(--accent) 25%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--surface) 50%, transparent);
+  transform: scale(1.05);
 }
 
 .member-list-photo-fallback {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  font-size: 18px;
+  border-radius: 50%;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
-  background: linear-gradient(135deg, var(--color-dark), var(--color-medium));
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
+  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  transition: all 0.25s ease;
 }
 
+.member-row-card:hover .member-list-photo-fallback {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+/* Member Info */
 .member-row-meta {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
-  flex: 1;
+  width: 100%;
 }
 
 .member-row-meta strong {
-  color: var(--color-text);
-  font-size: 20px;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .member-row-meta span {
-  color: var(--color-text-secondary);
-  font-size: 16px;
-  line-height: 1.2;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .member-row-meta em {
-  color: var(--color-text-muted);
+  color: var(--muted-foreground);
   font-style: normal;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
 }
 
-.member-row-detail-grid {
-  display: grid;
-  gap: 4px;
-  margin-top: 2px;
-}
-
+/* Badge Chips */
 .member-row-badge-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .member-row-badge-chip {
-  color: var(--color-accent-dark);
+  color: var(--accent-strong);
   font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-  padding: 5px 7px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, var(--color-border));
-  background: color-mix(in oklab, var(--color-accent) 10%, var(--color-card));
-}
-
-.member-row-cred {
-  width: fit-content;
-  max-width: 100%;
-  color: var(--color-accent-dark);
-  font-size: 10px;
   font-weight: 700;
-  line-height: 1.25;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-accent) 28%, var(--color-border));
-  display: inline-block;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
 }
 
-.member-row-context {
-  color: var(--color-text-muted);
-  font-size: 11px;
-  line-height: 1.3;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Select Button - Premium Pill */
+.member-row-action {
+  margin-top: 4px;
+  border-radius: 20px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  transition: all 0.2s ease;
 }
 
-.member-row-context-with-logo,
-.selected-user-context-with-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
+.member-row-card:hover .member-row-action {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
-.member-row-context-text {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* ==========================================================================
+   Alphabetical Index - Quick Scan Aid
+   ========================================================================== */
+
+.alphabet-index {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  padding: 8px 4px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
 }
 
-.clinic-logo-chip {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  border-radius: 8px;
-  border: 1px solid color-mix(in oklab, var(--color-accent) 26%, var(--color-border));
-  background: color-mix(in oklab, var(--color-card) 90%, white 10%);
-  display: inline-flex;
+.alphabet-letter {
+  width: 22px;
+  height: 18px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(6, 12, 22, 0.12);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
-.clinic-logo-img {
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 3px;
-  filter:
-    grayscale(0.18)
-    saturate(0.9)
-    contrast(1.04);
-  opacity: 0.96;
+.alphabet-letter:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
-.member-row-action {
-  border-radius: 999px;
-  border: 1px solid rgba(91, 127, 166, 0.35);
-  background: rgba(91, 127, 166, 0.1);
-  color: var(--color-accent-dark);
-  font-size: 12px;
-  font-weight: 700;
+.alphabet-letter.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ==========================================================================
+   Most Recent / Pinned Section
+   ========================================================================== */
+
+.most-recent-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 16px;
+  background: 
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent) 6%, var(--surface)) 0%,
+      color-mix(in oklab, var(--accent) 3%, var(--surface)) 100%
+    );
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
+}
+
+.most-recent-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.most-recent-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-strong);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 7px 12px;
+  letter-spacing: 0.08em;
 }
+
+.most-recent-grid {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.most-recent-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.most-recent-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.most-recent-item .team-avatar-shell {
+  width: 48px;
+  height: 48px;
+}
+
+.most-recent-item .member-list-photo,
+.most-recent-item .member-list-photo-fallback {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.most-recent-item strong {
+  font-size: 12px;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Selected User Section
+   ========================================================================== */
 
 .selected-user-section {
   display: grid;
-  gap: 14px;
+  gap: 20px;
+  animation: slideIn 0.35s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .change-user-btn {
   width: fit-content;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  color: var(--muted-foreground);
+  padding: 8px 14px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .change-user-btn:hover {
-  border-color: var(--color-accent);
-  background: var(--color-card);
-  color: var(--color-accent);
+  border-color: var(--accent);
+  background: var(--surface);
+  color: var(--accent);
 }
 
 .selected-user-card {
-  border-radius: 16px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
-  padding: 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px;
   display: flex;
-  gap: 12px;
+  gap: 20px;
   align-items: center;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .selected-user-photo-shell {
-  width: 66px;
-  height: 66px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
 }
 
 .selected-user-photo {
-  width: 66px;
-  height: 66px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 30%, transparent);
 }
 
 .selected-user-photo-fallback {
-  width: 66px;
-  height: 66px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, var(--color-dark), var(--color-medium));
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
+  border: 3px solid var(--accent);
 }
 
 .selected-user-card h2 {
   margin: 0;
-  font-size: 19px;
-  color: var(--color-text);
+  font-size: 22px;
+  color: var(--foreground);
+  font-weight: 600;
 }
 
 .selected-user-card p {
-  margin: 2px 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--muted-foreground);
 }
 
 .selected-user-card span {
-  color: var(--color-text-muted);
-  font-size: 11px;
+  color: var(--muted-foreground);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -518,76 +720,75 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .selected-user-badge-chip {
-  color: var(--color-accent-dark);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-  padding: 5px 7px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, var(--color-border));
-  background: color-mix(in oklab, var(--color-accent) 10%, var(--color-card));
-}
-
-.selected-user-cred {
-  width: fit-content;
-  margin-top: 3px;
-  color: var(--color-accent-dark);
+  color: var(--accent-strong);
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.35;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--color-accent) 28%, var(--color-border));
-  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
-  display: block;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
 }
 
-.selected-user-context {
-  display: block;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.selected-user-detail-grid {
-  display: grid;
-  gap: 4px;
-  margin-top: 4px;
-}
+/* ==========================================================================
+   Auth Form - Password Entry
+   ========================================================================== */
 
 .auth-form {
   display: grid;
-  gap: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
-  padding: 14px;
+  gap: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .auth-form h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
 }
 
 .auth-form p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--muted-foreground);
 }
 
+/* Trust Elements */
+.auth-trust {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
+}
+
+.auth-trust svg {
+  width: 12px;
+  height: 12px;
+  color: var(--success);
+}
+
+/* Form Fields */
 .auth-form label {
   display: grid;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--muted-foreground);
 }
 
 .auth-form .corex-field {
@@ -597,45 +798,106 @@
 
 .auth-form .corex-field-label {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--muted-foreground);
 }
 
 .auth-form .corex-input {
-  min-height: 44px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  background: var(--color-card);
-  color: var(--color-text);
-  padding: 10px 12px;
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  padding: 14px 16px;
+  font-size: 15px;
+  transition: all 0.2s ease;
 }
 
+.auth-form .corex-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+  outline: none;
+}
+
+.auth-form .corex-input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+/* Password Toggle */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: var(--foreground);
+}
+
+/* Checkbox */
 .checkbox-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
-  color: var(--color-text);
+  color: var(--foreground);
+  cursor: pointer;
 }
 
 .checkbox-row input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
 }
 
-.login-primary-btn {
+/* Links */
+.auth-links {
+  display: flex;
+  justify-content: space-between;
   margin-top: 4px;
-  border-radius: 10px;
+}
+
+.auth-link {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+  color: var(--accent);
+}
+
+/* Primary Button */
+.login-primary-btn {
+  margin-top: 8px;
+  border-radius: 14px;
   border: none;
-  min-height: 45px;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  gap: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: var(--shadow-button);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--accent) 40%, transparent);
+  transition: all 0.25s ease;
 }
 
 .login-primary-btn.corex-button {
@@ -643,8 +905,12 @@
 }
 
 .login-primary-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-button-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--accent) 50%, transparent);
+}
+
+.login-primary-btn:active {
+  transform: translateY(0);
 }
 
 .login-primary-btn:disabled {
@@ -653,112 +919,224 @@
   cursor: not-allowed;
 }
 
-.login-message {
-  margin-top: 14px;
-  border-radius: 11px;
-  border: 1px solid rgba(91, 127, 166, 0.3);
-  background: rgba(91, 127, 166, 0.08);
-  color: var(--color-accent-dark);
+/* Error State */
+.auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--danger) 10%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--border));
+  color: var(--danger);
   font-size: 13px;
-  padding: 10px 12px;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+/* Success Animation */
+.login-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  text-align: center;
+}
+
+.success-checkmark {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--success), color-mix(in oklab, var(--success) 80%, var(--accent-strong)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  animation: successPulse 0.6s ease;
+}
+
+@keyframes successPulse {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-checkmark svg {
+  width: 32px;
+  height: 32px;
+}
+
+.login-success p {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* ==========================================================================
+   Message Display
+   ========================================================================== */
+
+.login-message {
+  margin-top: 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
+  color: var(--accent-strong);
+  font-size: 13px;
+  padding: 12px 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-@media (max-width: 920px) {
-  .login-card {
-    border-radius: 22px;
-    padding: 16px;
-  }
-
-  .login-header {
-    gap: 7px;
-  }
-
-  .login-logo-image {
-    width: min(100%, 420px);
-  }
-
-  .member-row-meta strong {
-    font-size: 18px;
-  }
-
-  .member-row-meta span {
-    font-size: 15px;
-  }
-}
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
 
 @media (max-width: 768px) {
   .login-shell {
-    padding: 14px;
+    padding: 12px;
+    align-items: flex-start;
+    padding-top: 24px;
   }
 
   .login-card {
     border-radius: 20px;
-    padding: 14px;
+    padding: 20px;
   }
 
-  .login-card::after {
-    inset: 8px;
-    border-radius: 14px;
+  .login-header {
+    gap: 6px;
+  }
+
+  .login-logo-image {
+    width: min(100%, 260px);
   }
 
   .login-header h1 {
-    font-size: 30px;
+    font-size: 28px;
+  }
+
+  .login-header p {
+    font-size: 14px;
   }
 
   .login-theme-label {
     display: none;
   }
 
-  .login-header p {
-    font-size: 15px;
-  }
-
-  .member-picker h2 {
-    font-size: 18px;
-  }
-
-  .member-picker-header span {
-    font-size: 10px;
-  }
-
-  .member-dropdown-list {
-    max-height: 48vh;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .member-row-card {
+  /* Accordion sections stack on mobile */
+  .member-section-content {
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    padding: 9px;
   }
 
   .member-list-photo-shell,
   .member-list-photo,
   .member-list-photo-fallback {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
+    width: 64px;
+    height: 64px;
+    font-size: 20px;
   }
 
   .member-row-meta strong {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .member-row-meta span {
-    font-size: 13px;
+    font-size: 12px;
   }
 
-  .member-row-meta em {
-    font-size: 10px;
-    letter-spacing: 0.08em;
+  /* Hide alphabet index on mobile */
+  .alphabet-index {
+    display: none;
+  }
+
+  .selected-user-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .selected-user-photo-shell,
+  .selected-user-photo,
+  .selected-user-photo-fallback {
+    width: 72px;
+    height: 72px;
+  }
+
+  .auth-links {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .member-section-content {
+    grid-template-columns: 1fr;
+  }
+
+  .member-row-card {
+    flex-direction: row;
+    text-align: left;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .member-row-card .team-avatar-shell {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
+  .member-row-card .member-list-photo,
+  .member-row-card .member-list-photo-fallback {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
   }
 
   .member-row-action {
-    font-size: 10px;
-    padding: 6px 9px;
-    letter-spacing: 0.06em;
+    margin-left: auto;
+    margin-top: 0;
   }
 }
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.login-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px;
+}
+
+.login-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-loading p {
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+

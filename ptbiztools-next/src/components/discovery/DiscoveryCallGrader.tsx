@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect, type ChangeEvent } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback, type ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -11,6 +11,12 @@ import {
   FileText,
   MessageSquare,
   Upload,
+  ChevronDown,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  Download,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { GradeResult } from "@/utils/grader";
@@ -29,6 +35,58 @@ import { GradeModal } from "@/components/grader/GradeModal";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 
 const MIN_WORDS = 120
+
+// Danny's Phase Definitions with Rubric
+const PHASES = [
+  {
+    id: "opening", name: "Opening & Rapport", maxPoints: 10,
+    great: ["Warm, confident greeting with the patient's name", "If referred: acknowledge the referral, express genuine interest", "Light rapport building that feels natural", "Energy is high but not forced"],
+    mistakes: ["Jumping straight into clinical questions without rapport", "Sounding scripted or robotic", "Over-rapport: 5+ minutes of small talk", "Excessive filler words"],
+  },
+  {
+    id: "setScene", name: "Set the Scene / Take Control", maxPoints: 10,
+    great: ["Clearly sets agenda for the call", "Gets verbal agreement to proceed", "Asks how they found the clinic", "Clinician is leading, not following"],
+    mistakes: ["Never setting an agenda", "Letting patient dictate the flow", "Handing control to the patient", "Answering insurance question before building value"],
+  },
+  {
+    id: "discoveryCurrentState", name: "Discovery: Current State", maxPoints: 15,
+    great: ["Asks about current situation, duration, what they have tried", "Gets specific about limitations and day-to-day impact", "Asks about previous treatment experiences", "Quantifies where possible: pain level, frequency, activity levels"],
+    mistakes: ["Staying at surface level then immediately pitching", "Only asking clinical questions, no functional impact", "Not asking why now or what made them reach out", "Getting too clinical/diagnostic instead of listening"],
+  },
+  {
+    id: "discoveryGoals", name: "Discovery: Goals & Why", maxPoints: 15,
+    great: ["Asks what the ideal outcome looks like (magic wand question)", "Gets specific goals, not vague", "Asks WHY the goal matters, uncovers deeper motivation", "Asks about cost of inaction"],
+    mistakes: ["Never asking about goals, jumping from symptoms to pitch", "Accepting vague goals without digging deeper", "Missing the emotional layer entirely", "Not asking why now, the trigger that made them reach out"],
+    callout: "This phase is the most commonly underdone. The emotional motivation is what makes the price feel worth it later.",
+  },
+  {
+    id: "valuePresentation", name: "Value Presentation", maxPoints: 20,
+    great: ["Summarizes what they heard before pitching", "Connects clinic approach to THEIR specific situation", "Differentiates from insurance PT with specifics", "Frames outcome, not just process", "Expresses genuine confidence they can help"],
+    mistakes: ["Generic pitch not referencing anything the patient said", "Never summarizing/reflecting what they heard", "Leading with price before building value", "Weak differentiation from insurance PT", "No confidence statement"],
+  },
+  {
+    id: "objectionHandling", name: "Objection Handling", maxPoints: 15,
+    great: ["Acknowledge: Validate the concern genuinely", "Associate: Connect to positive behavior of successful patients", "Ask: Ask a question about their concern to stay in control", "Reframes insurance question with value-first approach", "Explores payment options (HSA/FSA, payment plans, superbills)"],
+    mistakes: ["Giving up after the first objection", "Answering objections with a monologue instead of questions", "Referring the patient to a competitor", "Getting defensive about pricing"],
+  },
+  {
+    id: "close", name: "The Close", maxPoints: 15,
+    great: ["Assumptive close with specific time options", "Offers specific times, not open-ended scheduling", "Ties close back to their specific goals", "Handles logistics confidently", "Preframes continuity and follow-up scheduling"],
+    mistakes: ["Never asking for the booking", "Closing transactionally without tying back to goals", "Not scheduling follow-ups beyond the eval", "Ending passively instead of booking"],
+  },
+];
+
+const RED_FLAGS = [
+  { id: "rf1", label: "Referred patient to a competitor", deduction: -15, desc: "Actively sends a qualified lead away" },
+  { id: "rf2", label: "Diagnosed on the phone (not clinical framing)", deduction: -10, desc: "Named specific conditions / prescribed treatment" },
+  { id: "rf3", label: "Led with price before building value", deduction: -10, desc: "Patient had no context to evaluate worth" },
+  { id: "rf4", label: "Asked Do you have any questions?", deduction: -5, desc: "Hands control to the patient" },
+  { id: "rf5", label: "Never attempted to close", deduction: -10, desc: "Not trying to book is a missed opportunity" },
+  { id: "rf6", label: "Validated the competition", deduction: -10, desc: "Said something positive about a competitor" },
+  { id: "rf7", label: "Failed to redirect early insurance question", deduction: -5, desc: "Answered insurance question before building value" },
+];
+
+const OUTCOMES = ["BOOKED", "NOT BOOKED", "UNKNOWN"];
 
 const DISCOVERY_GRADING_STAGES = [
   {
@@ -154,6 +212,35 @@ function sourceTypeLabel(sourceType?: "pdf" | "text" | "csv" | "rtf" | "xlsx" | 
   return "text";
 }
 
+// Danny's UI Helpers
+function sc(score: number) {
+  if (score >= 80) return "#059669";
+  if (score >= 60) return "#d97706";
+  return "#dc2626";
+}
+
+function sl(score: number) {
+  if (score >= 90) return "Exceptional";
+  if (score >= 80) return "Strong";
+  if (score >= 70) return "Decent";
+  if (score >= 60) return "Needs Work";
+  return "Significant Issues";
+}
+
+function getScoreColor(score: number) {
+  if (score >= 80) return "var(--success)";
+  if (score >= 60) return "var(--warning)";
+  return "var(--danger)";
+}
+
+function getScoreLabel(score: number) {
+  if (score >= 90) return "Exceptional";
+  if (score >= 80) return "Strong";
+  if (score >= 70) return "Decent";
+  if (score >= 60) return "Needs Work";
+  return "Significant Issues";
+}
+
 function getTranscriptStats(value: string) {
   const trimmed = value.trim()
   const words = trimmed ? trimmed.split(/\s+/).filter(Boolean) : []
@@ -175,7 +262,259 @@ function formatElapsed(seconds: number) {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
+// Phase Card Component
+function PhaseCard({ 
+  phase, 
+  score, 
+  notes, 
+  onScore, 
+  onNotes, 
+  isOpen, 
+  onToggle 
+}: { 
+  phase: typeof PHASES[0]; 
+  score: number; 
+  notes: string; 
+  onScore: (id: string, val: number) => void; 
+  onNotes: (id: string, val: string) => void; 
+  isOpen: boolean; 
+  onToggle: (id: string) => void;
+}) {
+  const pct = phase.maxPoints > 0 ? (score / phase.maxPoints) * 100 : 0;
+  const color = sc(pct);
+  
+  return (
+    <div className="phase-card">
+      <div className="phase-card-header">
+        <h3 className="phase-card-title">{phase.name}</h3>
+        <button 
+          onClick={() => onToggle(phase.id)} 
+          className="phase-card-toggle"
+        >
+          {isOpen ? "Hide Rubric" : "Show Rubric"}
+          <ChevronDown className={`phase-card-chevron ${isOpen ? 'open' : ''}`} size={16} />
+        </button>
+      </div>
+      
+      <div className="phase-card-score-row">
+        <input 
+          type="range" 
+          min={0} 
+          max={phase.maxPoints} 
+          step={1} 
+          value={score}
+          onChange={(e) => onScore(phase.id, parseInt(e.target.value))}
+          className="phase-card-slider"
+          style={{ accentColor: color }}
+        />
+        <span className="phase-card-score" style={{ color }}>
+          {score}<span className="phase-card-max">/{phase.maxPoints}</span>
+        </span>
+      </div>
+      
+      {isOpen && (
+        <div className="phase-card-rubric">
+          <div className="rubric-section rubric-great">
+            <p className="rubric-title">What great looks like</p>
+            {phase.great.map((t, i) => (
+              <div key={i} className="rubric-item rubric-item-great">
+                <CheckCircle size={14} /> {t}
+              </div>
+            ))}
+          </div>
+          <div className="rubric-section rubric-mistakes">
+            <p className="rubric-title">Common mistakes</p>
+            {phase.mistakes.map((t, i) => (
+              <div key={i} className="rubric-item rubric-item-mistake">
+                <XCircle size={14} /> {t}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {phase.callout && isOpen && (
+        <div className="phase-card-callout">
+          <AlertCircle size={16} />
+          <p>{phase.callout}</p>
+        </div>
+      )}
+      
+      <textarea 
+        value={notes} 
+        onChange={(e) => onNotes(phase.id, e.target.value)}
+        placeholder="Add coaching notes..."
+        rows={2}
+        className="phase-card-notes"
+      />
+    </div>
+  );
+}
+
+// Red Flags Panel Component
+function RedFlagsPanel({ 
+  flags, 
+  onToggle 
+}: { 
+  flags: string[]; 
+  onToggle: (id: string) => void;
+}) {
+  const totalDeduction = flags.reduce((sum, id) => {
+    const f = RED_FLAGS.find(x => x.id === id);
+    return sum + (f ? f.deduction : 0);
+  }, 0);
+
+  return (
+    <div className="redflags-panel">
+      <h2 className="redflags-title">Red Flags</h2>
+      <p className="redflags-subtitle">Check any critical errors. Deductions subtract from total.</p>
+      
+      {RED_FLAGS.map((f) => {
+        const isOn = flags.includes(f.id);
+        return (
+          <div 
+            key={f.id} 
+            onClick={() => onToggle(f.id)}
+            className={`redflag-item ${isOn ? 'active' : ''}`}
+          >
+            <input 
+              type="checkbox" 
+              checked={isOn} 
+              readOnly 
+              className="redflag-checkbox"
+            />
+            <div className="redflag-content">
+              <span className="redflag-label">{f.label}</span>
+              <span className={`redflag-deduction ${isOn ? 'active' : ''}`}>
+                {f.deduction}
+              </span>
+              <p className="redflag-desc">{f.desc}</p>
+            </div>
+          </div>
+        );
+      })}
+      
+      {flags.length > 0 && (
+        <div className="redflags-total">
+          <span>Total Red Flag Deductions</span>
+          <span className="redflags-total-amount">{totalDeduction}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Summary View Component
+function SummaryView({ 
+  scores, 
+  flags, 
+  total, 
+  meta, 
+  strengths, 
+  improvements, 
+  flagNotes,
+  onGenerateReport
+}: { 
+  scores: Record<string, number>;
+  flags: string[];
+  total: number;
+  meta: { coachName: string; clientName: string; callDate: string; outcome: string };
+  strengths: string;
+  improvements: string;
+  flagNotes: string;
+  onGenerateReport: () => void;
+}) {
+  const baseScore = Object.values(scores).reduce((a, b) => a + b, 0);
+  const deductions = flags.reduce((sum, id) => {
+    const f = RED_FLAGS.find(x => x.id === id);
+    return sum + (f ? f.deduction : 0);
+  }, 0);
+
+  return (
+    <div className="summary-view">
+      <div className="summary-header">
+        <h2>Grade Summary</h2>
+        <button onClick={onGenerateReport} className="btn btn-primary">
+          <Download size={16} />
+          Generate PDF Report
+        </button>
+      </div>
+      
+      <div className="summary-meta">
+        {[meta.clientName, meta.callDate, meta.outcome].filter(Boolean).join(" • ")}
+      </div>
+      
+      <div className="summary-score-section">
+        <div 
+          className="summary-score-badge"
+          style={{ background: sc(total) }}
+        >
+          <div className="summary-score-value">{total}</div>
+          <div className="summary-score-max">/ 100</div>
+          <div className="summary-score-label">{sl(total)}</div>
+        </div>
+        
+        <div className="summary-phases">
+          {PHASES.map((ph) => {
+            const s = scores[ph.id] || 0;
+            const p = (s / ph.maxPoints) * 100;
+            return (
+              <div key={ph.id} className="summary-phase-row">
+                <span className="summary-phase-name">{ph.name}</span>
+                <div className="summary-phase-bar">
+                  <div 
+                    className="summary-phase-fill"
+                    style={{ width: `${p}%`, background: sc(p) }}
+                  />
+                </div>
+                <span className="summary-phase-score">{s}/{ph.maxPoints}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      
+      {flags.length > 0 && (
+        <div className="summary-redflags">
+          <p className="summary-redflags-title">Red Flag Deductions</p>
+          {flags.map((id) => {
+            const f = RED_FLAGS.find(x => x.id === id);
+            return f ? (
+              <div key={id} className="summary-redflag-row">
+                <span>{f.label}</span>
+                <span className="summary-redflag-deduction">{f.deduction}</span>
+              </div>
+            ) : null;
+          })}
+        </div>
+      )}
+      
+      {strengths && (
+        <div className="summary-section">
+          <h4 className="summary-section-title success">What's Working Well</h4>
+          <p className="summary-section-content">{strengths}</p>
+        </div>
+      )}
+      
+      {improvements && (
+        <div className="summary-section">
+          <h4 className="summary-section-title warning">What Needs Work</h4>
+          <p className="summary-section-content">{improvements}</p>
+        </div>
+      )}
+      
+      {flagNotes && (
+        <div className="summary-section">
+          <h4 className="summary-section-title danger">Red Flag Notes</h4>
+          <p className="summary-section-content">{flagNotes}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DiscoveryCallGrader() {
+  // Original state
   const [transcript, setTranscript] = useState('')
   const [grade, setGrade] = useState<GradeResult | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -188,8 +527,18 @@ export default function DiscoveryCallGrader() {
   const [gradingStageIndex, setGradingStageIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
   const [sessionId] = useState(() => crypto.randomUUID())
+
+  // Danny's UI state
+  const [activeTab, setActiveTab] = useState<'grading' | 'feedback' | 'summary'>('grading')
+  const [scores, setScores] = useState(() => Object.fromEntries(PHASES.map((p) => [p.id, 0])))
+  const [phaseNotes, setPhaseNotes] = useState(() => Object.fromEntries(PHASES.map((p) => [p.id, ""])))
+  const [flags, setFlags] = useState<string[]>([])
+  const [openPhase, setOpenPhase] = useState<string | null>(null)
+  const [strengths, setStrengths] = useState("")
+  const [improvements, setImprovements] = useState("")
+  const [flagNotes, setFlagNotes] = useState("")
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   const stats = useMemo(() => getTranscriptStats(transcript), [transcript])
 
@@ -411,6 +760,38 @@ export default function DiscoveryCallGrader() {
     }
   }
 
+  // Calculate totals for Danny's UI
+  const baseScore = Object.values(scores).reduce((a, b) => a + b, 0)
+  const deductions = flags.reduce((sum, id) => {
+    const f = RED_FLAGS.find(x => x.id === id)
+    return sum + (f ? f.deduction : 0)
+  }, 0)
+  const totalScore = Math.max(0, baseScore + deductions)
+
+  // Handlers for Danny's UI
+  const onScore = useCallback((id: string, val: number) => {
+    setScores(p => ({ ...p, [id]: val }))
+  }, [])
+
+  const onNotes = useCallback((id: string, val: string) => {
+    setPhaseNotes(p => ({ ...p, [id]: val }))
+  }, [])
+
+  const onToggleFlag = useCallback((id: string) => {
+    setFlags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }, [])
+
+  const handleReset = () => {
+    setScores(Object.fromEntries(PHASES.map(p => [p.id, 0])))
+    setPhaseNotes(Object.fromEntries(PHASES.map(p => [p.id, ""])))
+    setFlags([])
+    setStrengths("")
+    setImprovements("")
+    setFlagNotes("")
+    setOpenPhase(null)
+    setShowResetConfirm(false)
+  }
+
   return (
     <div className="grader-page">
       <div className="container tool-page">
@@ -425,193 +806,319 @@ export default function DiscoveryCallGrader() {
           <p className="tool-page-subtitle">Dynamic transcript intake, pre-grade diagnostics, and instant coaching reports.</p>
         </motion.div>
 
+        {/* Tab Navigation */}
+        <div className="grader-tabs">
+          {[
+            { id: 'grading', label: 'Grading' },
+            { id: 'feedback', label: 'Feedback' },
+            { id: 'summary', label: 'Summary' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`grader-tab ${activeTab === tab.id ? 'active' : ''}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <motion.div
           className="grader-card"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="grader-workbench">
-            <section className="grader-main-pane">
-              <div className="grader-meta-grid">
-                <div className="form-group compact">
-                  <label htmlFor="coachName">Coach Name</label>
-                  <input
-                    id="coachName"
-                    type="text"
-                    value={coachName}
-                    onChange={(e) => setCoachName(e.target.value)}
-                    placeholder="Danny Matta"
+          {/* GRADING TAB */}
+          {activeTab === 'grading' && (
+            <div className="grader-workbench">
+              <section className="grader-main-pane">
+                {/* Transcript Upload Section */}
+                <div className="form-group">
+                  <label>Call Transcript</label>
+                  <div className="grader-intake-toolbar" style={{ marginBottom: '12px' }}>
+                    <button className="btn btn-secondary" type="button" onClick={() => fileInputRef.current?.click()}>
+                      <Upload size={16} />
+                      Upload Transcript
+                    </button>
+                    <button className="btn btn-secondary" type="button" onClick={handleInsertTemplate}>
+                      <FileText size={16} />
+                      Insert Template
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".txt,.md,.csv,.json,.rtf,.pdf,.xlsx,.xls,.png,.jpg,.jpeg,.webp,.docx,.doc"
+                      className="grader-file-input"
+                      onChange={handleFileUpload}
+                    />
+                  </div>
+                  <textarea
+                    ref={textareaRef}
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                    placeholder="Paste the full transcript or upload a text file..."
+                    rows={6}
                   />
+                  <div className="textarea-hint">
+                    The transcript is automatically de-identified before grading. Minimum {MIN_WORDS} words required.
+                  </div>
                 </div>
-                <div className="form-group compact">
-                  <label htmlFor="clientName">Client Name</label>
-                  <input
-                    id="clientName"
-                    type="text"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Clinic Owner"
-                  />
-                </div>
-                <div className="form-group compact">
-                  <label htmlFor="callDate">Call Date</label>
-                  <input
-                    id="callDate"
-                    type="date"
-                    value={callDate}
-                    onChange={(e) => setCallDate(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div className="grader-intake-toolbar">
-                <button className="btn btn-secondary" type="button" onClick={() => fileInputRef.current?.click()}>
-                  <Upload size={16} />
-                  Upload Transcript
-                </button>
-                <button className="btn btn-secondary" type="button" onClick={handleInsertTemplate}>
-                  <FileText size={16} />
-                  Insert Template
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".txt,.md,.csv,.json,.rtf,.pdf,.xlsx,.xls,.png,.jpg,.jpeg,.webp,.docx,.doc"
-                  className="grader-file-input"
-                  onChange={handleFileUpload}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="transcript">Call Transcript</label>
-                <textarea
-                  ref={textareaRef}
-                  id="transcript"
-                  value={transcript}
-                  onChange={(e) => setTranscript(e.target.value)}
-                  placeholder="Paste the full transcript or upload a text file..."
-                />
-                <div className="textarea-hint">
-                  The transcript is automatically de-identified before grading.
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleClear}
-                  disabled={!transcript && !grade}
-                >
-                  Clear
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleGrade}
-                  disabled={!canGrade || isGrading}
-                >
-                  {isGrading ? (
-                    <>
-                      <span className="spinner"></span>
-                      Grading...
-                    </>
+                {/* Grade Button */}
+                <div className="form-actions">
+                  {!showResetConfirm ? (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setShowResetConfirm(true)}
+                      disabled={!transcript && totalScore === 0}
+                    >
+                      <RotateCcw size={16} />
+                      Reset
+                    </button>
                   ) : (
-                    <>
-                      Grade Call
-                      <ArrowRight size={18} />
-                    </>
+                    <div className="reset-confirm">
+                      <button className="reset-confirm-btn confirm" onClick={handleReset}>
+                        Confirm
+                      </button>
+                      <button className="reset-confirm-btn cancel" onClick={() => setShowResetConfirm(false)}>
+                        Cancel
+                      </button>
+                    </div>
                   )}
-                </button>
-              </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleGrade}
+                    disabled={!canGrade || isGrading}
+                  >
+                    {isGrading ? (
+                      <>
+                        <span className="spinner"></span>
+                        Grading...
+                      </>
+                    ) : (
+                      <>
+                        Grade with AI
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </div>
 
-              {isGrading && (
-                <div className="grading-progress-card" role="status" aria-live="polite">
-                  <div className="grading-progress-head">
-                    <span className="grading-progress-status">Live Analysis{gradingPulseDots}</span>
-                    <span className="grading-progress-time">{formatElapsed(gradingElapsed)}</span>
+                {isGrading && (
+                  <div className="grading-progress-card" role="status" aria-live="polite">
+                    <div className="grading-progress-head">
+                      <span className="grading-progress-status">Live Analysis{gradingPulseDots}</span>
+                      <span className="grading-progress-time">{formatElapsed(gradingElapsed)}</span>
+                    </div>
+                    <div className="grading-progress-title">{activeStage.title}</div>
+                    <p className="grading-progress-detail">{activeStage.detail}</p>
+                    <div className="grading-progress-track">
+                      <div className="grading-progress-fill" style={{ width: `${gradingProgressPct}%` }} />
+                    </div>
                   </div>
-                  <div className="grading-progress-title">{activeStage.title}</div>
-                  <p className="grading-progress-detail">{activeStage.detail}</p>
-                  <div className="grading-progress-track">
-                    <div className="grading-progress-fill" style={{ width: `${gradingProgressPct}%` }} />
+                )}
+
+                {/* Call Details */}
+                <div style={{ marginTop: '24px', padding: '20px', background: 'var(--color-bg-secondary)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Call Details</h3>
+                  <div className="grader-meta-grid">
+                    <div className="form-group compact">
+                      <input
+                        type="text"
+                        value={coachName}
+                        onChange={(e) => setCoachName(e.target.value)}
+                        placeholder="Coach name"
+                      />
+                    </div>
+                    <div className="form-group compact">
+                      <input
+                        type="text"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Client name"
+                      />
+                    </div>
+                    <div className="form-group compact">
+                      <input
+                        type="date"
+                        value={callDate}
+                        onChange={(e) => setCallDate(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="grading-progress-steps">
-                    {DISCOVERY_GRADING_STAGES.map((stage, index) => {
-                      const complete = index < gradingStageIndex
-                      const current = index === gradingStageIndex
+                  <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                    {OUTCOMES.map(o => {
+                      const active = grade?.outcome === o || (o === 'BOOKED' && grade?.outcome === 'BOOKED')
                       return (
-                        <div
-                          key={stage.title}
-                          className={`grading-progress-step${current ? " is-current" : ""}${complete ? " is-complete" : ""}`}
+                        <button
+                          key={o}
+                          onClick={() => {/* Toggle outcome */}}
+                          style={{
+                            flex: 1,
+                            padding: '8px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            borderRadius: '8px',
+                            border: '1px solid var(--color-border)',
+                            background: active ? 'var(--color-accent)' : 'var(--color-card)',
+                            color: active ? 'white' : 'var(--color-text-secondary)',
+                            cursor: 'pointer'
+                          }}
                         >
-                          <span className="grading-progress-step-marker">{complete ? "✓" : current ? "●" : "○"}</span>
-                          {stage.title}
-                        </div>
+                          {o}
+                        </button>
                       )
                     })}
                   </div>
                 </div>
-              )}
-            </section>
 
-            <aside className="grader-side-pane">
-              <div className="grader-side-card">
-                <h3><BarChart3 size={16} /> Live Diagnostics</h3>
-                <div className="diag-grid">
-                  <div className="diag-item">
-                    <span>Words</span>
-                    <strong>{stats.wordCount}</strong>
-                  </div>
-                  <div className="diag-item">
-                    <span>Lines</span>
-                    <strong>{stats.lineCount}</strong>
-                  </div>
-                  <div className="diag-item">
-                    <span>Questions</span>
-                    <strong>{stats.questionCount}</strong>
-                  </div>
-                  <div className="diag-item">
-                    <span>Est. Minutes</span>
-                    <strong>{stats.estimatedMinutes}</strong>
-                  </div>
-                  <div className="diag-item">
-                    <span>Clinician Cues</span>
-                    <strong>{stats.clinicianMentions}</strong>
-                  </div>
-                  <div className="diag-item">
-                    <span>Prospect Cues</span>
-                    <strong>{stats.prospectMentions}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grader-side-card">
-                <h3><ClipboardCheck size={16} /> Ready Check</h3>
-                <ul className="checklist">
-                  {checklist.map((item) => (
-                    <li key={item.label} className={item.ok ? 'ok' : 'bad'}>
-                      {item.ok ? '✓' : '•'} {item.label}
-                    </li>
+                {/* Phase Cards */}
+                <div style={{ marginTop: '24px' }}>
+                  {PHASES.map(p => (
+                    <PhaseCard
+                      key={p.id}
+                      phase={p}
+                      score={scores[p.id]}
+                      notes={phaseNotes[p.id]}
+                      onScore={onScore}
+                      onNotes={onNotes}
+                      isOpen={openPhase === p.id}
+                      onToggle={(id) => setOpenPhase(openPhase === id ? null : id)}
+                    />
                   ))}
-                </ul>
-                <div className="checklist-progress">
-                  {completedChecklist}/{checklist.length} complete
                 </div>
+
+                {/* Red Flags */}
+                <div style={{ marginTop: '8px' }}>
+                  <RedFlagsPanel flags={flags} onToggle={onToggleFlag} />
+                </div>
+
+                {/* Score Bar */}
+                <div className="score-bar" style={{ marginTop: '16px' }}>
+                  <span className="score-bar-label">
+                    Phase Total: <strong>{baseScore}</strong>
+                    {deductions < 0 && <span style={{ color: 'var(--color-error)', marginLeft: '12px' }}>Red Flags: <strong>{deductions}</strong></span>}
+                  </span>
+                  <span className="score-bar-value" style={{ color: sc(totalScore) }}>
+                    {totalScore}/100 — {sl(totalScore)}
+                  </span>
+                </div>
+              </section>
+
+              <aside className="grader-side-pane">
+                <div className="grader-side-card">
+                  <h3><BarChart3 size={16} /> Live Diagnostics</h3>
+                  <div className="diag-grid">
+                    <div className="diag-item">
+                      <span>Words</span>
+                      <strong>{stats.wordCount}</strong>
+                    </div>
+                    <div className="diag-item">
+                      <span>Lines</span>
+                      <strong>{stats.lineCount}</strong>
+                    </div>
+                    <div className="diag-item">
+                      <span>Questions</span>
+                      <strong>{stats.questionCount}</strong>
+                    </div>
+                    <div className="diag-item">
+                      <span>Est. Minutes</span>
+                      <strong>{stats.estimatedMinutes}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grader-side-card">
+                  <h3><ClipboardCheck size={16} /> Ready Check</h3>
+                  <ul className="checklist">
+                    {checklist.map((item) => (
+                      <li key={item.label} className={item.ok ? 'ok' : 'bad'}>
+                        {item.ok ? '✓' : '•'} {item.label}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="checklist-progress">
+                    {completedChecklist}/{checklist.length} complete
+                  </div>
+                </div>
+
+                <div className="grader-side-card">
+                  <h3><MessageSquare size={16} /> Quality Tips</h3>
+                  <ul className="tips-list">
+                    <li>Include full objection handling and closing segments.</li>
+                    <li>Keep speaker labels consistent for cleaner diagnostics.</li>
+                    <li>Add the full discovery section for highest scoring accuracy.</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          )}
+
+          {/* FEEDBACK TAB */}
+          {activeTab === 'feedback' && (
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <div className="feedback-section">
+                <h3 className="feedback-section-title success">
+                  <CheckCircle size={16} />
+                  What's Working Well
+                </h3>
+                <textarea
+                  className="feedback-textarea"
+                  value={strengths}
+                  onChange={(e) => setStrengths(e.target.value)}
+                  placeholder="- Natural rapport building&#10;- Strong clinical framing&#10;- Confident recommendation"
+                  rows={5}
+                />
               </div>
 
-              <div className="grader-side-card">
-                <h3><MessageSquare size={16} /> Quality Tips</h3>
-                <ul className="tips-list">
-                  <li>Include full objection handling and closing segments.</li>
-                  <li>Keep speaker labels consistent for cleaner diagnostics.</li>
-                  <li>Add the full discovery section for highest scoring accuracy.</li>
-                </ul>
-                <div className="tips-footnote">
-                  <Clock3 size={14} /> More complete transcripts produce higher confidence coaching feedback.
-                </div>
+              <div className="feedback-section">
+                <h3 className="feedback-section-title warning">
+                  <AlertCircle size={16} />
+                  What Needs Work
+                </h3>
+                <textarea
+                  className="feedback-textarea"
+                  value={improvements}
+                  onChange={(e) => setImprovements(e.target.value)}
+                  placeholder="- Never asked about goals&#10;- Insurance explanation was reactive&#10;- No agenda set"
+                  rows={5}
+                />
               </div>
-            </aside>
-          </div>
+
+              {flags.length > 0 && (
+                <div className="feedback-section" style={{ borderColor: 'rgba(239, 68, 68, 0.3)' }}>
+                  <h3 className="feedback-section-title danger">
+                    <XCircle size={16} />
+                    Red Flag Notes
+                  </h3>
+                  <textarea
+                    className="feedback-textarea"
+                    value={flagNotes}
+                    onChange={(e) => setFlagNotes(e.target.value)}
+                    placeholder="Details on critical errors..."
+                    rows={4}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SUMMARY TAB */}
+          {activeTab === 'summary' && (
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <SummaryView
+                scores={scores}
+                flags={flags}
+                total={totalScore}
+                meta={{ coachName, clientName, callDate, outcome: grade?.outcome || '' }}
+                strengths={strengths}
+                improvements={improvements}
+                flagNotes={flagNotes}
+                onGenerateReport={handleGeneratePDF}
+              />
+            </div>
+          )}
         </motion.div>
 
         {grade && !isModalOpen && (
