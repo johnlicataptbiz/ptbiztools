@@ -9,6 +9,7 @@ import {
   Clock, 
   LockKeyhole, 
   Palette, 
+  Search,
   ShieldCheck, 
   Star, 
   UserRound, 
@@ -26,6 +27,8 @@ import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api"
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
 const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a11935a3ac5d-512";
+
+const DEPARTMENTS = ["All", "Coaches", "Partners", "Client Success", "Advisors", "Acquisitions", "Internal"] as const;
 
 type MemberProfile = {
   badge: string;
@@ -235,6 +238,16 @@ function normalizeText(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
 }
 
+function getMemberDepartment(member: TeamMember): string {
+  const section = normalizeText(member.teamSection);
+  if (section.includes("coach")) return "Coaches";
+  if (section.includes("partner")) return "Partners";
+  if (section.includes("advisor")) return "Advisors";
+  if (section.includes("acquisition")) return "Acquisitions";
+  if (section.includes("client success")) return "Client Success";
+  return "Internal";
+}
+
 function getMemberSortPriority(member: TeamMember) {
   const name = normalizeText(member.name);
   const title = normalizeText(member.title);
@@ -436,6 +449,8 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<typeof DEPARTMENTS[number]>("All");
   
   // Accordion state - default expanded sections
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
@@ -496,6 +511,39 @@ export default function LoginPage() {
       .filter((m): m is TeamMember => m !== undefined)
       .slice(0, 5);
   }, [recentUserIds, visibleMembers]);
+
+  // Department counts
+  const departmentCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: visibleMembers.length };
+    visibleMembers.forEach(m => {
+      const dept = getMemberDepartment(m);
+      counts[dept] = (counts[dept] || 0) + 1;
+    });
+    return counts;
+  }, [visibleMembers]);
+
+  // Filtered members based on search and department
+  const filteredMembers = useMemo(() => {
+    let members = visibleMembers;
+    
+    if (selectedDepartment !== "All") {
+      members = members.filter(m => getMemberDepartment(m) === selectedDepartment);
+    }
+    
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      members = members.filter(m => 
+        m.name.toLowerCase().includes(term) ||
+        (m.title || "").toLowerCase().includes(term)
+      );
+    }
+    
+    return members.sort((a, b) => {
+      const priorityDiff = getMemberSortPriority(a) - getMemberSortPriority(b);
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.name.localeCompare(b.name);
+    });
+  }, [visibleMembers, selectedDepartment, searchTerm]);
 
   useEffect(() => {
     if (user) {
@@ -700,112 +748,92 @@ export default function LoginPage() {
 
         {!selectedUser && (
           <section className="member-picker">
-            {/* Most Recent Section */}
-            {recentUsers.length > 0 && (
-              <div className="most-recent-section">
-                <div className="most-recent-header">
-                  <Clock size={14} />
-                  <h3>Most Recent</h3>
-                </div>
-                <div className="most-recent-grid">
-                  {recentUsers.map(member => (
-                    <button
-                      key={member.id}
-                      className="most-recent-item"
-                      onClick={() => handleUserSelect(member.id)}
-                    >
-                      <TeamAvatar
-                        name={member.name}
-                        imageUrl={member.imageUrl}
-                        className="member-list-photo"
-                        fallbackClassName="member-list-photo-fallback"
-                      />
-                      <strong>{member.name.split(' ')[0]}</strong>
-                    </button>
-                  ))}
-                </div>
+            {/* Search Bar */}
+            <div className="search-container">
+              <div className="search-icon">
+                <Search size={18} />
               </div>
-            )}
+              <input
+                type="text"
+                placeholder="Search by name or title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
 
-            {/* Accordion Sections by Role */}
-            {ROLE_SECTIONS.map(section => {
-              const sectionMembers = membersBySection[section.id] || [];
-              if (sectionMembers.length === 0) return null;
-              
-              const isExpanded = expandedSections.has(section.id);
-              
-              return (
-                <div key={section.id} className="member-section">
-                  <button
-                    className="member-section-header"
-                    onClick={() => toggleSection(section.id)}
-                    aria-expanded={isExpanded}
-                  >
-                    <div className="member-section-title">
-                      <h2>{section.label}</h2>
-                      <span className="member-section-count">{sectionMembers.length} members</span>
-                    </div>
-                    <ChevronDown 
-                      size={18} 
-                      className={`member-section-chevron ${isExpanded ? 'expanded' : ''}`}
-                    />
-                  </button>
-                  
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        className={`member-section-content ${isExpanded ? 'expanded' : ''}`}
-                        initial={{ opacity: 0, maxHeight: 0 }}
-                        animate={{ opacity: 1, maxHeight: 2000 }}
-                        exit={{ opacity: 0, maxHeight: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {sectionMembers.map(member => {
-                          const profile = getMemberProfile(member);
-                          const badgeTokens = getBadgeTokens(profile);
-                          const firstLetter = member.name.charAt(0).toUpperCase();
-                          
-                          return (
-                            <motion.button
-                              key={member.id}
-                              id={`member-${firstLetter.toLowerCase()}`}
-                              className="member-row-card"
-                              onClick={() => handleUserSelect(member.id)}
-                              whileHover={{ y: -3 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <TeamAvatar
-                                name={member.name}
-                                imageUrl={member.imageUrl}
-                                className="member-list-photo"
-                                fallbackClassName="member-list-photo-fallback"
-                              />
-                              <div className="member-row-meta">
-                                <strong>{member.name}</strong>
-                                <span>{member.title || "Team Member"}</span>
-                                <em>{member.teamSection || "PT Biz Team"}</em>
-                                {!!badgeTokens.length && (
-                                  <div className="member-row-badge-list">
-                                    {badgeTokens.slice(0, 2).map((badgeToken) => (
-                                      <small key={`${member.id}-${badgeToken}`} className="member-row-badge-chip">
-                                        {badgeToken}
-                                      </small>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="member-row-action" aria-hidden="true">
-                                Select
-                              </div>
-                            </motion.button>
-                          );
-                        })}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            {/* Department Tabs */}
+            <div className="department-tabs">
+              {DEPARTMENTS.map((dept) => (
+                <button
+                  key={dept}
+                  onClick={() => setSelectedDepartment(dept)}
+                  className={`department-tab ${selectedDepartment === dept ? 'active' : ''}`}
+                >
+                  {dept}
+                  <span className="department-count">{departmentCounts[dept] || 0}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Profile Grid */}
+            <div className="profile-grid">
+              {filteredMembers && filteredMembers.length > 0 ? (
+                filteredMembers.map((member: TeamMember) => {
+                  const profile = getMemberProfile(member);
+                  const badgeTokens = getBadgeTokens(profile);
+                  const isJack = normalizeText(member.name) === JACK_NAME;
+                  const imageUrl = isJack ? JACK_LOGIN_IMAGE_URL : member.imageUrl;
+
+                  return (
+                    <motion.button
+                      key={member.id}
+                      className="profile-card"
+                      onClick={() => handleUserSelect(member.id)}
+                      whileHover={{ y: -4, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="profile-card-avatar">
+                        {imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={imageUrl}
+                            alt={member.name}
+                            className={`profile-avatar-img ${isJack ? 'jack-headshot' : ''}`}
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="profile-avatar-fallback">
+                            {getInitials(member.name)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="profile-card-info">
+                        <div className="profile-name">{member.name}</div>
+                        <div className="profile-title">{member.title || "Team Member"}</div>
+                        <div className="profile-department">{getMemberDepartment(member)}</div>
+                        {badgeTokens.length > 0 && (
+                          <div className="profile-badges">
+                            {badgeTokens.map((badge) => (
+                              <span key={badge} className="profile-badge">{badge}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="profile-card-action">Select</div>
+                    </motion.button>
+                  );
+                })
+              ) : (
+                <div className="no-results">
+                  <p>No profiles found matching your search.</p>
                 </div>
-              );
-            })}
+              )}
+            </div>
           </section>
         )}
 
