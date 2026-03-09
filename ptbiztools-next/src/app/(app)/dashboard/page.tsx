@@ -381,18 +381,15 @@ export default function DashboardPage() {
     <div className="home">
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
         <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
-          <div className="dashboard-header-content">
-            <div>
-              <h1>{greeting}</h1>
-              <p>{isAdmin ? "Admin usage dashboard" : "Your coaching tools are ready."}</p>
-            </div>
+          <div className="dashboard-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
             <button 
               className="changelog-trigger-btn"
               onClick={() => setChangelogOpen(true)}
               title="View changelog"
+              style={{ marginLeft: "auto" }}
             >
               <History size={18} />
-              <span>Updates</span>
             </button>
           </div>
         </motion.section>
