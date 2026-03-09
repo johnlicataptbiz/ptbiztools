@@ -256,14 +256,6 @@ export default function SalesCallGrader() {
   const totalWords = transcriptForValidation ? transcriptForValidation.split(/\s+/).filter(Boolean).length : 0;
   const meetsWordThreshold = canSubmitByWordCount(totalWords, MIN_WORDS_REQUIRED);
 
-  // Detect subtitle format (VTT/SRT) that may confuse the AI
-  const isSubtitleFormat = (text: string): boolean => {
-    // Check for VTT/SRT timestamp patterns like "00:00:21.660 --> 00:00:22.810"
-    const timestampPattern = /\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/;
-    return timestampPattern.test(text);
-  };
-
-  const hasSubtitleFormat = transcriptForValidation && isSubtitleFormat(transcriptForValidation);
 
   const getTimeBoundary = (period) => {
     const now = new Date();
@@ -763,16 +755,6 @@ export default function SalesCallGrader() {
                 );
               })}
             </div>
-          </div>
-        )}
-        {hasSubtitleFormat && (
-          <div style={{ marginTop: "12px", padding: "12px 14px", background: "rgba(234,179,8,0.1)", border: "1px solid rgba(234,179,8,0.3)", borderRadius: "6px", color: "#eab308", fontSize: "13px" }}>
-            <strong>⚠️ Subtitle format detected</strong>
-            <p style={{ margin: "4px 0 0", fontSize: "12px" }}>
-              Your transcript appears to be in VTT/SRT subtitle format with timestamps. 
-              This may cause the AI to incorrectly interpret the call as ending early. 
-              For best results, paste a plain text transcript without timestamps.
-            </p>
           </div>
         )}
         {error && <div style={{ marginTop: "12px", padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "6px", color: "#ef4444", fontSize: "13px" }}>{error}</div>}
