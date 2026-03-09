@@ -163,22 +163,55 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
     y += boxHeight + 8;
   };
 
-  const writeEvidenceList = (quotes?: string[], fallback = "No direct evidence quotes captured.") => {
-    const values = Array.isArray(quotes) ? quotes.filter(Boolean).slice(0, 3) : [];
-    if (!values.length) {
-      writeWrapped(fallback, { color: COLORS.muted, size: 9, x: margin + 12, width: contentWidth - 12, after: 6 });
-      return;
-    }
-    values.forEach((quote) => {
-      writeWrapped(`• "${quote}"`, {
-        color: COLORS.muted,
-        size: 9,
-        x: margin + 12,
-        width: contentWidth - 12,
-        after: 4,
-      });
+const writeEvidenceList = (quotes?: string[], fallback = "No direct evidence quotes captured.") => {
+  const values = Array.isArray(quotes) ? quotes.filter(Boolean) : [];
+  if (!values.length) {
+    writeWrapped(fallback, { color: COLORS.muted, size: 9, x: margin + 12, width: contentWidth - 12, after: 6 });
+    return;
+  }
+  // Show up to 5 evidence quotes for more depth
+  values.slice(0, 5).forEach((quote, index) => {
+    writeWrapped(`${index + 1}. "${quote}"`, {
+      color: COLORS.muted,
+      size: 8.5,
+      x: margin + 12,
+      width: contentWidth - 16,
+      after: 3,
     });
-  };
+  });
+};
+
+const drawScoreBar = (score: number, label: string) => {
+  const barWidth = 120;
+  const barHeight = 8;
+  const filledWidth = (score / 100) * barWidth;
+  
+  // Background bar
+  doc.setFillColor(226, 232, 240);
+  doc.roundedRect(margin, y, barWidth, barHeight, 2, 2, "F");
+  
+  // Filled portion
+  doc.setFillColor(
+    score >= 80 ? 22 : score >= 60 ? 202 : 220,
+    score >= 80 ? 163 : score >= 60 ? 138 : 38,
+    score >= 80 ? 74 : score >= 60 ? 4 : 38
+  );
+  doc.roundedRect(margin, y, filledWidth, barHeight, 2, 2, "F");
+  
+  // Score text
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(COLORS.ink);
+  doc.text(`${score}/100`, margin + barWidth + 8, y + 6);
+  
+  // Label
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(COLORS.muted);
+  doc.text(label, margin + barWidth + 40, y + 6);
+  
+  y += 14;
+};
 
   const { meta, result, phases, criticalBehaviors } = input;
   const score = result?.overall_score || 0;
@@ -249,23 +282,57 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
   }
 
   writeSectionTitle("Phase Breakdown (with evidence)");
+  
+  // Add visual score summary at top
+  ensureSpace(phases.length * 16 + 20);
+  writeWrapped("Score Summary:", { size: 9, style: "bold", color: COLORS.muted, after: 8 });
+  phases.forEach((phase) => {
+    const phaseResult = result.phases?.[phase.id];
+    if (phaseResult) {
+      drawScoreBar(phaseResult.score, `${phase.name} (${phase.weight}%)`);
+    }
+  });
+  y += 8;
+  
+  // Detailed phase breakdown with evidence
+  writeWrapped("Detailed Analysis:", { size: 9, style: "bold", color: COLORS.muted, after: 8 });
   phases.forEach((phase) => {
     const phaseResult = result.phases?.[phase.id];
     if (!phaseResult) return;
-    ensureSpace(70);
-    doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(COLORS.border);
-    doc.roundedRect(margin, y, contentWidth, 20, 4, 4, "FD");
+    ensureSpace(90);
+    
+    // Phase header with score badge
+    doc.setFillColor(scoreColor(phaseResult.score));
+    doc.roundedRect(margin, y, 28, 18, 3, 3, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
+    doc.setTextColor("#ffffff");
+    doc.text(String(phaseResult.score), margin + 14, y + 12, { align: "center" });
+    
     doc.setTextColor(COLORS.ink);
-    doc.text(`${phase.name} (${phase.weight}%)`, margin + 8, y + 13);
-    doc.setTextColor(scoreColor(phaseResult.score));
-    doc.text(String(phaseResult.score), pageWidth - margin - 8, y + 13, { align: "right" });
-    y += 28;
-    writeWrapped(phaseResult.summary || "No phase summary provided.", { size: 9.5, color: COLORS.muted, x: margin + 8, width: contentWidth - 16, after: 5 });
+    doc.setFontSize(11);
+    doc.text(`${phase.name} (${phase.weight}%)`, margin + 36, y + 12);
+    y += 26;
+    
+    // Summary with more context
+    writeWrapped(phaseResult.summary || "No phase summary provided.", { 
+      size: 9.5, 
+      color: COLORS.muted, 
+      x: margin + 8, 
+      width: contentWidth - 16, 
+      after: 6 
+    });
+    
+    // Evidence section
+    writeWrapped("Evidence from transcript:", { 
+      size: 8.5, 
+      style: "bold", 
+      color: COLORS.muted, 
+      x: margin + 8, 
+      after: 4 
+    });
     writeEvidenceList(phaseResult.evidence);
-    y += 4;
+    y += 8;
   });
 
   writeSectionTitle("Critical Behaviors (with evidence)");
@@ -295,6 +362,39 @@ export async function generateSalesCallPdf(input: SalesCallPdfInput): Promise<st
       y += 2;
     }
   }
+
+  // Add scoring methodology section for transparency
+  writeSectionTitle("Scoring Methodology");
+  writeWrapped(
+    "This report uses a deterministic 7-phase framework with weighted scoring:",
+    { size: 9.5, color: COLORS.muted, after: 6 }
+  );
+  
+  const methodology = [
+    ["Connection (10%)", "Rapport, agenda, tone"],
+    ["Discovery (25%)", "Facts, Feelings, Future - emotional depth"],
+    ["Gap Creation (20%)", "Cost of inaction, math exercise"],
+    ["Temperature Check (10%)", "Readiness gauging"],
+    ["Solution (15%)", "Personal story, calibration"],
+    ["Close (15%)", "Ask, objections, discount discipline"],
+    ["Follow-up (5%)", "Clean exit, next steps"],
+  ];
+  
+  methodology.forEach(([phase, desc]) => {
+    writeWrapped(`• ${phase}: ${desc}`, { 
+      size: 8.5, 
+      color: COLORS.muted, 
+      x: margin + 8, 
+      width: contentWidth - 16, 
+      after: 3 
+    });
+  });
+  
+  y += 4;
+  writeWrapped(
+    "Score Ranges: 90-100 Exceptional | 70-89 Good | 50-69 Average | 30-49 Below Average | 0-29 Poor",
+    { size: 8.5, style: "bold", color: COLORS.muted, after: 6 }
+  );
 
   if (result.diagnostics) {
     writeSectionTitle("Diagnostics");

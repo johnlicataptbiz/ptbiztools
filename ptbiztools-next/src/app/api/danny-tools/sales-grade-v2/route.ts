@@ -159,7 +159,7 @@ function buildGradingPrompt(params: {
 }): string {
   const { transcript, closer, outcome, program, prospectName, callMeta } = params;
 
-  return `You are an expert sales coach evaluating a PT (Physical Therapy) business coaching sales call.
+  return `You are an expert sales coach evaluating a PT (Physical Therapy) business coaching sales call. You are STRICT and CRITICAL - do not inflate scores. Most calls score 40-70. Only exceptional calls score 80+.
 
 CLOSER: ${closer}
 PROGRAM: ${program}
@@ -172,31 +172,69 @@ TRANSCRIPT:
 ${transcript}
 """
 
-Evaluate this call using the 7-phase framework:
+STRICT SCORING RUBRIC - Score each phase 0-100 using these criteria:
 
-1. CONNECTION & AGENDA (10%): Rapport building, agenda setting, tone establishment
-2. DISCOVERY (25%): Facts, Feelings, Future — emotional depth, not just KPIs
-3. GAP CREATION (20%): Cost of inaction, math exercise, skills gap identification
-4. TEMPERATURE CHECK (10%): Did they gauge readiness? Did they act on it appropriately?
-5. SOLUTION PRESENTATION (15%): Calibrated to prospect, personal story deployed, not a platform demo
-6. INVESTMENT & CLOSE (15%): Price presentation, objection handling, the ask, discount discipline
-7. FOLLOW-UP / WRAP (5%): Clean exit, next steps scheduled (ONLY if outcome is not "Won"), no lingering free consulting
+1. CONNECTION & AGENDA (10%):
+   90-100: Exceptional rapport, clear agenda with time check, prospect engaged immediately
+   70-89: Good rapport, agenda set but rushed or unclear
+   50-69: Basic rapport, weak agenda, no time check
+   30-49: Poor rapport, no agenda, awkward start
+   0-29: No connection attempt, jumped straight to pitch
 
-IMPORTANT: The outcome of this call was ${outcome || "Unknown"}. 
-- If outcome is "Won", the deal is already closed so DO NOT penalize for "next steps" in the followup phase - instead look for clean handoff to onboarding/implementation.
-- If outcome is "Lost", evaluate whether appropriate next steps were left for future follow-up.
-- If outcome is "Unknown", evaluate next steps as normal.
+2. DISCOVERY (25%) - MOST IMPORTANT:
+   90-100: Deep emotional discovery (Feelings/Future), uncovered real pain, prospect opened up
+   70-89: Good facts gathering, some feelings, missed deeper pain
+   50-69: Surface-level KPIs only, no emotional depth
+   30-49: Weak discovery, mostly pitching
+   0-29: No discovery, immediate pitch
 
-CRITICAL BEHAVIORS to evaluate:
-- No Free Consulting: Did NOT give away actionable advice before commitment
-- Discount Discipline: No unprompted concessions or ad-hoc discounts
-- Emotional Depth: Went beyond surface answers to uncover real feelings/fears
-- Time Management: Call stayed under 60 min, didn't linger after clear 'no'
-- Story Deployment: Used personal or client transformation story effectively
+3. GAP CREATION (20%):
+   90-100: Clear cost of inaction calculated, prospect acknowledged pain of staying same
+   70-89: Some gap mentioned but not quantified
+   50-69: Weak gap, prospect not emotionally connected to pain
+   30-49: No real gap created
+   0-29: Skipped entirely
 
-Provide specific evidence (direct quotes) for each phase score. Score each phase 0-100 based on the rubric.
+4. TEMPERATURE CHECK (10%):
+   90-100: Explicit readiness check, adjusted approach based on response
+   70-89: Some checking but not explicit
+   50-69: Weak or no temperature check
+   0-49: Completely missed
 
-Return a complete grading result with all fields in the specified schema.`;
+5. SOLUTION PRESENTATION (15%):
+   90-100: Personal story deployed, calibrated to prospect's specific pain, NOT a platform demo
+   70-89: Some calibration but generic elements
+   50-69: Platform demo style, not calibrated
+   30-49: Generic pitch, no story
+   0-29: No solution presentation or completely off
+
+6. INVESTMENT & CLOSE (15%):
+   90-100: Clear ask, handled objections well, no discounting, confident close
+   70-89: Ask made but weak objection handling
+   50-69: Weak ask or some discounting
+   30-49: No clear ask, heavy discounting
+   0-29: No close attempt or completely botched
+
+7. FOLLOW-UP / WRAP (5%):
+   ${outcome === "Won" 
+     ? "For WON deals: Evaluate clean handoff to onboarding, no lingering questions, clear next steps for implementation (90-100: perfect handoff, 50-89: some loose ends, 0-49: messy close)" 
+     : "For non-won deals: Clear next steps scheduled, no free consulting (90-100: perfect wrap, 50-89: some loose ends, 0-49: messy or no next steps)"}
+
+CRITICAL BEHAVIORS - Mark FAIL if ANY of these occurred:
+- Free Consulting: Gave away actionable advice before commitment = FAIL
+- Discount Discipline: Unprompted concessions or ad-hoc discounts = FAIL  
+- Emotional Depth: Stayed surface-level, no real feelings uncovered = FAIL
+- Time Management: Call over 60 min OR lingered after clear 'no' = FAIL
+- Story Deployment: No personal/client transformation story used = FAIL
+
+REQUIREMENTS:
+1. Be CRITICAL - most calls are average (50-70), not excellent
+2. Provide 2-3 specific evidence quotes for EACH phase
+3. Evidence must be VERBATIM from transcript
+4. If behavior not demonstrated, mark UNKNOWN not PASS
+5. Only mark PASS if explicitly demonstrated with evidence
+
+Return complete grading with all fields.`;
 }
 
 /**
