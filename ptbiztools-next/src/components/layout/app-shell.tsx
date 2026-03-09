@@ -18,7 +18,6 @@ import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole, getRoleLabel } from "@/lib/auth/roles";
 import { useTheme } from "@/lib/theme/theme-context";
 import { TourAnchors } from "@/lib/tour/anchors";
-import { useTour } from "@/lib/tour/tour-context";
 import { SITE_LOGO_URL } from "@/constants/branding";
 import "@/styles/app-shell.css";
 
@@ -46,7 +45,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, isLoading, logout } = useSession();
   const { theme, setTheme, options } = useTheme();
-  const { replayTour, isEnabled: isTourEnabled } = useTour();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarDidError, setAvatarDidError] = useState(false);
 
@@ -55,12 +53,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       router.replace("/login");
     }
   }, [isLoading, router, user]);
-
-  useEffect(() => {
-    const onOpenMenu = () => setMenuOpen(true);
-    window.addEventListener("tour:open-menu", onOpenMenu);
-    return () => window.removeEventListener("tour:open-menu", onOpenMenu);
-  }, []);
 
   const role = getEffectiveRole(user);
   const isAdmin = role === "admin";
@@ -200,21 +192,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <LogOut size={14} />
               Log Out
             </button>
-            {isTourEnabled ? (
-              <button
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-background"
-                onClick={replayTour}
-              >
-                <Palette size={14} />
-                Replay Tour
-              </button>
-            ) : null}
           </div>
         </div>
       </aside>
 
       <div className="app-shell-main min-h-screen">
-        <header className="app-shell-header sticky top-0 z-20 border-b border-border px-4 py-3 lg:px-8">
+        <header className="app-shell-header sticky top-0 z-20 border-b border-border px-4 py-2 lg:px-8">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <button
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm shadow-sm lg:hidden"
@@ -225,44 +208,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Menu
               </span>
             </button>
-            <p className="text-sm font-medium tracking-[0.04em] text-muted-foreground">PT Biz Coach Workspace</p>
-            <div className="flex items-center gap-2">
-              {isTourEnabled ? (
-                <button
-                  className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground hover:bg-background"
-                  onClick={replayTour}
-                >
-                  Replay Tour
-                </button>
-              ) : null}
-              <label className="app-shell-theme-control" data-tour={TourAnchors.shell.theme}>
-                <span className="app-shell-theme-label">
-                  <Palette size={14} />
-                  Theme
-                </span>
-                <select
-                  className="app-shell-theme-select"
-                  value={theme}
-                  onChange={(event) => setTheme(event.target.value as typeof theme)}
-                  aria-label="Select theme"
-                >
-                  {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <div /> {/* Spacer for center alignment */}
+            <label className="app-shell-theme-control" data-tour={TourAnchors.shell.theme}>
+              <span className="app-shell-theme-label">
+                <Palette size={14} />
+              </span>
+              <select
+                className="app-shell-theme-select"
+                value={theme}
+                onChange={(event) => setTheme(event.target.value as typeof theme)}
+                aria-label="Select theme"
+              >
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </header>
 
         <main className="mx-auto max-w-6xl px-4 py-8 lg:px-8">{children}</main>
 
-        <footer className="app-shell-footer border-t border-border px-4 py-4 lg:px-8">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-            <p>PT Biz Tools</p>
-            <p className="app-shell-footer-tag">Built for coaching execution</p>
+        <footer className="app-shell-footer border-t border-border px-4 py-3 lg:px-8">
+          <div className="mx-auto flex max-w-6xl items-center justify-center gap-3">
+            <p className="text-xs text-muted-foreground">PT Biz Tools</p>
           </div>
         </footer>
       </div>
