@@ -37,6 +37,20 @@ It still depends on the backend service for rewritten routes configured in `next
 - `/api/danny-tools/*`
 - `/health`
 
+## `ptbiztools-backend`
+
+The backend/service code now lives under `ptbiztools-backend/` (restored from `blackboxai/add-docx-support-and-enhanced-pdf`). It contains:
+- Express routes for auth, analytics, transcript upload, Danny tools, and pl-imports
+- Prisma schema/migrations and utilities
+- A `Dockerfile` that builds with `tsc` and copies `dist/` into the runtime stage
+
+**Local build verification**
+- `npm ci` inside `ptbiztools-backend/`
+- `npm run build` produces `dist/`
+- Docker deployment **must** copy `dist/` from the builder stage before `node dist/index.js`
+
+Run those commands locally before redeploying to Railway so the `/dist` artifact exists in the final image.
+
 ## Legacy / Cleanup Targets
 
 ### 1. `ptbiztools-frontend/`

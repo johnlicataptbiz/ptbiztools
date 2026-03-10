@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+ptbiztools-backend/dist/
 
 # debug
 npm-debug.log*

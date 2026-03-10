@@ -128,6 +128,12 @@ The changelog build step falls back to the GitHub commits API when the builder d
 
 See [docs/architecture.md](./docs/architecture.md) for detailed system design.
 
+## Backend Service
+
+`ptbiztools-backend/` lives in this repo and contains the Express API, Prisma schema, and tooling that Railway deploys for `/api/*` rewrites.
+- Run `npm ci` then `npm run build` inside `ptbiztools-backend/` to produce `dist/`.
+- The Dockerfile copies `dist/` from the builder stage; build this folder before running `railway up` so the deployment has the artifact it needs.
+
 ## Repository State
 
 See [docs/repo-state.md](./docs/repo-state.md) for the current repo layout, active deployment surfaces, and cleanup targets.
