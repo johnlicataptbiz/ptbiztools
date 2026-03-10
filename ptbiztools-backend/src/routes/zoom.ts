@@ -118,9 +118,10 @@ function normalizeIsoDay(input: unknown): string | null {
 
 zoomRouter.use(attachSessionUser)
 
-zoomRouter.get('/oauth/start', async (req: Request, res: Response) => {
+zoomRouter.get('/oauth/start', async (req: SessionRequest, res: Response) => {
   try {
-    const userId = typeof req.query.userId === 'string' ? req.query.userId : undefined
+    const explicitUserId = typeof req.query.userId === 'string' ? req.query.userId : undefined
+    const userId = explicitUserId || req.currentUserId
     const state = makeZoomState(userId)
     const url = buildZoomAuthorizeUrl(state)
     res.redirect(url)
