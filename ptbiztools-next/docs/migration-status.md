@@ -44,7 +44,7 @@
 - ✅ Removed `my-directus-project/` (Directus CMS)
 - ✅ Removed temp files (`api_backup.ts`, `intro_*.tsx`, `TODO.md`)
 - ✅ Removed tracked build artifacts such as `public/changelog-data.json`
-- ⚠ `ptbiztools-frontend/` still exists as a legacy stub (`src/services/api.ts`) and is not imported by `ptbiztools-next`
+- ✅ Removed the final `ptbiztools-frontend/` legacy stub after confirming it was not imported by `ptbiztools-next`
 - ⚠ Production still depends on the Railway-hosted `ptbiztools-backend` service for rewritten `/api/*` routes
 
 ## Current Architecture
@@ -56,10 +56,9 @@
 - Workflow/agent surfaces in the Next app
 - Client-side PDF generation
 
-**Legacy remainder still in repo**
-- `ptbiztools-frontend/src/services/api.ts` only
-- no imports from `ptbiztools-next`
-- safe candidate for archival or deletion in a dedicated cleanup pass
+**External legacy remainder still in architecture**
+- Railway-hosted `ptbiztools-backend` service is still active in the request path
+- the stale `blackboxai/add-docx-support-and-enhanced-pdf` branch still references old repo layout assumptions
 
 ## Optional Future Polish
 

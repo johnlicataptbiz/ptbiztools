@@ -36,7 +36,7 @@ Audit run against `ptbiztools-next/src` to identify direct import/use of declare
 
 ## Legacy-only dependencies not carried into Next
 
-These were associated with the legacy frontend and are not used by `ptbiztools-next`. The remaining legacy frontend footprint in this repo is only `ptbiztools-frontend/src/services/api.ts`:
+These were associated with the legacy frontend and are not used by `ptbiztools-next`. The final legacy frontend stub has been removed from the repo:
 
 - `react-router-dom`
 - `recharts`

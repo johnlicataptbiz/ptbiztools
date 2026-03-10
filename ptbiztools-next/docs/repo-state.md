@@ -41,20 +41,19 @@ It still depends on the backend service for rewritten routes configured in `next
 
 ### 1. `ptbiztools-frontend/`
 
-Current contents:
-- `src/services/api.ts`
-
 Current assessment:
-- not imported anywhere in `ptbiztools-next`
-- not part of the production deployment path
-- should be archived or deleted in a dedicated cleanup commit
+- the final legacy stub was `src/services/api.ts`
+- it was not imported anywhere in `ptbiztools-next`
+- it has now been removed from the repo
 
 ### 2. Stale branch
 
 `blackboxai/add-docx-support-and-enhanced-pdf`:
 - based on older assumptions about the repo layout
 - should not be merged blindly into `main`
-- keep only if you still need it for reference or cherry-picking
+- attempts to restore deleted `ptbiztools-backend/` and `ptbiztools-frontend/` trees
+- deletes current `ptbiztools-next` files such as the changelog route, proxy, and recent docs
+- no clean cherry-pick candidate was found that is not already present in evolved form on `main`
 
 ### 3. Infrastructure truth
 
@@ -62,6 +61,20 @@ The migration is not infrastructure-complete:
 - Vercel frontend is live and healthy
 - Railway backend still exists and remains in the request path
 - docs should not claim a backend-free architecture until those rewrites are removed
+
+### 4. Railway backend failure root cause
+
+Latest known failed production deployment:
+- deployment id: `fb0c4943-dc97-4966-adf8-8da51943643d`
+- status: `FAILED`
+- created: `2026-02-28T01:51:23.485Z`
+
+Observed failure:
+- Docker build tries `COPY dist ./dist/`
+- the build context does not contain `/dist`
+- Railway never reaches a runnable deployment for the backend service
+
+This is a backend deployment packaging issue, not a Vercel frontend issue.
 
 ## Immediate Recovery Baseline
 
@@ -74,7 +87,6 @@ As of this snapshot:
 
 ## Recommended Next Cleanup Pass
 
-1. Remove or archive `ptbiztools-frontend/`
-2. Audit Railway service health and ownership
-3. Decide whether `blackboxai/add-docx-support-and-enhanced-pdf` should be deleted or mined for specific commits
-4. Trim stale planning docs after the current UI/graders stabilize
+1. Restore the missing backend source or deployment pipeline for Railway, then redeploy the backend service
+2. Delete the stale `blackboxai/add-docx-support-and-enhanced-pdf` branch once you no longer need it for reference
+3. Trim stale planning docs after the current UI/graders stabilize
