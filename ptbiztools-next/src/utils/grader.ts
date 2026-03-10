@@ -46,6 +46,14 @@ export interface GradeResult {
     phases: Record<string, PhaseScore>;
     criticalBehaviors: Record<string, CriticalBehavior>;
   };
+  qualityGate?: {
+    accepted: boolean;
+    reasons?: string[];
+  };
+  storage?: {
+    redactedTranscript?: string;
+    transcriptHash?: string;
+  };
 }
 
 const PLACEHOLDERS: Record<string, string> = {

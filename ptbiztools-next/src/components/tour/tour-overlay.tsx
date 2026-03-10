@@ -45,8 +45,6 @@ export function TourOverlay({
 
   useEffect(() => {
     missingHandledRef.current = false;
-    setTargetRect(null);
-    setIsMissing(false);
 
     const started = Date.now();
 
@@ -58,6 +56,8 @@ export function TourOverlay({
         return;
       }
 
+      setTargetRect(null);
+
       const expired = Date.now() - started >= ANCHOR_WAIT_LIMIT_MS;
       if (expired) {
         setIsMissing(true);
@@ -65,7 +65,10 @@ export function TourOverlay({
           missingHandledRef.current = true;
           onMissingAnchor();
         }
+        return;
       }
+
+      setIsMissing(false);
     };
 
     refresh();

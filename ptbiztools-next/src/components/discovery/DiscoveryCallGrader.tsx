@@ -6,8 +6,6 @@ import {
   ArrowRight,
   BarChart3,
   ClipboardCheck,
-  ClipboardList,
-  Clock3,
   FileText,
   MessageSquare,
   Upload,
@@ -20,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { GradeResult } from "@/utils/grader";
+import type { GraderResultData } from "@/components/grader/types";
 import { generatePDF } from "@/utils/pdfGenerator";
 import {
   logAction,
@@ -187,7 +186,9 @@ function getBehaviorName(id: string): string {
 }
 
 // Adapter to convert legacy GradeResult to new GraderResultData format
-function adaptLegacyGradeToResult(grade: GradeResult): import('@/components/grader/types').GraderResultData {
+function adaptLegacyGradeToResult(grade: GradeResult): GraderResultData {
+  const extendedGrade = grade as GradeResult & Pick<GraderResultData, "qualityGate" | "storage">;
+
   return {
     score: grade.score,
     outcome: grade.outcome,
@@ -213,8 +214,8 @@ function adaptLegacyGradeToResult(grade: GradeResult): import('@/components/grad
     confidence: grade.confidence,
     prospectSummary: grade.prospectSummary,
     evidence: grade.evidence,
-    qualityGate: (grade as any).qualityGate,
-    storage: (grade as any).storage,
+    qualityGate: extendedGrade.qualityGate,
+    storage: extendedGrade.storage,
   }
 }
 
@@ -252,20 +253,6 @@ function sc(score: number) {
 }
 
 function sl(score: number) {
-  if (score >= 90) return "Exceptional";
-  if (score >= 80) return "Strong";
-  if (score >= 70) return "Decent";
-  if (score >= 60) return "Needs Work";
-  return "Significant Issues";
-}
-
-function getScoreColor(score: number) {
-  if (score >= 80) return "var(--success)";
-  if (score >= 60) return "var(--warning)";
-  return "var(--danger)";
-}
-
-function getScoreLabel(score: number) {
   if (score >= 90) return "Exceptional";
   if (score >= 80) return "Strong";
   if (score >= 70) return "Decent";
@@ -456,12 +443,6 @@ function SummaryView({
   flagNotes: string;
   onGenerateReport: () => void;
 }) {
-  const baseScore = Object.values(scores).reduce((a, b) => a + b, 0);
-  const deductions = flags.reduce((sum, id) => {
-    const f = RED_FLAGS.find(x => x.id === id);
-    return sum + (f ? f.deduction : 0);
-  }, 0);
-
   return (
     <div className="summary-view">
       <div className="summary-header">
@@ -523,7 +504,7 @@ function SummaryView({
       
       {strengths && (
         <div className="summary-section">
-          <h4 className="summary-section-title success">What's Working Well</h4>
+          <h4 className="summary-section-title success">What&apos;s Working Well</h4>
           <p className="summary-section-content">{strengths}</p>
         </div>
       )}
@@ -822,18 +803,6 @@ export default function DiscoveryCallGrader() {
     } catch (error) {
       toast.error('Failed to generate PDF', { id: 'pdf' })
       console.error('Failed to generate PDF:', error)
-    }
-  }
-
-  const handleClear = () => {
-    setTranscript('')
-    setGrade(null)
-    setCoachName('')
-    setClientName('')
-    setCallDate('')
-    setAnalysisId(undefined)
-    if (textareaRef.current) {
-      textareaRef.current.focus()
     }
   }
 
@@ -1141,7 +1110,7 @@ export default function DiscoveryCallGrader() {
               <div className="feedback-section">
                 <h3 className="feedback-section-title success">
                   <CheckCircle size={16} />
-                  What's Working Well
+                  What&apos;s Working Well
                 </h3>
                 <textarea
                   className="feedback-textarea"

@@ -8,7 +8,7 @@ export interface GraderInputData {
   outcome?: string;
   program?: string;
   prospectName?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PhaseScore {
@@ -55,8 +55,8 @@ export interface GraderResultData {
   confidence?: ConfidenceMetrics;
   prospectSummary?: string;
   evidence?: {
-    phases: Record<string, any>;
-    criticalBehaviors: Record<string, any>;
+    phases: Record<string, unknown>;
+    criticalBehaviors: Record<string, unknown>;
   };
   qualityGate?: {
     accepted: boolean;

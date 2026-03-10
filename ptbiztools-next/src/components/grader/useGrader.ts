@@ -6,9 +6,11 @@ import {
   logAction,
   ActionTypes,
   saveCoachingAnalysis,
-  savePdfExport,
   gradeDannySalesCallV2,
   extractTranscriptFromFile,
+  type SalesGradeProgramProfile,
+  type SalesGradeV2Behavior,
+  type SalesGradeV2Phase,
   type SalesGradeV2Response,
 } from '@/lib/ptbiz-api';
 import type { GraderInputData, GraderResultData, UploadedFile, TranscriptStats } from './types';
@@ -16,6 +18,24 @@ import type { GraderInputData, GraderResultData, UploadedFile, TranscriptStats }
 const MIN_WORDS = 120;
 const ESTIMATED_TOKENS_PER_WORD = 1.3;
 const MAX_SAFE_TOKENS = 12000;
+
+const PHASE_META: Record<keyof SalesGradeV2Response["phaseScores"], { name: string; weight: number }> = {
+  connection: { name: "Connection & Agenda", weight: 10 },
+  discovery: { name: "Discovery", weight: 25 },
+  gap_creation: { name: "Gap Creation", weight: 20 },
+  temp_check: { name: "Temperature Check", weight: 10 },
+  solution: { name: "Solution Presentation", weight: 15 },
+  close: { name: "Investment & Close", weight: 15 },
+  followup: { name: "Follow-Up / Wrap", weight: 5 },
+};
+
+const BEHAVIOR_NAMES: Record<keyof SalesGradeV2Response["criticalBehaviors"], string> = {
+  free_consulting: 'No Free Consulting',
+  discount_discipline: 'Discount Discipline',
+  emotional_depth: 'Emotional Depth',
+  time_management: 'Time Management',
+  personal_story: 'Story Deployment',
+};
 
 export function useGrader(sessionId: string) {
   const [isGrading, setIsGrading] = useState(false);
@@ -158,9 +178,9 @@ export function useGrader(sessionId: string) {
     });
 
     try {
-    const payload = {
+      const payload = {
         transcript,
-        program: (program || 'Rainmaker') as "Rainmaker" | "Mastermind",
+        program: (program || 'Rainmaker') as SalesGradeProgramProfile,
         closer: coachName.trim() || 'Unknown',
         prospectName: prospectName || clientName.trim() || undefined,
         outcome: outcome as "Won" | "Lost" | undefined,
@@ -246,22 +266,31 @@ export function useGrader(sessionId: string) {
 
 // Helper function to adapt V2 API response to GraderResultData
 function adaptV2ToGraderResult(v2: SalesGradeV2Response): GraderResultData {
-  const phaseScores = Object.entries(v2.phaseScores || {}).map(([id, phase]: [string, any]) => ({
-    name: phase.name || id,
+  const phaseScores = (Object.entries(v2.phaseScores) as Array<[
+    keyof SalesGradeV2Response["phaseScores"],
+    SalesGradeV2Phase,
+  ]>).map(([id, phase]) => ({
+    name: PHASE_META[id].name,
     score: phase.score || 0,
     maxScore: 100,
     summary: phase.summary,
     evidence: phase.evidence,
-    weight: phase.weight,
+    weight: PHASE_META[id].weight,
   }));
 
-  const redFlags = Object.entries(v2.criticalBehaviors || {})
-    .filter(([, value]: [string, any]) => value && value.status === 'fail')
+  const redFlags = (Object.entries(v2.criticalBehaviors) as Array<[
+    keyof SalesGradeV2Response["criticalBehaviors"],
+    SalesGradeV2Behavior,
+  ]>)
+    .filter(([, value]) => value.status === 'fail')
     .map(([key]) => key);
 
-  const criticalBehaviors = Object.entries(v2.criticalBehaviors || {}).map(([id, cb]: [string, any]) => ({
+  const criticalBehaviors = (Object.entries(v2.criticalBehaviors) as Array<[
+    keyof SalesGradeV2Response["criticalBehaviors"],
+    SalesGradeV2Behavior,
+  ]>).map(([id, cb]) => ({
     id,
-    name: getBehaviorName(id),
+    name: BEHAVIOR_NAMES[id],
     status: cb.status,
     note: cb.note,
     evidence: cb.evidence,
@@ -302,15 +331,4 @@ function mapOutcome(outcome?: string): string {
   if (outcome === 'Won') return 'BOOKED';
   if (outcome === 'Lost') return 'NOT BOOKED';
   return 'UNKNOWN';
-}
-
-function getBehaviorName(id: string): string {
-  const names: Record<string, string> = {
-    free_consulting: 'No Free Consulting',
-    discount_discipline: 'Discount Discipline',
-    emotional_depth: 'Emotional Depth',
-    time_management: 'Time Management',
-    personal_story: 'Story Deployment',
-  };
-  return names[id] || id;
 }

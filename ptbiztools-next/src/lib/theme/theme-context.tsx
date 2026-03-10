@@ -39,17 +39,18 @@ function applyTheme(theme: AppTheme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<AppTheme>("classic");
+  const [theme, setThemeState] = useState<AppTheme>(() => {
+    if (typeof window === "undefined") {
+      return "classic";
+    }
+
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isTheme(stored) ? stored : "classic";
+  });
 
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? window.localStorage.getItem(THEME_STORAGE_KEY) : null;
-    if (isTheme(stored)) {
-      setThemeState(stored);
-      applyTheme(stored);
-      return;
-    }
-    applyTheme("classic");
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = (nextTheme: AppTheme) => {
     setThemeState(nextTheme);

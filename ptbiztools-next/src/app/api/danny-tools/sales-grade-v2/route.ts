@@ -64,17 +64,6 @@ function isSubtitleFormat(transcript: string): boolean {
   return timestampPattern.test(transcript);
 }
 
-// Phase weights for deterministic scoring
-const PHASE_WEIGHTS = {
-  connection: 10,
-  discovery: 25,
-  gap_creation: 20,
-  temp_check: 10,
-  solution: 15,
-  close: 15,
-  followup: 5,
-};
-
 interface GradeRequest {
   transcript: string;
   closer: string;

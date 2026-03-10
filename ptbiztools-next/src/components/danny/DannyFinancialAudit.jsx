@@ -137,6 +137,7 @@ function Logo({ big }) {
   const h = big ? 30 : 22;
   return (
     <div style={{ display:"flex", alignItems:"center" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={PTBIZ_LOGO_DARK_BG_URL} alt="PT Biz" style={{ height:h, width:"auto", objectFit:"contain" }} />
     </div>
   );
@@ -970,6 +971,5 @@ export default function DannyFinancialAudit() {
     </div>
   );
 }
-
 
 

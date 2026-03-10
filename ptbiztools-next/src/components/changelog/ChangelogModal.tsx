@@ -7,7 +7,6 @@ import {
   GitCommit, 
   Calendar, 
   User, 
-  Tag, 
   ChevronDown, 
   ChevronUp,
   Clock,
@@ -117,7 +116,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
     if (isOpen && !data) {
       fetchChangelog();
     }
-  }, [isOpen]);
+  }, [data, isOpen]);
 
   // Auto-expand the first 3 dates
   useEffect(() => {
@@ -125,7 +124,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
       const initialExpanded = new Set(data.dates.slice(0, 3));
       setExpandedDates(initialExpanded);
     }
-  }, [data]);
+  }, [data, expandedDates.size]);
 
   async function fetchChangelog() {
     try {

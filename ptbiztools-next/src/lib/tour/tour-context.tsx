@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -65,9 +66,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const role = getEffectiveRole(user);
 
   const [activeTour, setActiveTour] = useState<ActiveTour | null>(null);
-  const [pendingGlobalStart, setPendingGlobalStart] = useState(false);
   const [localCompletedVersion, setLocalCompletedVersion] = useState<string | null>(null);
   const [localSeenIntros, setLocalSeenIntros] = useState<Record<string, string>>({});
+  const pendingGlobalStartRef = useRef(false);
 
   const completedVersion = localCompletedVersion ?? user?.onboardingTourVersion ?? null;
   const hasCompletedGlobal = completedVersion === TOUR_VERSION;
@@ -117,30 +118,29 @@ export function TourProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!TOUR_ENABLED || !user || isLoading || activeTour) return;
 
-    if (pendingGlobalStart) {
+    if (pendingGlobalStartRef.current) {
       if (pathname === "/dashboard") {
-        setPendingGlobalStart(false);
-        startGlobalTour(false);
+        pendingGlobalStartRef.current = false;
+        window.setTimeout(() => startGlobalTour(false), 0);
       }
       return;
     }
 
     if (pathname === "/dashboard") {
       if (!hasCompletedGlobal) {
-        startGlobalTour(false);
+        window.setTimeout(() => startGlobalTour(false), 0);
       }
       return;
     }
 
     if (isToolRoute(pathname) && shouldShowForRoute(pathname)) {
-      startRouteIntro(pathname);
+      window.setTimeout(() => startRouteIntro(pathname), 0);
     }
   }, [
     activeTour,
     hasCompletedGlobal,
     isLoading,
     pathname,
-    pendingGlobalStart,
     shouldShowForRoute,
     startGlobalTour,
     startRouteIntro,
@@ -216,7 +216,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       void persistRouteIntro(activeTour.route);
     }
     setActiveTour(null);
-    setPendingGlobalStart(true);
+    pendingGlobalStartRef.current = true;
     router.push("/dashboard");
   }, [activeTour, persistRouteIntro, router]);
 
@@ -224,7 +224,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     if (!TOUR_ENABLED) return;
     if (!user) return;
     if (pathname !== "/dashboard") {
-      setPendingGlobalStart(true);
+      pendingGlobalStartRef.current = true;
       router.push("/dashboard");
       return;
     }
@@ -247,6 +247,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       {children}
       {TOUR_ENABLED && activeTour && currentStep ? (
         <TourOverlay
+          key={`${activeTour.kind}-${activeTour.route ?? "global"}-${activeTour.index}-${currentStep.anchorId}`}
           step={currentStep}
           stepIndex={activeTour.index}
           totalSteps={activeTour.steps.length}

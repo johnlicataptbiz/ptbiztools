@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { execSync } from "child_process";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
 
 interface ChangelogEntry {
   hash: string;
@@ -38,7 +36,7 @@ function generateChangelogData(): {
   try {
     // Try to get git log
     const gitLog = execSync(
-      'git log --pretty=format:"%H|%an|%ae|%ad|%s|%b<END>" --date=short -100',
+      'git log --pretty=format:"%H|%an|%ae|%ad|%s<END>" --date=short -100',
       { 
         cwd: process.cwd(),
         encoding: "utf-8",
@@ -52,7 +50,6 @@ function generateChangelogData(): {
     for (const commit of commits) {
       const lines = commit.trim().split("\n");
       const header = lines[0];
-      const body = lines.slice(1).join("\n").trim();
 
       const parts = header.split("|");
       if (parts.length >= 5) {
@@ -66,7 +63,7 @@ function generateChangelogData(): {
             date,
             message: message.trim(),
             type: parseCommitType(message),
-            category: extractCategory(message) || extractCategory(body),
+            category: extractCategory(message),
           });
         }
       }
@@ -98,29 +95,48 @@ function generateChangelogData(): {
 }
 
 // Generate data at build time
-let cachedData: ReturnType<typeof generateChangelogData> | null = null;
+type ChangelogData = ReturnType<typeof generateChangelogData>;
+
+let cachedData: ChangelogData | null = null;
 let cacheTime: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-function getChangelogData() {
+async function getStaticChangelogData(request: Request): Promise<ChangelogData | null> {
+  try {
+    const assetUrl = new URL("/changelog-data.json", request.url);
+    const response = await fetch(assetUrl, {
+      cache: "no-store",
+      headers: {
+        accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as ChangelogData;
+  } catch (error) {
+    console.error("[changelog] Error loading static changelog asset:", error);
+    return null;
+  }
+}
+
+async function getChangelogData(request: Request) {
   const now = Date.now();
-  
+
   // Return cached data if still valid
   if (cachedData && (now - cacheTime) < CACHE_DURATION) {
     return cachedData;
   }
 
-  // Try to read from pre-generated JSON file (build time)
-  const dataPath = join(process.cwd(), "public", "changelog-data.json");
-  if (existsSync(dataPath)) {
-    try {
-      const fileData = JSON.parse(readFileSync(dataPath, "utf-8"));
-      cachedData = fileData;
-      cacheTime = now;
-      return fileData;
-    } catch (e) {
-      console.error("[changelog] Error reading cached file:", e);
-    }
+  // Try to read from the generated static asset first. This works in production
+  // where runtime filesystem access does not necessarily include /public.
+  const staticData = await getStaticChangelogData(request);
+  if (staticData) {
+    cachedData = staticData;
+    cacheTime = now;
+    return staticData;
   }
 
   // Try to generate from git (works in dev/local)
@@ -143,7 +159,7 @@ function getChangelogData() {
   }
 }
 
-export async function GET() {
-  const data = getChangelogData();
+export async function GET(request: Request) {
+  const data = await getChangelogData(request);
   return NextResponse.json(data);
 }

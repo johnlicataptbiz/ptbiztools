@@ -1,6 +1,6 @@
-const { execSync } = require("child_process");
-const { writeFileSync, mkdirSync } = require("fs");
-const { join } = require("path");
+import { execSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 function parseCommitType(message) {
   const lower = message.toLowerCase();
@@ -20,22 +20,19 @@ function extractCategory(message) {
 function generateChangelog() {
   try {
     console.log("[generate-changelog] Fetching git history...");
-    
-    // Check if we're in a git repository
+
     let gitLog = "";
     try {
       gitLog = execSync(
-        'git log --pretty=format:"%H|%an|%ae|%ad|%s|%b<END>" --date=short -100',
-        { 
+        'git log --pretty=format:"%H|%an|%ae|%ad|%s<END>" --date=short -100',
+        {
           cwd: process.cwd(),
           encoding: "utf-8",
-          maxBuffer: 10 * 1024 * 1024
-        }
+          maxBuffer: 10 * 1024 * 1024,
+        },
       );
-    } catch (gitError) {
+    } catch {
       console.log("[generate-changelog] Git not available or not a git repo, using empty changelog");
-      // In Vercel or other CI environments, git may not be available
-      // Continue with empty gitLog which will result in empty entries
     }
 
     const entries = [];
@@ -44,12 +41,11 @@ function generateChangelog() {
     for (const commit of commits) {
       const lines = commit.trim().split("\n");
       const header = lines[0];
-      const body = lines.slice(1).join("\n").trim();
-
       const parts = header.split("|");
+
       if (parts.length >= 5) {
         const [hash, author, email, date, message] = parts;
-        
+
         if (author.toLowerCase().includes("jack") || email.toLowerCase().includes("jack")) {
           entries.push({
             hash: hash.slice(0, 7),
@@ -58,7 +54,7 @@ function generateChangelog() {
             date,
             message: message.trim(),
             type: parseCommitType(message),
-            category: extractCategory(message) || extractCategory(body),
+            category: extractCategory(message),
           });
         }
       }
@@ -72,8 +68,8 @@ function generateChangelog() {
       return acc;
     }, {});
 
-    const sortedDates = Object.keys(grouped).sort((a, b) => 
-      new Date(b).getTime() - new Date(a).getTime()
+    const sortedDates = Object.keys(grouped).sort(
+      (a, b) => new Date(b).getTime() - new Date(a).getTime(),
     );
 
     const data = {
@@ -84,24 +80,18 @@ function generateChangelog() {
       lastUpdated: new Date().toISOString(),
     };
 
-    // Ensure public directory exists
     const publicDir = join(process.cwd(), "public");
-    try {
-      mkdirSync(publicDir, { recursive: true });
-    } catch (e) {
-      // Directory might already exist
-    }
+    mkdirSync(publicDir, { recursive: true });
 
-    // Write to public directory so it's included in the build
     const outputPath = join(publicDir, "changelog-data.json");
     writeFileSync(outputPath, JSON.stringify(data, null, 2));
-    
+
     console.log(`[generate-changelog] Generated ${entries.length} commits across ${sortedDates.length} dates`);
     console.log(`[generate-changelog] Saved to ${outputPath}`);
-    
+
     return data;
   } catch (error) {
-    console.error("[generate-changelog] Error:", error.message);
+    console.error("[generate-changelog] Error:", error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

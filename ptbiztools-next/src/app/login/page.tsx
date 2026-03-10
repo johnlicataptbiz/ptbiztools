@@ -2,11 +2,10 @@
 
 import "@/styles/login-credential-badges.css";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
   CheckCircle2, 
-  Clock, 
   Dumbbell,
   Heart,
   LockKeyhole, 
@@ -25,7 +24,7 @@ import {
   X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { type FormEvent, useEffect, useMemo, useState, useRef } from "react";
 import { LOGIN_LOGO_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
@@ -59,22 +58,6 @@ type MemberProfile = {
   experience: string;
   clinicLogoUrl?: string;
 };
-
-// Role categories for accordion sections
-type RoleSection = {
-  id: string;
-  label: string;
-  priority: number;
-};
-
-const ROLE_SECTIONS: RoleSection[] = [
-  { id: "coach", label: "Coaches", priority: 0 },
-  { id: "partner", label: "Partners", priority: 1 },
-  { id: "client success", label: "Client Success", priority: 2 },
-  { id: "advisor", label: "Advisors", priority: 3 },
-  { id: "acquisitions", label: "Acquisitions", priority: 4 },
-  { id: "internal", label: "Internal", priority: 5 },
-];
 
 const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
   // Coaches (12)
@@ -367,18 +350,6 @@ function sanitizeProfile(profile: MemberProfile) {
   };
 }
 
-function getSectionForMember(member: TeamMember): string {
-  const section = normalizeText(member.teamSection);
-  const title = normalizeText(member.title);
-  
-  if (section.includes("coach") || title.includes("coach")) return "coach";
-  if (section.includes("partner") || title.includes("partner")) return "partner";
-  if (section.includes("client success")) return "client success";
-  if (section.includes("advisor") || title.includes("advisor")) return "advisor";
-  if (section.includes("acquisitions")) return "acquisitions";
-  return "internal";
-}
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -449,27 +420,6 @@ function getCredentialStyle(cred: string): string {
   return 'credential-default';
 }
 
-// Credential full names for tooltips
-function getCredentialFullName(cred: string): string {
-  const c = cred.trim().toUpperCase();
-  const names: Record<string, string> = {
-    'DPT': 'Doctor of Physical Therapy',
-    'PT': 'Physical Therapist',
-    'MSPT': 'Master of Science in Physical Therapy',
-    'OCS': 'Orthopaedic Clinical Specialist',
-    'SCS': 'Sports Clinical Specialist',
-    'CSCS': 'Certified Strength & Conditioning Specialist',
-    'PES': 'Performance Enhancement Specialist',
-    'RN': 'Registered Nurse',
-    'BIZ': 'Business Operations',
-    'OWNER': 'Business Owner',
-    'OPS': 'Operations',
-    'LEAD': 'Leadership',
-    'ADVR': 'Advisor',
-  };
-  return names[c] || cred;
-}
-
 // Get unique first letters for alphabet index
 function getAlphabetIndex(members: TeamMember[]): string[] {
   const letters = new Set<string>();
@@ -505,6 +455,38 @@ function saveRecentUser(userId: string) {
   }
 }
 
+function ProfileSkeleton() {
+  return (
+    <div className="profile-card skeleton">
+      <div className="skeleton-avatar" />
+      <div className="skeleton-info">
+        <div className="skeleton-line skeleton-name" />
+        <div className="skeleton-line skeleton-title" />
+        <div className="skeleton-badges">
+          <div className="skeleton-badge" />
+          <div className="skeleton-badge" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+  return (
+    <div className="login-error-state">
+      <div className="error-icon">
+        <AlertCircle size={48} />
+      </div>
+      <h3>Unable to load team members</h3>
+      <p>{error?.message || "Something went wrong while loading the team directory."}</p>
+      <button onClick={onRetry} className="error-retry-btn">
+        <RotateCcw size={16} />
+        Try Again
+      </button>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading: sessionLoading, login } = useSession();
@@ -523,12 +505,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<typeof DEPARTMENTS[number]>("All");
-  
-  // Accordion state - default expanded sections
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
-    return new Set(["coach"]); // Default: Coaches section expanded
-  });
-  
+
   // Active letter for alphabet index
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
@@ -581,38 +558,9 @@ export default function LoginPage() {
     [visibleMembers],
   );
 
-  // Group members by section
-  const membersBySection = useMemo(() => {
-    const grouped: Record<string, TeamMember[]> = {};
-    ROLE_SECTIONS.forEach(section => {
-      grouped[section.id] = [];
-    });
-    
-    orderedTeamMembers.forEach(member => {
-      const section = getSectionForMember(member);
-      if (grouped[section]) {
-        grouped[section].push(member);
-      } else {
-        // Default to internal
-        grouped["internal"].push(member);
-      }
-    });
-    
-    return grouped;
-  }, [orderedTeamMembers]);
-
   // Alphabet index
   const alphabetIndex = useMemo(() => getAlphabetIndex(orderedTeamMembers), [orderedTeamMembers]);
   
-  // Recent users
-  const recentUserIds = useMemo(() => getRecentUsers(), []);
-  const recentUsers = useMemo(() => {
-    return recentUserIds
-      .map(id => visibleMembers.find(m => m.id === id))
-      .filter((m): m is TeamMember => m !== undefined)
-      .slice(0, 5);
-  }, [recentUserIds, visibleMembers]);
-
   // Department counts
   const departmentCounts = useMemo(() => {
     const counts: Record<string, number> = { All: visibleMembers.length };
@@ -660,19 +608,6 @@ export default function LoginPage() {
   const selectedUserBadgeTokens = useMemo(() => getBadgeTokens(selectedUserProfile), [selectedUserProfile]);
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
-
-  // Toggle accordion section
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      if (next.has(sectionId)) {
-        next.delete(sectionId);
-      } else {
-        next.add(sectionId);
-      }
-      return next;
-    });
-  };
 
   // Handle alphabet letter click
   const handleLetterClick = (letter: string) => {
@@ -791,40 +726,6 @@ export default function LoginPage() {
     }, 1500);
   };
 
-  // Skeleton loading component for profile cards
-  function ProfileSkeleton() {
-    return (
-      <div className="profile-card skeleton">
-        <div className="skeleton-avatar" />
-        <div className="skeleton-info">
-          <div className="skeleton-line skeleton-name" />
-          <div className="skeleton-line skeleton-title" />
-          <div className="skeleton-badges">
-            <div className="skeleton-badge" />
-            <div className="skeleton-badge" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error boundary component for failed loading
-  function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
-    return (
-      <div className="login-error-state">
-        <div className="error-icon">
-          <AlertCircle size={48} />
-        </div>
-        <h3>Unable to load team members</h3>
-        <p>{error?.message || "Something went wrong while loading the team directory."}</p>
-        <button onClick={onRetry} className="error-retry-btn">
-          <RotateCcw size={16} />
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
   if (sessionLoading) {
     return (
       <div className="login-shell">
@@ -844,6 +745,7 @@ export default function LoginPage() {
         <div className="login-card">
           <header className="login-header">
             <div className="login-logo-hero">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
             </div>
             <h1>Welcome Back</h1>
@@ -1208,4 +1110,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

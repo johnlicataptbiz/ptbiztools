@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   getWordGateMessage,
   normalizeBehaviorStatus,
   normalizeV2Result,
+  type NormalizedGraderResult,
 } from "@/components/danny/graderV2Helpers";
 import { toast } from "sonner";
 
@@ -109,7 +111,7 @@ interface HistoryEntry {
   outcome: string;
   program: string;
   prospectName: string;
-  result: any;
+  result: NormalizedGraderResult;
 }
 
 interface UploadedFile {
@@ -127,7 +129,7 @@ export default function SalesCallGrader() {
   const [program, setProgram] = useState<"Rainmaker" | "Mastermind">("Rainmaker");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<NormalizedGraderResult | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [selectedHistory, setSelectedHistory] = useState<HistoryEntry | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -168,11 +170,11 @@ export default function SalesCallGrader() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsedHistory = JSON.parse(raw);
-        const normalizedHistory = parsedHistory.map((entry) => ({
-          ...entry,
-          result: normalizeV2Result(entry.result),
-        }));
+        const parsedHistory = JSON.parse(raw) as Array<Omit<HistoryEntry, "result"> & { result: unknown }>;
+        const normalizedHistory = parsedHistory.flatMap((entry) => {
+          const normalizedResult = normalizeV2Result(entry.result);
+          return normalizedResult ? [{ ...entry, result: normalizedResult }] : [];
+        });
         setHistory(normalizedHistory);
       }
     } catch (e) {
@@ -181,18 +183,18 @@ export default function SalesCallGrader() {
     setLoadingHistory(false);
   };
 
-  const saveHistory = (newHistory) => {
-    const normalizedHistory = newHistory.map((entry) => ({
-      ...entry,
-      result: normalizeV2Result(entry.result),
-    }));
+  const saveHistory = (newHistory: HistoryEntry[]) => {
+    const normalizedHistory = newHistory.flatMap((entry) => {
+      const normalizedResult = normalizeV2Result(entry.result);
+      return normalizedResult ? [{ ...entry, result: normalizedResult }] : [];
+    });
     setHistory(normalizedHistory);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedHistory));
     } catch (e) { console.error("Storage error:", e); }
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file?: File | null) => {
     if (!file) return;
     setFileLoading(true);
     setError(null);
@@ -218,14 +220,14 @@ export default function SalesCallGrader() {
     setFileLoading(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer?.files?.[0];
     if (file) handleFileUpload(file);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
@@ -257,7 +259,7 @@ export default function SalesCallGrader() {
   const meetsWordThreshold = canSubmitByWordCount(totalWords, MIN_WORDS_REQUIRED);
 
 
-  const getTimeBoundary = (period) => {
+  const getTimeBoundary = (period: "week" | "month" | "quarter" | "all") => {
     const now = new Date();
     if (period === "week") { const d = new Date(now); d.setDate(d.getDate() - 7); return d; }
     if (period === "month") { const d = new Date(now); d.setMonth(d.getMonth() - 1); return d; }
@@ -270,7 +272,7 @@ export default function SalesCallGrader() {
     return new Date(h.date) >= boundary;
   });
 
-  const openReport = (entry) => {
+  const openReport = (entry: HistoryEntry) => {
     setReportData(entry);
     setView("report");
   };
@@ -503,7 +505,7 @@ export default function SalesCallGrader() {
     setLoading(false);
   };
 
-  const deleteEntry = (id) => {
+  const deleteEntry = (id: number) => {
     const newHistory = history.filter(h => h.id !== id);
     saveHistory(newHistory);
     if (selectedHistory?.id === id) setSelectedHistory(null);
@@ -514,16 +516,16 @@ export default function SalesCallGrader() {
     setSelectedHistory(null);
   };
 
-  const getCloserStats = (name, sourceHistory = null) => {
+  const getCloserStats = (name: string, sourceHistory: HistoryEntry[] | null = null) => {
     const calls = (sourceHistory || history).filter(h => h.closer === name);
     if (!calls.length) return null;
     const avg = Math.round(calls.reduce((s, c) => s + c.result.overall_score, 0) / calls.length);
     const wins = calls.filter(c => c.outcome === "Won").length;
-    const phaseAvgs = {};
+    const phaseAvgs: Record<string, number> = {};
     PHASES.forEach(p => {
       phaseAvgs[p.id] = Math.round(calls.reduce((s, c) => s + (c.result.phases[p.id]?.score || 0), 0) / calls.length);
     });
-    const behaviorRates = {};
+    const behaviorRates: Record<string, number> = {};
     CRITICAL_BEHAVIORS.forEach(b => {
       behaviorRates[b.id] = Math.round((calls.filter(c => c.result.critical_behaviors[b.id]?.pass).length / calls.length) * 100);
     });
@@ -852,7 +854,7 @@ export default function SalesCallGrader() {
                   <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
                     {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
                       <div key={`${phase.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
-                        "{quote}"
+                        &quot;{quote}&quot;
                       </div>
                     ))}
                   </div>
@@ -881,7 +883,7 @@ export default function SalesCallGrader() {
                     <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
                       {cb.evidence.slice(0, 2).map((quote, quoteIndex) => (
                         <div key={`${b.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
-                          "{quote}"
+                          &quot;{quote}&quot;
                         </div>
                       ))}
                     </div>
@@ -1178,7 +1180,7 @@ export default function SalesCallGrader() {
                     <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{phase.name} evidence</div>
                     {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
                       <div key={`${phase.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
-                        "{quote}"
+                        &quot;{quote}&quot;
                       </div>
                     ))}
                   </div>
@@ -1220,7 +1222,7 @@ export default function SalesCallGrader() {
                     <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{behavior.name} evidence</div>
                     {behaviorResult.evidence.slice(0, 2).map((quote, quoteIndex) => (
                       <div key={`${behavior.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
-                        "{quote}"
+                        &quot;{quote}&quot;
                       </div>
                     ))}
                   </div>
