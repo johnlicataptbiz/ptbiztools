@@ -1,6 +1,6 @@
 # Migration Status: Legacy → Next.js
 
-**Status**: ✅ **COMPLETE** - All features migrated to Next.js
+**Status**: ✅ **FUNCTIONALLY MIGRATED** - core production traffic is on Next.js, but repo and infrastructure cleanup is still in progress
 
 ## Migration Summary
 
@@ -40,21 +40,26 @@
 
 ## Post-Migration Cleanup (March 2026)
 
-- ✅ Removed `ptbiztools-backend/` (Express/Prisma)
-- ✅ Removed `ptbiztools-frontend/` (Vite/React)
+- ✅ Removed `ptbiztools-backend/` source tree from this repo
 - ✅ Removed `my-directus-project/` (Directus CMS)
 - ✅ Removed temp files (`api_backup.ts`, `intro_*.tsx`, `TODO.md`)
-- ✅ Removed `output/` build artifacts
-- ✅ Updated documentation
+- ✅ Removed tracked build artifacts such as `public/changelog-data.json`
+- ⚠ `ptbiztools-frontend/` still exists as a legacy stub (`src/services/api.ts`) and is not imported by `ptbiztools-next`
+- ⚠ Production still depends on the Railway-hosted `ptbiztools-backend` service for rewritten `/api/*` routes
 
 ## Current Architecture
 
-**Only `ptbiztools-next/` remains** - a modern Next.js 16 application with:
-- Local-first PGLite database
-- AI-powered agent system
-- Client-side PDF/DOCX generation
-- Streaming AI responses
-- Cookie-based authentication
+**`ptbiztools-next/` is the active application** with:
+- Vercel-hosted Next.js 16 frontend
+- Railway-backed auth and tool APIs
+- Cookie-based authentication with server-side redirects
+- Workflow/agent surfaces in the Next app
+- Client-side PDF generation
+
+**Legacy remainder still in repo**
+- `ptbiztools-frontend/src/services/api.ts` only
+- no imports from `ptbiztools-next`
+- safe candidate for archival or deletion in a dedicated cleanup pass
 
 ## Optional Future Polish
 

@@ -2,7 +2,7 @@
 
 ## System Overview
 
-PT Biz Tools is a modern Next.js application with a local-first architecture, enabling offline-capable business intelligence tools for PT practice owners.
+PT Biz Tools is a hybrid web application: the frontend is a Next.js app deployed on Vercel, while auth, analytics, transcript, and Danny tool endpoints still route to the Railway-hosted PT Biz backend.
 
 ## Architecture Diagram
 
@@ -23,47 +23,57 @@ PT Biz Tools is a modern Next.js application with a local-first architecture, en
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      Vercel Edge Network                       │
+│                     Vercel Frontend Layer                   │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │  API Routes  │  │  Server      │  │  Edge Functions  │   │
-│  │  (App Dir)   │  │  Components  │  │  (Workflow)      │   │
+│  │  App Routes  │  │  Server      │  │  Workflow /      │   │
+│  │  + Proxy     │  │  Components  │  │  Agent Endpoints │   │
+│  └──────────────┘  └──────────────┘  └──────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Railway Backend Layer                    │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
+│  │   /auth      │  │  /analytics  │  │ /danny-tools and │   │
+│  │   sessions   │  │  + actions   │  │ transcript APIs  │   │
 │  └──────────────┘  └──────────────┘  └──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Architectural Decisions
 
-### 1. Local-First with PGLite
-- **Why**: Offline capability, instant queries, no backend latency
-- **How**: ElectricSQL PGLite runs PostgreSQL in browser via WebAssembly
-- **Data**: User sessions, analysis history, cached results
+### 1. Hybrid Frontend + Backend
+- **Why**: Keep the active UI on Vercel while preserving existing backend APIs on Railway
+- **How**: `next.config.ts` rewrites selected `/api/*` routes to `PTBIZ_BACKEND_URL`
+- **Data**: Auth, analytics, transcripts, and Danny grading continue to rely on the backend service
 
 ### 2. AI Agent System
 - **Framework**: Workflow AI + AI SDK
 - **Pattern**: Streaming responses with real-time UI updates
-- **Storage**: Agent state in local database
+- **Storage**: Agent state can use local-first storage where relevant
 
 ### 3. Authentication
 - **Method**: Cookie-based sessions (`ptbiz_user`)
 - **Flow**: Profile picker → Setup/Sign-in → Dashboard
-- **Security**: HTTP-only cookies, CSRF protection
+- **Security**: Cookie-based auth backed by the Railway API, plus frontend route protection through `src/proxy.ts`
 
 ### 4. File Processing
-- **Client-side**: Audio/video analysis via AI SDK
-- **Formats**: MP3, MP4, WAV, WebM
-- **Processing**: Chunked streaming for large files
+- **Client-side**: Upload preparation and UI orchestration
+- **Backend-assisted**: Transcript and Danny grading APIs remain server-backed
+- **Formats**: PDF plus transcript/file uploads as required by each tool
 
 ## Data Flow
 
 ### Discovery Call Analysis
 ```
 1. User uploads audio/video file
-2. File stored temporarily in browser memory
-3. AI SDK streams to OpenAI for transcription
-4. Grading engine analyzes transcript
-5. Results saved to PGLite
-6. PDF/DOCX generated client-side
+2. File is prepared client-side
+3. Grading/transcript handling is sent through the active API surface
+4. Results return to the Next.js UI
+5. Results may be stored locally for the relevant feature
+6. PDF output is generated client-side when needed
 7. Download triggered
 ```
 
@@ -110,13 +120,17 @@ PT Biz Tools is a modern Next.js application with a local-first architecture, en
 | `/api/agent/surface` | Agent initialization |
 | `/api/agent/surface/[id]/stream` | Streaming responses |
 | `/api/sync/actions` | Data synchronization |
+| `/api/auth/*` | Rewritten to Railway backend |
+| `/api/analytics/*` | Rewritten to Railway backend |
+| `/api/transcripts/*` | Rewritten to Railway backend |
+| `/api/danny-tools/*` | Rewritten to Railway backend |
 
 ## Security Considerations
 
-1. **No sensitive data in localStorage** - Only session cookie
-2. **Client-side PDF generation** - No server data exposure
-3. **AI API key protection** - Server-side only via env vars
-4. **File upload limits** - Client-side validation
+1. **No secrets in tracked env files** - `.env.example` only contains safe placeholders
+2. **Cookie-based auth** - protected pages are redirected server-side before client hydration
+3. **Backend API isolation** - external credentials remain server-side
+4. **Generated changelog safety** - production falls back to GitHub commits when no `.git` history is available
 
 ## Performance Optimizations
 

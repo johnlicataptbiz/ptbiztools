@@ -5,7 +5,7 @@
 
 ## Overview
 
-PT Biz Tools is a comprehensive business intelligence platform for physical therapy practice owners. Built with Next.js 16, React 19, and modern web technologies.
+PT Biz Tools is the active PTBizCoach web application. The production frontend runs on Vercel, while several authenticated API surfaces still rewrite to the Railway-hosted `ptbiztools-backend` service.
 
 ## Tech Stack
 
@@ -16,12 +16,13 @@ PT Biz Tools is a comprehensive business intelligence platform for physical ther
 | Language | TypeScript 5.x |
 | Styling | Tailwind CSS 4.x |
 | AI/ML | AI SDK + Workflow AI |
-| Database | ElectricSQL PGLite (local-first) |
+| Backend API | Railway-hosted PT Biz backend (via Next rewrites) |
+| Local Storage | ElectricSQL PGLite (select local-first surfaces) |
 | Auth | Cookie-based sessions |
 | Validation | Zod |
 | Icons | Lucide React |
 | Animations | Framer Motion |
-| PDF/DOCX | jsPDF + DOCX libraries |
+| Exports | jsPDF |
 
 ## Project Structure
 
@@ -99,11 +100,11 @@ npm run workflow:web # Start workflow web UI
 ## Environment Variables
 
 ```bash
-# Required
-NEXT_PUBLIC_ENABLE_STACK_LAB=true  # Enable dev tools (optional)
+# Optional
+NEXT_PUBLIC_ENABLE_STACK_LAB=true
 
-# Database (PGLite - local-first)
-# No external DB required - runs in browser
+# Backend
+PTBIZ_BACKEND_URL=https://ptbiz-backend-production.up.railway.app/api
 ```
 
 ## Development
@@ -111,7 +112,7 @@ NEXT_PUBLIC_ENABLE_STACK_LAB=true  # Enable dev tools (optional)
 ### Setup
 ```bash
 cd ptbiztools-main/ptbiztools-next
-npm install
+npm ci --install-links=true
 npm run dev
 ```
 
@@ -121,9 +122,15 @@ npm run build
 vercel --prod  # or push to main branch
 ```
 
+The changelog build step falls back to the GitHub commits API when the builder does not have `.git` history available, which is required for Vercel production builds.
+
 ## Architecture
 
 See [docs/architecture.md](./docs/architecture.md) for detailed system design.
+
+## Repository State
+
+See [docs/repo-state.md](./docs/repo-state.md) for the current repo layout, active deployment surfaces, and cleanup targets.
 
 ## Agent Development
 
