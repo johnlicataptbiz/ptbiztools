@@ -15,9 +15,17 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:check-users": "tsx scripts/check-users.ts"
+    "db:check-users": "tsx scripts/check-users.ts",
+    "zoom:auth:url": "tsx src/cli/zoom.ts auth:url",
+    "zoom:jobs:list": "tsx src/cli/zoom.ts jobs:list",
+    "zoom:ingest:run": "tsx src/cli/zoom.ts ingest:run",
+    "zoom:recordings:list": "tsx src/cli/zoom.ts recordings:list",
+    "zoom:recording:delete": "tsx src/cli/zoom.ts recording:delete",
+    "zoom:jobs:summary": "tsx src/cli/zoom.ts jobs:summary",
+    "zoom:jobs:run-queued": "tsx src/cli/zoom.ts jobs:run-queued",
+    "zoom:backfill": "tsx src/cli/zoom.ts backfill"
   },
-"dependencies": {
+  "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
     "@aws-sdk/lib-storage": "^3.1000.0",
     "@prisma/client": "^5.22.0",
@@ -30,6 +38,7 @@
     "express": "^4.21.1",
     "mammoth": "^1.8.0",
     "multer": "^2.1.0",
+    "ngrok": "^5.0.0-beta.2",
     "pdf-parse": "^2.4.5",
     "tesseract.js": "^7.0.0",
     "xlsx": "^0.18.5",

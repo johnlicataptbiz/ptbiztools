@@ -29,8 +29,12 @@ import {
   getActionLogs,
   getActionStats,
   getAdminUsageSummary,
+  getZoomIngestSummary,
+  runZoomBackfill,
+  runZoomQueuedJobs,
   type ActionStatsSummary,
   type AdminUsageSummary,
+  type ZoomIngestSummary,
 } from "@/lib/ptbiz-api";
 import "@/styles/dashboard.css";
 
@@ -67,6 +71,12 @@ interface CoachStats {
 interface HomeAdminUsageData {
   adminUsage: AdminUsageSummary | null;
   actionStats: ActionStatsSummary | null;
+}
+
+interface ZoomControlState {
+  runningQueue: boolean;
+  runningBackfill: boolean;
+  message: string | null;
 }
 
 interface ToolCard {
@@ -271,6 +281,11 @@ function getInitials(name?: string) {
 export default function DashboardPage() {
   const { user } = useSession();
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [zoomControlState, setZoomControlState] = useState<ZoomControlState>({
+    runningQueue: false,
+    runningBackfill: false,
+    message: null,
+  });
 
   const role = getEffectiveRole(user);
   const isAdmin = role === "admin";
@@ -290,9 +305,21 @@ export default function DashboardPage() {
     staleTime: 30_000,
   });
 
+  const zoomSummaryQuery = useQuery({
+    queryKey: ["home", "zoom-ingest-summary"],
+    queryFn: async () => {
+      const result = await getZoomIngestSummary();
+      if (result.error) throw new Error(result.error);
+      return result.data ?? null;
+    },
+    enabled: isAdmin,
+    staleTime: 20_000,
+  });
+
   const coachStats = coachStatsQuery.data ?? defaultStats;
   const adminUsage = adminUsageQuery.data?.adminUsage ?? null;
   const actionStats = adminUsageQuery.data?.actionStats ?? null;
+  const zoomSummary: ZoomIngestSummary | null = zoomSummaryQuery.data ?? null;
   const coachActionStats = coachStats.actionBreakdown;
 
   const greeting = useMemo(() => {
@@ -376,6 +403,54 @@ export default function DashboardPage() {
     const values = chartData.flatMap((row) => [row.graded, row.pdfs, row.logins]);
     return Math.max(1, ...values);
   }, [chartData]);
+
+  const queuedJobs = zoomSummary?.jobsByStatus.queued ?? 0;
+  const processingJobs = zoomSummary?.jobsByStatus.processing ?? 0;
+  const failedJobs = zoomSummary?.jobsByStatus.failed ?? 0;
+  const completedJobs = zoomSummary?.jobsByStatus.completed ?? 0;
+  const gradedRecordings = zoomSummary?.recordingsByStatus.graded ?? 0;
+  const queuedRecordings = zoomSummary?.recordingsByStatus.queued ?? 0;
+
+  async function handleRunZoomQueue() {
+    setZoomControlState((prev) => ({ ...prev, runningQueue: true, message: null }));
+    const result = await runZoomQueuedJobs({ limit: 10, includeFailed: true, deleteAfterIngest: false });
+    if (result.error) {
+      setZoomControlState((prev) => ({ ...prev, runningQueue: false, message: result.error || "Queue run failed" }));
+      return;
+    }
+
+    setZoomControlState((prev) => ({
+      ...prev,
+      runningQueue: false,
+      message: `Processed ${result.data?.processed || 0} jobs (${result.data?.succeeded || 0} succeeded, ${result.data?.failed || 0} failed).`,
+    }));
+    await zoomSummaryQuery.refetch();
+  }
+
+  async function handleBackfillRecent() {
+    setZoomControlState((prev) => ({ ...prev, runningBackfill: true, message: null }));
+    const to = new Date();
+    const from = new Date();
+    from.setDate(to.getDate() - 30);
+    const result = await runZoomBackfill({
+      from: from.toISOString().slice(0, 10),
+      to: to.toISOString().slice(0, 10),
+      dryRun: false,
+      maxMeetingsPerConnection: 250,
+    });
+
+    if (result.error) {
+      setZoomControlState((prev) => ({ ...prev, runningBackfill: false, message: result.error || "Backfill failed" }));
+      return;
+    }
+
+    setZoomControlState((prev) => ({
+      ...prev,
+      runningBackfill: false,
+      message: `Backfill scanned ${result.data?.meetingsScanned || 0} meetings and queued ${result.data?.jobsQueued || 0} jobs.`,
+    }));
+    await zoomSummaryQuery.refetch();
+  }
 
   return (
     <div className="home">
@@ -523,6 +598,73 @@ export default function DashboardPage() {
         </motion.section>
 
         <div className="dashboard-v2-grid-2">
+          {isAdmin && (
+            <motion.section variants={itemVariants} className="chart-section">
+              <div className="chart-card">
+                <div className="chart-header">
+                  <div className="chart-title">
+                    <PhoneCall size={20} />
+                    <h3>Zoom Ingestion</h3>
+                  </div>
+                </div>
+                <div className="zoom-ingest-grid">
+                  <div className="zoom-pill"><span>Connections</span><strong>{zoomSummary?.connections ?? 0}</strong></div>
+                  <div className="zoom-pill"><span>Jobs Queued</span><strong>{queuedJobs}</strong></div>
+                  <div className="zoom-pill"><span>Processing</span><strong>{processingJobs}</strong></div>
+                  <div className="zoom-pill"><span>Failed</span><strong>{failedJobs}</strong></div>
+                  <div className="zoom-pill"><span>Completed</span><strong>{completedJobs}</strong></div>
+                  <div className="zoom-pill"><span>Recordings Graded</span><strong>{gradedRecordings}</strong></div>
+                  <div className="zoom-pill"><span>Recordings Queued</span><strong>{queuedRecordings}</strong></div>
+                </div>
+
+                <div className="zoom-controls">
+                  <button
+                    type="button"
+                    className="zoom-action-btn"
+                    onClick={() => void zoomSummaryQuery.refetch()}
+                    disabled={zoomSummaryQuery.isLoading}
+                  >
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    className="zoom-action-btn"
+                    onClick={() => void handleRunZoomQueue()}
+                    disabled={zoomControlState.runningQueue}
+                  >
+                    {zoomControlState.runningQueue ? "Running..." : "Run Queue"}
+                  </button>
+                  <button
+                    type="button"
+                    className="zoom-action-btn"
+                    onClick={() => void handleBackfillRecent()}
+                    disabled={zoomControlState.runningBackfill}
+                  >
+                    {zoomControlState.runningBackfill ? "Backfilling..." : "Backfill Last 30d"}
+                  </button>
+                </div>
+
+                {zoomControlState.message ? <p className="zoom-message">{zoomControlState.message}</p> : null}
+
+                {zoomSummary?.recentFailures && zoomSummary.recentFailures.length > 0 ? (
+                  <div className="zoom-failure-list">
+                    <strong>Recent Failures</strong>
+                    {zoomSummary.recentFailures.slice(0, 4).map((failure) => (
+                      <div key={failure.id} className="zoom-failure-row">
+                        <span>{failure.topic || failure.meetingUuid}</span>
+                        <small>{failure.lastError || "Unknown error"}</small>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="activity-empty">
+                    <p>No recent ingestion failures.</p>
+                  </div>
+                )}
+              </div>
+            </motion.section>
+          )}
+
           {isAdmin && (
             <motion.section variants={itemVariants} className="chart-section">
               <div className="chart-card">

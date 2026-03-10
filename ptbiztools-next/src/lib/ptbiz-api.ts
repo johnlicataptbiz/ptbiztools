@@ -126,6 +126,51 @@ export interface ActionStatsSummary {
   }>;
 }
 
+export interface ZoomIngestSummary {
+  connections: number;
+  jobsByStatus: Record<string, number>;
+  recordingsByStatus: Record<string, number>;
+  recentFailures: Array<{
+    id: string;
+    eventType: string;
+    lastError: string | null;
+    updatedAt: string;
+    meetingUuid: string;
+    topic: string | null;
+    hostEmail: string | null;
+  }>;
+  recentCompleted: Array<{
+    id: string;
+    eventType: string;
+    updatedAt: string;
+    meetingUuid: string;
+    topic: string | null;
+    hostEmail: string | null;
+  }>;
+}
+
+export interface ZoomRunQueuedResult {
+  requested: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  jobs: Array<{
+    jobId: string;
+    status: "completed" | "failed";
+    analysisId?: string;
+    error?: string;
+  }>;
+}
+
+export interface ZoomBackfillResult {
+  connectionsScanned: number;
+  meetingsScanned: number;
+  recordingsUpserted: number;
+  jobsQueued: number;
+  skippedExistingJobs: number;
+  errors: Array<{ connectionId: string; message: string }>;
+}
+
 export interface ActionLog {
   id: string;
   actionType: string;
@@ -460,6 +505,55 @@ export async function getActionStats(): Promise<{ data?: ActionStatsSummary; err
   try {
     const data = await requestJson<ActionStatsSummary>("/actions/stats");
     return { data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function getZoomIngestSummary(): Promise<{ data?: ZoomIngestSummary; error?: string }> {
+  try {
+    const data = await requestJson<{ summary: ZoomIngestSummary }>("/zoom/jobs/summary");
+    return { data: data.summary };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function runZoomQueuedJobs(input?: {
+  limit?: number;
+  includeFailed?: boolean;
+  deleteAfterIngest?: boolean;
+}): Promise<{ data?: ZoomRunQueuedResult; error?: string }> {
+  try {
+    const data = await requestJson<{ result: ZoomRunQueuedResult }>("/zoom/jobs/run-queued", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input || {}),
+    });
+    return { data: data.result };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function runZoomBackfill(input?: {
+  from?: string;
+  to?: string;
+  zoomUserId?: string;
+  zoomAccountId?: string;
+  dryRun?: boolean;
+  maxMeetingsPerConnection?: number;
+}): Promise<{ data?: ZoomBackfillResult; error?: string }> {
+  try {
+    const data = await requestJson<{ result: ZoomBackfillResult }>("/zoom/backfill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input || {}),
+    });
+    return { data: data.result };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Network error";
     return { error: message };

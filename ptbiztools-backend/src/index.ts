@@ -7,6 +7,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { plImportRouter } from './routes/plImport.js';
 import transcriptRouter from './routes/transcript.js';
 import { dannyToolsRouter } from './routes/dannyTools.js';
+import { zoomRouter } from './routes/zoom.js';
 import { prisma } from './services/prisma.js';
 
 const app = express();
@@ -39,7 +40,12 @@ app.use(cors({
   },
 }));
 app.use(cookieParser());
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({
+  limit: '100mb',
+  verify(req, _res, buf) {
+    (req as { rawBody?: Buffer }).rawBody = buf;
+  },
+}));
 
 app.use('/api/actions', actionLogRouter);
 app.use('/api/auth', authRouter);
@@ -47,6 +53,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/pl-imports', plImportRouter);
 app.use('/api/transcripts', transcriptRouter);
 app.use('/api/danny-tools', dannyToolsRouter);
+app.use('/api/zoom', zoomRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

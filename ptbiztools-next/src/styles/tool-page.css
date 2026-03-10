@@ -73,9 +73,10 @@
 }
 
 .grade-modal-container {
-  background: white;
+  background: color-mix(in oklab, var(--surface) 80%, #020617 20%);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, #020617 40%);
   border-radius: 20px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(2, 6, 23, 0.65);
   max-width: 700px;
   width: 100%;
   max-height: 90vh;
@@ -88,8 +89,9 @@
   position: relative;
   padding: 32px 24px 24px;
   text-align: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--surface) 70%, #020617 30%), color-mix(in oklab, var(--surface) 50%, #0f172a 50%));
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 40%, #020617 60%);
 }
 
 .grade-modal-close {
@@ -100,8 +102,8 @@
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.05);
-  color: #64748b;
+  background: rgba(2, 6, 23, 0.4);
+  color: #e2e8f0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -110,8 +112,8 @@
 }
 
 .grade-modal-close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #334155;
+  background: rgba(2, 6, 23, 0.6);
+  color: #f8fafc;
 }
 
 .grade-modal-badge-container {
@@ -128,8 +130,8 @@
   object-fit: contain;
   border-radius: 20px;
   padding: 10px;
-  background: white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: color-mix(in oklab, var(--surface) 90%, #020617 10%);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.5);
 }
 
 .grade-modal-score {
@@ -159,13 +161,13 @@
 .grade-modal-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text, #f8fafc);
   margin: 0;
 }
 
 .grade-modal-subtitle {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary, #cbd5f5);
   margin: 4px 0 0;
 }
 
@@ -173,14 +175,18 @@
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+  background: color-mix(in oklab, var(--surface) 90%, #020617 10%);
 }
 
 .grade-modal-section {
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 40%, #020617 60%);
 }
 
 .grade-modal-section:last-child {
   margin-bottom: 0;
+  border-bottom: none;
 }
 
 .grade-modal-section-title {
@@ -189,7 +195,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text, #f8fafc);
   margin: 0 0 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -222,13 +228,13 @@
 
 .grade-modal-phase-name {
   font-size: 13px;
-  color: #475569;
+  color: var(--color-text-secondary, #cbd5f5);
   font-weight: 500;
 }
 
 .grade-modal-phase-bar {
   height: 8px;
-  background: #e2e8f0;
+  background: color-mix(in oklab, var(--border) 60%, #0f172a 40%);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -242,14 +248,14 @@
 .grade-modal-phase-score {
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text, #f8fafc);
   text-align: right;
 }
 
 .grade-modal-list {
   margin: 0;
   padding-left: 20px;
-  color: #475569;
+  color: var(--color-text-secondary, #cbd5f5);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -263,7 +269,7 @@
 }
 
 .grade-modal-footer {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid color-mix(in oklab, var(--border) 40%, #020617 60%);
   padding-top: 24px;
   margin-top: 24px;
 }
@@ -284,18 +290,18 @@
 .grade-modal-field label {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-text-secondary, #cbd5f5);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .grade-modal-field input {
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid color-mix(in oklab, var(--border) 50%, #020617 50%);
   border-radius: 8px;
   font-size: 14px;
-  color: #334155;
-  background: white;
+  color: var(--color-text, #f8fafc);
+  background: color-mix(in oklab, var(--surface) 90%, #020617 10%);
   transition: border-color 0.2s;
 }
 
