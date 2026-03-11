@@ -1,14 +1,16 @@
 /* ==========================================================================
-   Login Page - Unified Premium Redesign
+   Login Page - Unified Premium Redesign with New Brand Logo
    ========================================================================== */
 
 .login-shell {
   min-height: 100vh;
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: clamp(16px, 2.4vw, 30px);
+  padding-top: 180px; /* Space for the logo at top */
   background: 
     radial-gradient(ellipse 80% 60% at 50% 120%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 60%),
     radial-gradient(ellipse 60% 50% at 20% -20%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 50%),
@@ -22,6 +24,7 @@
   isolation: isolate;
 }
 
+/* Logo overlay gradient + decorative elements */
 .login-shell::before {
   content: '';
   position: absolute;
@@ -33,6 +36,7 @@
   background-size: 100% 100%;
   opacity: 0.15;
   filter: blur(80px);
+  z-index: 0;
 }
 
 .login-shell::after {

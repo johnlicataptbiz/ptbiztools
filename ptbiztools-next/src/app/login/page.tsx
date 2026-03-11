@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState, useRef } from "react";
-import { LOGIN_LOGO_URL } from "@/constants/branding";
+import { LOGIN_LOGO_URL, LOGIN_BACKGROUND_IMAGE_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
@@ -777,7 +777,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-shell">
+    <div 
+      className="login-shell"
+      style={{
+        backgroundImage: `url(${LOGIN_BACKGROUND_IMAGE_URL})`,
+        backgroundSize: 'contain',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       {/* Alphabet Index - Quick Scan Aid */}
       {alphabetIndex.length > 0 && !selectedUser && (
         <div className="alphabet-index" role="navigation" aria-label="Alphabetical index">
