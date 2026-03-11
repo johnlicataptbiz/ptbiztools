@@ -213,7 +213,6 @@ export async function generatePLPDF(
   doc.text(String(score), margin + 26, y + 37, { align: 'center' });
 
   const infoX = margin + 58;
-  const infoWidth = pageWidth - margin - infoX;
   
   doc.setTextColor(COLORS.white);
   doc.setFont('helvetica', 'bold');
@@ -289,3 +288,223 @@ export async function generatePLPDF(
   doc.text('Target', margin + contentWidth - 2, y + 5.5, { align: 'right' });
   y += 10;
 
+  // Table rows
+  for (const row of tRows) {
+    ensureSpace(6);
+    
+    if (row.bold) {
+      doc.setFillColor(COLORS.lightGray + '44');
+      doc.rect(margin, y - 1, contentWidth, 6, 'F');
+    }
+    
+    doc.setTextColor(row.bold ? COLORS.white : COLORS.textGray);
+    doc.setFont('helvetica', row.bold ? 'bold' : 'normal');
+    doc.setFontSize(9);
+    doc.text(row.label, margin + (row.indent ? 6 : 2), y + 3.5);
+    
+    doc.setTextColor(COLORS.textGray);
+    doc.setFont('helvetica', 'normal');
+    doc.text($(row.amount), margin + 80, y + 3.5, { align: 'right' });
+    
+    const pctValue = row.pct !== null ? pf(row.pct) : '—';
+    doc.text(pctValue, margin + 110, y + 3.5, { align: 'right' });
+    
+    doc.setTextColor(COLORS.muted);
+    doc.text(row.target, margin + contentWidth - 2, y + 3.5, { align: 'right' });
+    
+    y += 6;
+  }
+
+  // Total Expenses row
+  ensureSpace(8);
+  doc.setFillColor(COLORS.lightGray);
+  doc.rect(margin, y - 1, contentWidth, 7, 'F');
+  doc.setTextColor(COLORS.white);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Total Expenses', margin + 2, y + 3.5);
+  doc.text($(totalExp), margin + 80, y + 3.5, { align: 'right' });
+  doc.text(pf(revenue > 0 ? (totalExp / revenue) * 100 : null), margin + 110, y + 3.5, { align: 'right' });
+  y += 10;
+
+  // Net Income row
+  ensureSpace(8);
+  const netColor = metrics.netPct && metrics.netPct >= 15 ? COLORS.green : metrics.netPct && metrics.netPct >= 10 ? COLORS.amber : COLORS.red;
+  doc.setTextColor(netColor);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Net Income', margin + 2, y + 3.5);
+  doc.text($(netIncome), margin + 80, y + 3.5, { align: 'right' });
+  doc.text(pf(metrics.netPct), margin + 110, y + 3.5, { align: 'right' });
+  y += 10;
+
+  // ODE row
+  ensureSpace(8);
+  const odeColor = metrics.odePct && metrics.odePct >= 20 && metrics.odePct <= 35 ? COLORS.green : metrics.odePct && metrics.odePct >= 15 ? COLORS.amber : COLORS.red;
+  doc.setFillColor(COLORS.blue + '15');
+  doc.rect(margin, y - 1, contentWidth, 7, 'F');
+  doc.setTextColor(COLORS.blue);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text("Owner's Discretionary Earnings", margin + 2, y + 3.5);
+  doc.setTextColor(odeColor);
+  doc.text($(ode), margin + 80, y + 3.5, { align: 'right' });
+  doc.text(pf(metrics.odePct), margin + 110, y + 3.5, { align: 'right' });
+  y += 12;
+
+  // Recommendations
+  if (recs.length > 0) {
+    drawSectionTitle('Recommendations', COLORS.medium);
+    
+    const priorityColors: Record<string, string> = {
+      HIGH: COLORS.red,
+      MED: COLORS.amber,
+      LOW: COLORS.muted,
+      INFO: COLORS.green,
+    };
+    
+    for (const rec of recs.slice(0, 6)) {
+      ensureSpace(20);
+      
+      const priorityColor = priorityColors[rec.p] || COLORS.muted;
+      
+      // Priority badge
+      doc.setFillColor(priorityColor + '22');
+      doc.roundedRect(margin, y, 20, 5, 1, 1, 'F');
+      doc.setTextColor(priorityColor);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.text(rec.p === 'MED' ? 'MEDIUM' : rec.p, margin + 2, y + 3.5);
+      
+      // Category
+      doc.setTextColor(COLORS.muted);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text(rec.cat, margin + 24, y + 3.5);
+      
+      y += 7;
+      
+      // Title
+      doc.setTextColor(COLORS.white);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(rec.title, margin + 2, y + 4);
+      y += 6;
+      
+      // Detail (wrapped)
+      doc.setTextColor(COLORS.textGray);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const splitDetail = doc.splitTextToSize(rec.detail, contentWidth - 4);
+      doc.text(splitDetail, margin + 2, y + 3);
+      y += splitDetail.length * 3.5 + 4;
+    }
+  }
+
+  // 90-Day Plan
+  if (plan && plan.phases.length > 0) {
+    drawSectionTitle('90-Day Profit Improvement Plan', COLORS.medium);
+    
+    ensureSpace(12);
+    doc.setFillColor(COLORS.blue + '15');
+    doc.roundedRect(margin, y, contentWidth, 12, 2, 2, 'F');
+    doc.setTextColor(COLORS.blue);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Total Projected Profit Increase', margin + 4, y + 5);
+    doc.setTextColor(COLORS.green);
+    doc.setFontSize(14);
+    doc.text($(plan.total), margin + contentWidth - 4, y + 7, { align: 'right' });
+    y += 16;
+
+    for (const phase of plan.phases) {
+      ensureSpace(30);
+      
+      // Phase number circle
+      doc.setFillColor(COLORS.blue);
+      doc.circle(margin + 6, y + 5, 5, 'F');
+      doc.setTextColor(COLORS.white);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(String(plan.phases.indexOf(phase) + 1), margin + 6, y + 6.5, { align: 'center' });
+      
+      // Days
+      doc.setTextColor(COLORS.blue);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text(`Days ${phase.days}`, margin + 16, y + 3);
+      
+      // Title
+      doc.setTextColor(COLORS.white);
+      doc.setFontSize(10);
+      doc.text(phase.title, margin + 16, y + 8);
+      
+      y += 12;
+      
+      // Actions
+      doc.setTextColor(COLORS.textGray);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      for (const action of phase.actions) {
+        const splitAction = doc.splitTextToSize(`• ${action}`, contentWidth - 20);
+        doc.text(splitAction, margin + 16, y + 2.5);
+        y += splitAction.length * 3 + 2;
+      }
+      
+      // Impact
+      ensureSpace(8);
+      doc.setFillColor(COLORS.blue + '10');
+      doc.roundedRect(margin + 16, y, 50, 6, 1, 1, 'F');
+      doc.setTextColor(COLORS.blue);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text(`Impact: ${$(phase.impact)}`, margin + 18, y + 4);
+      
+      y += 10;
+    }
+  }
+
+  // Cash Flow Analysis
+  if (cashFlow.length > 0) {
+    drawSectionTitle('Cash Flow Analysis', COLORS.medium);
+    
+    for (const item of cashFlow) {
+      ensureSpace(25);
+      
+      // Icon and title
+      doc.setTextColor(COLORS.white);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(`${item.icon} ${item.title}`, margin + 2, y + 5);
+      
+      y += 7;
+      
+      // Text
+      doc.setTextColor(COLORS.textGray);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const splitText = doc.splitTextToSize(item.text, contentWidth - 4);
+      doc.text(splitText, margin + 2, y + 3);
+      y += splitText.length * 3.5 + 6;
+    }
+  }
+
+  // Footer
+  ensureSpace(15);
+  doc.setDrawColor(COLORS.lightGray);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 5;
+  
+  doc.setTextColor(COLORS.muted);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('This report is for educational purposes and does not constitute financial advice.', margin, y + 3);
+  y += 5;
+  doc.setTextColor(COLORS.blue);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ptbiz.com', pageWidth - margin, y + 3, { align: 'right' });
+
+  // Save the PDF
+  const filename = `${sanitizeFilenamePart(clinicName || 'Clinic')}_PL_Audit_${new Date().toISOString().slice(0, 10)}.pdf`;
+  doc.save(filename);
+}
