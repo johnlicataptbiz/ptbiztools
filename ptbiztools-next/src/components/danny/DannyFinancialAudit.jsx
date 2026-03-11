@@ -463,6 +463,14 @@ export default function DannyFinancialAudit() {
   const plan = makePlan(rev, m, payerMix);
   const cashFlow = makeCashFlow(rev, totalExp, netIncome, m, n);
   const statuses = adjBM.map(bm => stat(m[bm.k], bm));
+  const closeInputModal = () => {
+    if (typeof window === "undefined") return;
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.assign("/dashboard");
+    }
+  };
   const hC = statuses.filter(s => s === "healthy").length;
   const caC = statuses.filter(s => s === "caution").length;
   const crC = statuses.filter(s => s === "critical").length;
@@ -621,21 +629,28 @@ export default function DannyFinancialAudit() {
   // ===== INPUT STEP =====
   if (step === "input") {
     return (
-      <div className="tool-page">
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-        <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            className="tool-page-badge" 
-            src={TOOL_BADGES.pl} 
-            alt="P&L Calculator badge" 
-          />
-          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-            P&amp;L Audit
-          </h1>
-        </section>
-        <div style={pageShellStyle}>
-          <div style={canvasStyle}>
+      <div className="grade-modal-overlay">
+        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
+          <div className="grade-modal-header" style={{ textAlign: "left" }}>
+            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
+              ×
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
+              <div>
+                <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+                  PT Biz Coach Tools
+                </div>
+                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>P&amp;L Audit</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Upload a statement or enter figures manually</p>
+              </div>
+            </div>
+          </div>
+          <div className="grade-modal-content">
+            <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+            <div style={pageShellStyle}>
+              <div style={canvasStyle}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <Logo big />
@@ -730,26 +745,35 @@ export default function DannyFinancialAudit() {
           </div>
         </div>
       </div>
+    </div>
+  </div>
     );
   }
 
   // ===== REPORT STEP =====
   return (
-    <div className="tool-page">
-      <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-      <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          className="tool-page-badge" 
-          src={TOOL_BADGES.pl} 
-          alt="P&L Calculator badge" 
-        />
-        <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-          P&amp;L Report
-        </h1>
-      </section>
-      <div style={pageShellStyle}>
-        <div style={canvasStyle}>
+    <div className="grade-modal-overlay" onClick={() => setStep("input")}>
+      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980 }}>
+        <div className="grade-modal-header" style={{ textAlign: "left" }}>
+          <button className="grade-modal-close" onClick={() => setStep("input")} aria-label="Close report">
+            ×
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+                PT Biz Coach Tools
+              </div>
+              <h2 className="grade-modal-title" style={{ textAlign: "left" }}>P&amp;L Report</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Financial audit with action-ready insights</p>
+            </div>
+          </div>
+        </div>
+        <div className="grade-modal-content">
+          <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+          <div style={pageShellStyle}>
+            <div style={canvasStyle}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <Logo big />
@@ -969,7 +993,7 @@ export default function DannyFinancialAudit() {
       </div>
     </div>
     </div>
+  </div>
+  </div>
   );
 }
-
-

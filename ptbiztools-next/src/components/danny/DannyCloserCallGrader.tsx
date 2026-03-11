@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
+import { TOOL_BADGES } from "@/constants/tool-badges";
 import {
   extractTranscriptFromFile,
   logAction,
@@ -120,8 +121,55 @@ interface UploadedFile {
   text: string;
 }
 
+function SalesModal({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  badgeSrc,
+  badgeAlt,
+  children,
+  maxWidth = "960px",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle: string;
+  badgeSrc: string;
+  badgeAlt: string;
+  children: React.ReactNode;
+  maxWidth?: string;
+}) {
+  if (!isOpen) return null;
+  return (
+    <div className="grade-modal-overlay sales-modal-overlay" onClick={onClose}>
+      <div
+        className="grade-modal-container sales-modal-container"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth }}
+      >
+        <div className="grade-modal-header sales-modal-header">
+          <button className="grade-modal-close" onClick={onClose} aria-label="Close modal">
+            ×
+          </button>
+          <div className="sales-modal-title-row">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={badgeSrc} alt={badgeAlt} className="grade-modal-badge sales-modal-badge" />
+            <div className="sales-modal-title-block">
+              <div className="sales-modal-kicker">PT Biz Coach Tools</div>
+              <h2 className="grade-modal-title sales-modal-title">{title}</h2>
+              <p className="grade-modal-subtitle sales-modal-subtitle">{subtitle}</p>
+            </div>
+          </div>
+        </div>
+        <div className="grade-modal-content sales-modal-content">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function SalesCallGrader() {
-  const [view, setView] = useState<"grade" | "results" | "history" | "report">("grade");
+  const [view, setView] = useState<"grade" | "history">("grade");
   const [transcript, setTranscript] = useState("");
   const [chunks, setChunks] = useState<string[]>([]);
   const [closer, setCloser] = useState("John");
@@ -130,11 +178,14 @@ export default function SalesCallGrader() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<NormalizedGraderResult | null>(null);
+  const [lastResultMeta, setLastResultMeta] = useState<HistoryEntry | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [selectedHistory, setSelectedHistory] = useState<HistoryEntry | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [timePeriod, setTimePeriod] = useState<"week" | "month" | "quarter" | "all">("all");
   const [reportData, setReportData] = useState<HistoryEntry | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [prospectName, setProspectName] = useState("");
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
@@ -176,6 +227,7 @@ export default function SalesCallGrader() {
           return normalizedResult ? [{ ...entry, result: normalizedResult }] : [];
         });
         setHistory(normalizedHistory);
+        setLastResultMeta(normalizedHistory[0] || null);
       }
     } catch (e) {
       console.error("Storage read error:", e);
@@ -274,7 +326,7 @@ export default function SalesCallGrader() {
 
   const openReport = (entry: HistoryEntry) => {
     setReportData(entry);
-    setView("report");
+    setShowReportModal(true);
   };
 
   const downloadReport = async () => {
@@ -440,7 +492,10 @@ export default function SalesCallGrader() {
       const newHistory = [entry, ...history];
       saveHistory(newHistory);
       setResult(parsed);
-      setView("results");
+      setLastResultMeta(entry);
+      setSelectedHistory(entry);
+      setView("history");
+      setShowResultsModal(true);
       setChunks([]);
       setTranscript("");
       setProspectName("");
@@ -995,7 +1050,14 @@ export default function SalesCallGrader() {
                   border: `1px solid ${selectedHistory?.id === entry.id ? "rgba(88,166,255,0.3)" : "transparent"}`,
                   borderRadius: "5px", cursor: "pointer", transition: "all 0.1s ease",
                 }}
-                onClick={() => setSelectedHistory(selectedHistory?.id === entry.id ? null : entry)}
+                onClick={() => {
+                  const next = selectedHistory?.id === entry.id ? null : entry;
+                  setSelectedHistory(next);
+                  if (next) {
+                    setLastResultMeta(next);
+                    setShowResultsModal(true);
+                  }
+                }}
               >
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace", fontSize: "18px", fontWeight: 800, minWidth: "32px",
@@ -1020,8 +1082,6 @@ export default function SalesCallGrader() {
             ))}
           </div>
         </div>
-
-        {selectedHistory && renderResults(selectedHistory.result, selectedHistory)}
       </div>
     );
   };
@@ -1031,8 +1091,14 @@ export default function SalesCallGrader() {
     if (!reportData) return null;
     const d = reportData.result;
     const rpt = {
-      bg: "#ffffff", text: "#111827", muted: "#6b7280", green: "#16a34a", red: "#dc2626",
-      yellow: "#ca8a04", border: "#e5e7eb", lightBg: "#f9fafb",
+      bg: "#0b1220",
+      text: "#f8fafc",
+      muted: "#94a3b8",
+      green: "#34d399",
+      red: "#f87171",
+      yellow: "#fbbf24",
+      border: "#1f2937",
+      lightBg: "#111827",
     };
     const scoreColor = (s) => s >= 65 ? rpt.green : s >= 50 ? rpt.yellow : rpt.red;
 
@@ -1052,60 +1118,78 @@ export default function SalesCallGrader() {
           >
             {exportingReport ? "Preparing PDF..." : "Download PDF"}
           </button>
-          <button onClick={() => setView("history")} style={{ ...btnBase, padding: "10px 24px", background: "transparent", color: textSecondary, border: `1px solid ${border}` }}>
+          <button
+            onClick={() => {
+              setShowReportModal(false);
+              setView("history");
+            }}
+            style={{ ...btnBase, padding: "10px 24px", background: "transparent", color: textSecondary, border: `1px solid ${border}` }}
+          >
             Back to Dashboard
           </button>
         </div>
 
         {/* Printable report */}
         <div id="printable-report" style={{
-          background: rpt.bg, color: rpt.text, padding: "40px", borderRadius: "8px",
-          fontFamily: "Georgia, 'Times New Roman', serif", maxWidth: "700px", margin: "0 auto",
+          background: rpt.bg,
+          color: rpt.text,
+          padding: "40px",
+          borderRadius: "16px",
+          fontFamily: "'Barlow', sans-serif",
+          maxWidth: "780px",
+          margin: "0 auto",
           lineHeight: 1.6,
+          border: `1px solid ${rpt.border}`,
+          boxShadow: "0 20px 60px rgba(2, 6, 23, 0.45)",
         }}>
 
           {/* Header */}
-          <div style={{ borderBottom: `2px solid ${rpt.text}`, paddingBottom: "16px", marginBottom: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div style={{ borderBottom: `1px solid ${rpt.border}`, paddingBottom: "18px", marginBottom: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
               <div>
-                <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, fontFamily: "system-ui, sans-serif", letterSpacing: "-0.02em" }}>
+                <div style={{ fontSize: "10px", color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, marginBottom: "6px" }}>
+                  PT Biz Sales Performance System
+                </div>
+                <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 800, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.03em", textTransform: "uppercase" }}>
                   Sales Call Performance Report
                 </h1>
-                <p style={{ margin: "4px 0 0", fontSize: "13px", color: rpt.muted }}>PT Biz — Confidential</p>
+                <p style={{ margin: "6px 0 0", fontSize: "12px", color: rpt.muted }}>PT Biz — Confidential</p>
               </div>
               <div style={{
-                fontSize: "36px", fontWeight: 800, fontFamily: "system-ui, sans-serif",
+                fontSize: "40px",
+                fontWeight: 800,
+                fontFamily: "'JetBrains Mono', monospace",
                 color: scoreColor(d.overall_score),
               }}>{d.overall_score}</div>
             </div>
           </div>
 
           {/* Call Details */}
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", fontSize: "14px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", fontSize: "13px", flexWrap: "wrap" }}>
             {[["Closer", reportData.closer], ["Prospect", reportData.prospectName || "—"], ["Program", reportData.program], ["Outcome", reportData.outcome], ["Date", new Date(reportData.date).toLocaleDateString()]].map(([l, v]) => (
               <div key={l}>
-                <span style={{ color: rpt.muted, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{l}</span>
-                <div style={{ fontWeight: 600, fontFamily: "system-ui, sans-serif" }}>{v}</div>
+                <span style={{ color: rpt.muted, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "'Barlow Condensed', sans-serif" }}>{l}</span>
+                <div style={{ fontWeight: 600, fontFamily: "'Barlow', sans-serif" }}>{v}</div>
               </div>
             ))}
           </div>
 
           {d.prospect_summary && (
-            <div style={{ padding: "12px 16px", background: rpt.lightBg, borderRadius: "6px", marginBottom: "24px", fontSize: "13px", color: rpt.muted, borderLeft: `3px solid ${rpt.border}` }}>
+            <div style={{ padding: "12px 16px", background: rpt.lightBg, borderRadius: "8px", marginBottom: "24px", fontSize: "13px", color: rpt.muted, borderLeft: `3px solid ${rpt.border}` }}>
               {d.prospect_summary}
             </div>
           )}
 
           {/* Key Takeaways */}
           <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Key Takeaways</h2>
+            <h2 style={{ fontSize: "14px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.14em", color: rpt.muted }}>Key Takeaways</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div style={{ padding: "10px 14px", border: `1px solid ${rpt.green}30`, borderRadius: "5px", borderLeft: `3px solid ${rpt.green}` }}>
-                <span style={{ fontSize: "10px", color: rpt.green, textTransform: "uppercase", fontWeight: 700, fontFamily: "system-ui, sans-serif" }}>Top Strength</span>
+              <div style={{ padding: "10px 14px", border: `1px solid ${rpt.green}33`, borderRadius: "8px", borderLeft: `3px solid ${rpt.green}`, background: "rgba(52, 211, 153, 0.08)" }}>
+                <span style={{ fontSize: "10px", color: rpt.green, textTransform: "uppercase", fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.12em" }}>Top Strength</span>
                 <div style={{ fontSize: "14px", marginTop: "2px" }}>{d.top_strength}</div>
               </div>
-              <div style={{ padding: "10px 14px", border: `1px solid ${rpt.red}30`, borderRadius: "5px", borderLeft: `3px solid ${rpt.red}` }}>
-                <span style={{ fontSize: "10px", color: rpt.red, textTransform: "uppercase", fontWeight: 700, fontFamily: "system-ui, sans-serif" }}>Highest Leverage Improvement</span>
+              <div style={{ padding: "10px 14px", border: `1px solid ${rpt.red}33`, borderRadius: "8px", borderLeft: `3px solid ${rpt.red}`, background: "rgba(248, 113, 113, 0.08)" }}>
+                <span style={{ fontSize: "10px", color: rpt.red, textTransform: "uppercase", fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.12em" }}>Highest Leverage Improvement</span>
                 <div style={{ fontSize: "14px", marginTop: "2px" }}>{d.top_improvement}</div>
               </div>
             </div>
@@ -1113,20 +1197,20 @@ export default function SalesCallGrader() {
 
           {(d.deterministic || d.confidence || d.qualityGate) && (
             <div style={{ marginBottom: "28px" }}>
-              <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Deterministic + Confidence</h2>
+              <h2 style={{ fontSize: "14px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.14em", color: rpt.muted }}>Deterministic + Confidence</h2>
               <div style={{ display: "grid", gap: "8px" }}>
                 {d.deterministic && (
-                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
-                    Weighted phase score <strong style={{ color: rpt.text }}>{d.deterministic.weightedPhaseScore}</strong> · Penalty points <strong style={{ color: rpt.text }}>{d.deterministic.penaltyPoints}</strong> · Unknown penalty <strong style={{ color: rpt.text }}>{d.deterministic.unknownPenalty}</strong> · Final score <strong style={{ color: rpt.text }}>{d.deterministic.overallScore}</strong>
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "8px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                    Weighted phase score <strong style={{ color: rpt.text, fontFamily: "'JetBrains Mono', monospace" }}>{d.deterministic.weightedPhaseScore}</strong> · Penalty points <strong style={{ color: rpt.text, fontFamily: "'JetBrains Mono', monospace" }}>{d.deterministic.penaltyPoints}</strong> · Unknown penalty <strong style={{ color: rpt.text, fontFamily: "'JetBrains Mono', monospace" }}>{d.deterministic.unknownPenalty}</strong> · Final score <strong style={{ color: rpt.text, fontFamily: "'JetBrains Mono', monospace" }}>{d.deterministic.overallScore}</strong>
                   </div>
                 )}
                 {d.confidence && (
-                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
-                    Confidence <strong style={{ color: rpt.text }}>{d.confidence.score}/100</strong> · Evidence coverage <strong style={{ color: rpt.text }}>{Math.round((d.confidence.evidenceCoverage || 0) * 100)}%</strong> · Quote verification <strong style={{ color: rpt.text }}>{Math.round((d.confidence.quoteVerificationRate || 0) * 100)}%</strong> · Transcript quality <strong style={{ color: rpt.text }}>{Math.round((d.confidence.transcriptQuality || 0) * 100)}%</strong>
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "8px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                    Confidence <strong style={{ color: rpt.text, fontFamily: "'JetBrains Mono', monospace" }}>{d.confidence.score}/100</strong> · Evidence coverage <strong style={{ color: rpt.text }}>{Math.round((d.confidence.evidenceCoverage || 0) * 100)}%</strong> · Quote verification <strong style={{ color: rpt.text }}>{Math.round((d.confidence.quoteVerificationRate || 0) * 100)}%</strong> · Transcript quality <strong style={{ color: rpt.text }}>{Math.round((d.confidence.transcriptQuality || 0) * 100)}%</strong>
                   </div>
                 )}
                 {d.qualityGate && (
-                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
+                  <div style={{ padding: "10px 12px", border: `1px solid ${rpt.border}`, borderRadius: "8px", background: rpt.lightBg, fontSize: "13px", color: rpt.muted }}>
                     Quality gate: <strong style={{ color: d.qualityGate.accepted ? rpt.green : rpt.red }}>{d.qualityGate.accepted ? "Accepted" : "Rejected"}</strong>
                     {Array.isArray(d.qualityGate.reasons) && d.qualityGate.reasons.length > 0 && (
                       <ul style={{ margin: "8px 0 0", paddingLeft: "18px" }}>
@@ -1143,13 +1227,13 @@ export default function SalesCallGrader() {
 
           {/* Phase Breakdown */}
           <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Phase-by-Phase Breakdown</h2>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <h2 style={{ fontSize: "14px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.14em", color: rpt.muted }}>Phase-by-Phase Breakdown</h2>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${rpt.text}` }}>
-                  <th style={{ textAlign: "left", padding: "8px 4px", fontFamily: "system-ui, sans-serif", fontWeight: 700 }}>Phase</th>
-                  <th style={{ textAlign: "center", padding: "8px 4px", fontFamily: "system-ui, sans-serif", fontWeight: 700, width: "60px" }}>Score</th>
-                  <th style={{ textAlign: "left", padding: "8px 4px", fontFamily: "system-ui, sans-serif", fontWeight: 700 }}>Assessment</th>
+                <tr style={{ borderBottom: `1px solid ${rpt.border}` }}>
+                  <th style={{ textAlign: "left", padding: "8px 4px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: rpt.muted }}>Phase</th>
+                  <th style={{ textAlign: "center", padding: "8px 4px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, width: "60px", letterSpacing: "0.08em", textTransform: "uppercase", color: rpt.muted }}>Score</th>
+                  <th style={{ textAlign: "left", padding: "8px 4px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: rpt.muted }}>Assessment</th>
                 </tr>
               </thead>
               <tbody>
@@ -1158,11 +1242,11 @@ export default function SalesCallGrader() {
                   if (!p) return null;
                   return (
                     <tr key={phase.id} style={{ borderBottom: `1px solid ${rpt.border}`, background: i % 2 === 0 ? "transparent" : rpt.lightBg }}>
-                      <td style={{ padding: "10px 4px", fontWeight: 600, fontFamily: "system-ui, sans-serif", verticalAlign: "top", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "10px 4px", fontWeight: 600, fontFamily: "'Barlow', sans-serif", verticalAlign: "top", whiteSpace: "nowrap" }}>
                         {phase.name}
                         <span style={{ fontSize: "10px", color: rpt.muted, fontWeight: 400, marginLeft: "4px" }}>({phase.weight}%)</span>
                       </td>
-                      <td style={{ padding: "10px 4px", textAlign: "center", fontWeight: 800, fontFamily: "system-ui, sans-serif", color: scoreColor(p.score), verticalAlign: "top" }}>
+                      <td style={{ padding: "10px 4px", textAlign: "center", fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", color: scoreColor(p.score), verticalAlign: "top" }}>
                         {p.score}
                       </td>
                       <td style={{ padding: "10px 4px", color: rpt.muted, verticalAlign: "top" }}>{p.summary}</td>
@@ -1176,8 +1260,8 @@ export default function SalesCallGrader() {
                 const p = d.phases[phase.id];
                 if (!p || !Array.isArray(p.evidence) || p.evidence.length === 0) return null;
                 return (
-                  <div key={`${phase.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{phase.name} evidence</div>
+                  <div key={`${phase.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "8px", background: rpt.lightBg }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "5px" }}>{phase.name} evidence</div>
                     {p.evidence.slice(0, 3).map((quote, quoteIndex) => (
                       <div key={`${phase.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
                         &quot;{quote}&quot;
@@ -1191,8 +1275,8 @@ export default function SalesCallGrader() {
 
           {/* Critical Behaviors */}
           <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ fontSize: "15px", fontFamily: "system-ui, sans-serif", fontWeight: 700, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.05em", color: rpt.muted }}>Critical Behaviors</h2>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <h2 style={{ fontSize: "14px", fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, marginBottom: "14px", textTransform: "uppercase", letterSpacing: "0.14em", color: rpt.muted }}>Critical Behaviors</h2>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
               <tbody>
                 {CRITICAL_BEHAVIORS.map((b, i) => {
                   const cb = d.critical_behaviors[b.id];
@@ -1200,10 +1284,10 @@ export default function SalesCallGrader() {
                   const status = normalizeBehaviorStatus(cb);
                   return (
                     <tr key={b.id} style={{ borderBottom: `1px solid ${rpt.border}`, background: i % 2 === 0 ? "transparent" : rpt.lightBg }}>
-                      <td style={{ padding: "10px 4px", fontWeight: 600, fontFamily: "system-ui, sans-serif", width: "160px", verticalAlign: "top" }}>{b.name}</td>
+                      <td style={{ padding: "10px 4px", fontWeight: 600, fontFamily: "'Barlow', sans-serif", width: "160px", verticalAlign: "top" }}>{b.name}</td>
                       <td style={{ padding: "10px 4px", width: "50px", verticalAlign: "top" }}>
                         <span style={{
-                          fontFamily: "system-ui, sans-serif", fontWeight: 800, fontSize: "12px",
+                          fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, fontSize: "12px",
                           color: status === "pass" ? rpt.green : status === "unknown" ? rpt.muted : rpt.red,
                         }}>{status === "pass" ? "PASS" : status === "unknown" ? "UNKNOWN" : "FAIL"}</span>
                       </td>
@@ -1218,8 +1302,8 @@ export default function SalesCallGrader() {
                 const behaviorResult = d.critical_behaviors[behavior.id];
                 if (!behaviorResult || !Array.isArray(behaviorResult.evidence) || behaviorResult.evidence.length === 0) return null;
                 return (
-                  <div key={`${behavior.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "6px", background: rpt.lightBg }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" }}>{behavior.name} evidence</div>
+                  <div key={`${behavior.id}-evidence`} style={{ padding: "9px 11px", border: `1px solid ${rpt.border}`, borderRadius: "8px", background: rpt.lightBg }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: rpt.muted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "5px" }}>{behavior.name} evidence</div>
                     {behaviorResult.evidence.slice(0, 2).map((quote, quoteIndex) => (
                       <div key={`${behavior.id}-quote-${quoteIndex}`} style={{ fontSize: "12px", color: rpt.muted, marginBottom: "3px" }}>
                         &quot;{quote}&quot;
@@ -1232,9 +1316,9 @@ export default function SalesCallGrader() {
           </div>
 
           {/* Footer */}
-          <div style={{ borderTop: `1px solid ${rpt.border}`, paddingTop: "12px", fontSize: "11px", color: rpt.muted, display: "flex", justifyContent: "space-between" }}>
+          <div style={{ borderTop: `1px solid ${rpt.border}`, paddingTop: "12px", fontSize: "11px", color: rpt.muted, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
             <span>Generated {new Date().toLocaleDateString()}</span>
-            <span>PT Biz Sales Performance System</span>
+            <span style={{ textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "10px" }}>PT Biz Sales Performance System</span>
           </div>
         </div>
       </div>
@@ -1251,38 +1335,98 @@ export default function SalesCallGrader() {
           .no-print { display: none !important; }
           body, html { background: white !important; }
           #printable-report { box-shadow: none !important; border-radius: 0 !important; padding: 20px !important; }
+          .sales-modal-overlay { position: static !important; background: transparent !important; padding: 0 !important; }
+          .sales-modal-container { box-shadow: none !important; border: none !important; max-width: 100% !important; }
+          .sales-modal-close { display: none !important; }
         }
       `}</style>
       <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
-        <div className="no-print" style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h1 className="tool-page-title" style={{ margin: "0 0 8px 0", fontSize: "28px" }}>
-            PT Biz Call Grader
+        <div className="no-print" style={{ textAlign: "center", marginBottom: "16px" }}>
+          <h1 className="tool-page-title" style={{ margin: "0 0 6px 0", fontSize: "22px" }}>
+            Sales Call Grader
           </h1>
-          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "15px" }}>
-            Score calls against the 7-phase framework. Track closer performance over time.
+          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "13px" }}>
+            Grade calls against the 7-phase framework. Export clean reports when you&apos;re ready.
           </p>
         </div>
 
         {/* Nav */}
-        <div className="no-print" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: card, borderRadius: "10px", padding: "4px", width: "fit-content", border: `1px solid ${border}` }}>
-          {[["grade", "Grade Call"], ["results", "Last Result"], ["history", "Dashboard"], ["report", "Report"]].map(([v, label]) => (
-            <button key={v} onClick={() => setView(v)}
-              disabled={(v === "results" && !result) || (v === "report" && !reportData)}
+        <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", gap: "2px", background: card, borderRadius: "10px", padding: "4px", width: "fit-content", border: `1px solid ${border}` }}>
+            {[["grade", "Grade Call"], ["history", "Dashboard"]].map(([v, label]) => (
+              <button key={v} onClick={() => setView(v as "grade" | "history")}
+                style={{
+                  ...btnBase, padding: "8px 18px", fontSize: "12px",
+                  background: view === v ? accent : "transparent",
+                  color: view === v ? "#ffffff" : textSecondary,
+                }}
+              >{label}</button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <button
+              onClick={() => { if (lastResultMeta) setShowResultsModal(true); }}
+              disabled={!lastResultMeta}
               style={{
-                ...btnBase, padding: "8px 18px", fontSize: "12px",
-                background: view === v ? accent : "transparent",
-                color: view === v ? "#ffffff" : ((v === "results" && !result) || (v === "report" && !reportData)) ? textMuted : textSecondary,
+                ...btnBase,
+                padding: "8px 14px",
+                fontSize: "12px",
+                background: lastResultMeta ? "rgba(88,166,255,0.12)" : "transparent",
+                color: lastResultMeta ? accent : textMuted,
+                border: `1px solid ${lastResultMeta ? "rgba(88,166,255,0.3)" : border}`,
               }}
-            >{label}</button>
-          ))}
+            >
+              Last Result
+            </button>
+            <button
+              onClick={() => { if (lastResultMeta) openReport(lastResultMeta); }}
+              disabled={!lastResultMeta}
+              style={{
+                ...btnBase,
+                padding: "8px 14px",
+                fontSize: "12px",
+                background: lastResultMeta ? "rgba(88,166,255,0.12)" : "transparent",
+                color: lastResultMeta ? accent : textMuted,
+                border: `1px solid ${lastResultMeta ? "rgba(88,166,255,0.3)" : border}`,
+              }}
+            >
+              Report
+            </button>
+          </div>
         </div>
 
         {/* Content */}
         {view === "grade" && renderGradeView()}
-        {view === "results" && result && renderResults(result, history.length > 0 ? history[0] : null)}
         {view === "history" && renderHistory()}
-        {view === "report" && renderReport()}
+
+        <SalesModal
+          isOpen={showResultsModal}
+          onClose={() => setShowResultsModal(false)}
+          title="Sales Call Scorecard"
+          subtitle="Performance summary, strengths, and phase diagnostics"
+          badgeSrc={TOOL_BADGES.sales}
+          badgeAlt="Sales Call Grader"
+          maxWidth="980px"
+        >
+          {lastResultMeta
+            ? renderResults(lastResultMeta.result, lastResultMeta)
+            : result
+              ? renderResults(result)
+              : null}
+        </SalesModal>
+
+        <SalesModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          title="Sales Call Performance Report"
+          subtitle="Shareable report with detailed breakdowns"
+          badgeSrc={TOOL_BADGES.sales}
+          badgeAlt="Sales Call Grader"
+          maxWidth="860px"
+        >
+          {renderReport()}
+        </SalesModal>
       </div>
     </div>
   );

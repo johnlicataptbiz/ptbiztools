@@ -29,7 +29,6 @@ import {
   gradeDannySalesCallV2,
   type SalesGradeV2Response,
 } from "@/lib/ptbiz-api";
-import { GradePreview } from "@/components/grader/GradePreview";
 import { GradeModal } from "@/components/grader/GradeModal";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 
@@ -423,109 +422,6 @@ function RedFlagsPanel({
   );
 }
 
-// Summary View Component
-function SummaryView({ 
-  scores, 
-  flags, 
-  total, 
-  meta, 
-  strengths, 
-  improvements, 
-  flagNotes,
-  onGenerateReport
-}: { 
-  scores: Record<string, number>;
-  flags: string[];
-  total: number;
-  meta: { coachName: string; clientName: string; callDate: string; outcome: string };
-  strengths: string;
-  improvements: string;
-  flagNotes: string;
-  onGenerateReport: () => void;
-}) {
-  return (
-    <div className="summary-view">
-      <div className="summary-header">
-        <h2>Grade Summary</h2>
-        <button onClick={onGenerateReport} className="btn btn-primary">
-          <Download size={16} />
-          Generate PDF Report
-        </button>
-      </div>
-      
-      <div className="summary-meta">
-        {[meta.clientName, meta.callDate, meta.outcome].filter(Boolean).join(" • ")}
-      </div>
-      
-      <div className="summary-score-section">
-        <div 
-          className="summary-score-badge"
-          style={{ background: sc(total) }}
-        >
-          <div className="summary-score-value">{total}</div>
-          <div className="summary-score-max">/ 100</div>
-          <div className="summary-score-label">{sl(total)}</div>
-        </div>
-        
-        <div className="summary-phases">
-          {PHASES.map((ph) => {
-            const s = scores[ph.id] || 0;
-            const p = (s / ph.maxPoints) * 100;
-            return (
-              <div key={ph.id} className="summary-phase-row">
-                <span className="summary-phase-name">{ph.name}</span>
-                <div className="summary-phase-bar">
-                  <div 
-                    className="summary-phase-fill"
-                    style={{ width: `${p}%`, background: sc(p) }}
-                  />
-                </div>
-                <span className="summary-phase-score">{s}/{ph.maxPoints}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      
-      {flags.length > 0 && (
-        <div className="summary-redflags">
-          <p className="summary-redflags-title">Red Flag Deductions</p>
-          {flags.map((id) => {
-            const f = RED_FLAGS.find(x => x.id === id);
-            return f ? (
-              <div key={id} className="summary-redflag-row">
-                <span>{f.label}</span>
-                <span className="summary-redflag-deduction">{f.deduction}</span>
-              </div>
-            ) : null;
-          })}
-        </div>
-      )}
-      
-      {strengths && (
-        <div className="summary-section">
-          <h4 className="summary-section-title success">What&apos;s Working Well</h4>
-          <p className="summary-section-content">{strengths}</p>
-        </div>
-      )}
-      
-      {improvements && (
-        <div className="summary-section">
-          <h4 className="summary-section-title warning">What Needs Work</h4>
-          <p className="summary-section-content">{improvements}</p>
-        </div>
-      )}
-      
-      {flagNotes && (
-        <div className="summary-section">
-          <h4 className="summary-section-title danger">Red Flag Notes</h4>
-          <p className="summary-section-content">{flagNotes}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function DiscoveryCallGrader() {
   // Original state
   const [transcript, setTranscript] = useState('')
@@ -543,7 +439,7 @@ export default function DiscoveryCallGrader() {
   const [sessionId] = useState(() => crypto.randomUUID())
 
   // Danny's UI state
-  const [activeTab, setActiveTab] = useState<'grading' | 'feedback' | 'summary'>('grading')
+  const [activeTab, setActiveTab] = useState<'grading' | 'feedback'>('grading')
   const [scores, setScores] = useState(() => Object.fromEntries(PHASES.map((p) => [p.id, 0])))
   const [phaseNotes, setPhaseNotes] = useState(() => Object.fromEntries(PHASES.map((p) => [p.id, ""])))
   const [flags, setFlags] = useState<string[]>([])
@@ -841,26 +737,20 @@ export default function DiscoveryCallGrader() {
   return (
     <div className="grader-page">
       <div className="container tool-page">
-        <motion.div
-          className="page-header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ textAlign: "center", marginBottom: "24px" }}
-        >
-          <h1 className="tool-page-title" style={{ margin: "0 0 8px 0", fontSize: "28px" }}>
+        <div className="no-print" style={{ textAlign: "center", marginBottom: "16px" }}>
+          <h1 className="tool-page-title" style={{ margin: "0 0 6px 0", fontSize: "22px" }}>
             Discovery Call Grader
           </h1>
-          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "15px" }}>
-            Score calls against the 7-phase framework. Track coach performance over time.
+          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "13px" }}>
+            Grade discovery calls and export a coach-ready report.
           </p>
-        </motion.div>
+        </div>
 
         {/* Tab Navigation */}
         <div className="grader-tabs">
           {[
             { id: 'grading', label: 'Grading' },
-            { id: 'feedback', label: 'Feedback' },
-            { id: 'summary', label: 'Summary' }
+            { id: 'feedback', label: 'Feedback' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -1153,29 +1043,7 @@ export default function DiscoveryCallGrader() {
             </div>
           )}
 
-          {/* SUMMARY TAB */}
-          {activeTab === 'summary' && (
-            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-              <SummaryView
-                scores={scores}
-                flags={flags}
-                total={totalScore}
-                meta={{ coachName, clientName, callDate, outcome: grade?.outcome || '' }}
-                strengths={strengths}
-                improvements={improvements}
-                flagNotes={flagNotes}
-                onGenerateReport={handleGeneratePDF}
-              />
-            </div>
-          )}
         </motion.div>
-
-        {grade && !isModalOpen && (
-          <GradePreview
-            grade={grade}
-            onViewFullReport={() => setIsModalOpen(true)}
-          />
-        )}
       </div>
 
       <AnimatePresence>

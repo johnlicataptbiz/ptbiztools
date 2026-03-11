@@ -120,6 +120,14 @@ export default function App() {
   const compHealth = salaryPctMid === null ? "none" : salaryPctMid <= 33 ? "low" : salaryPctMid <= 38 ? "healthy" : salaryPctMid <= 42 ? "caution" : "critical";
   const totalHealth = totalCostPct === null ? "none" : totalCostPct <= 48 ? "healthy" : totalCostPct <= 52 ? "caution" : "critical";
   const healthColors = { healthy:B.green, caution:B.yellow, critical:B.red, low:B.blue, none:B.gray };
+  const closeInputModal = () => {
+    if (typeof window === "undefined") return;
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.assign("/dashboard");
+    }
+  };
 
   const canCalc = grossMonthly > 0;
   const pageShellStyle = { maxWidth:980, margin:"0 auto", padding:"0 24px 64px" };
@@ -145,20 +153,27 @@ export default function App() {
   // ── INPUT VIEW ──
   if (step === "input") {
     return (
-      <div className="tool-page">
-        <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            className="tool-page-badge" 
-            src={TOOL_BADGES.comp} 
-            alt="Compensation Calculator badge" 
-          />
-          <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-            Comp Calculator
-          </h1>
-        </section>
-        <div style={pageShellStyle}>
-          <div style={canvasStyle}>
+      <div className="grade-modal-overlay">
+        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
+          <div className="grade-modal-header" style={{ textAlign: "left" }}>
+            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
+              ×
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
+              <div>
+                <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+                  PT Biz Coach Tools
+                </div>
+                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Calculator</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Find the right comp range before you hire</p>
+              </div>
+            </div>
+          </div>
+          <div className="grade-modal-content">
+            <div style={pageShellStyle}>
+              <div style={canvasStyle}>
 
         {/* Location */}
         <div style={sectionStyle}>
@@ -242,25 +257,34 @@ export default function App() {
           </div>
         </div>
       </div>
-    );
+    </div>
+  </div>
+  );
   }
 
   // ── RESULTS VIEW ──
   return (
-    <div className="tool-page">
-      <section className="tool-page-hero" style={{ textAlign: "center", marginBottom: "16px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          className="tool-page-badge" 
-          src={TOOL_BADGES.comp} 
-          alt="Compensation Calculator badge" 
-        />
-        <h1 className="tool-page-title" style={{ margin: "0 0 4px 0", fontSize: "24px" }}>
-          Comp Results
-        </h1>
-      </section>
-      <div style={pageShellStyle}>
-        <div style={canvasStyle}>
+    <div className="grade-modal-overlay" onClick={() => setStep("input")}>
+      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980 }}>
+        <div className="grade-modal-header" style={{ textAlign: "left" }}>
+          <button className="grade-modal-close" onClick={() => setStep("input")} aria-label="Close results">
+            ×
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+                PT Biz Coach Tools
+              </div>
+              <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Results</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Compensation guidance with total cost clarity</p>
+            </div>
+          </div>
+        </div>
+        <div className="grade-modal-content">
+          <div style={pageShellStyle}>
+            <div style={canvasStyle}>
       <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:20 }}>
         <span style={{ fontSize:10, fontWeight:700, color:"#7C3AED", background:"#7C3AED15", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #7C3AED33" }}>{expLevel === "newgrad" ? "NEW GRAD" : expLevel === "moderate" ? "1-3 YRS" : expLevel === "experienced" ? "3-5 YRS" : "SENIOR"}</span>
         <span style={{ fontSize:10, fontWeight:700, color:"#059669", background:"#05966915", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #05966933" }}>{$(grossMonthly)}/MO GROSS</span>
@@ -428,5 +452,9 @@ export default function App() {
         </div>
       </div>
     </div>
+  </div>
+  </div>
+  </div>
+  </div>
   );
 }
