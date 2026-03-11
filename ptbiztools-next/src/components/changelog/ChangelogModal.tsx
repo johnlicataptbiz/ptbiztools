@@ -35,6 +35,12 @@ interface ChangelogData {
   dates: string[];
   entries: Record<string, ChangelogEntry[]>;
   lastUpdated: string;
+  summary?: string;
+  period?: {
+    from: string | null;
+    to: string | null;
+    days: number;
+  };
 }
 
 const typeIcons = {
@@ -221,6 +227,17 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
                   <X size={20} />
                 </button>
               </div>
+
+              {data?.summary && (
+                <div className="changelog-summary">
+                  <p>{data.summary}</p>
+                  {data.period?.from && data.period?.to && (
+                    <span className="changelog-period">
+                      {data.period.from} → {data.period.to} ({data.period.days} active days)
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Stats */}
               {stats && (
