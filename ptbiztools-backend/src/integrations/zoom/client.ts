@@ -1,4 +1,4 @@
-import type { ZoomOAuthTokenResponse, ZoomUserProfile } from './types.js'
+import type { ZoomOAuthTokenResponse, ZoomUserProfile, ZoomServerTokenResponse } from './types.js'
 
 const ZOOM_API_BASE = 'https://api.zoom.us/v2'
 const ZOOM_OAUTH_BASE = 'https://zoom.us/oauth'
@@ -48,6 +48,34 @@ export async function refreshZoomToken(refreshToken: string): Promise<ZoomOAuthT
   }
 
   return response.json() as Promise<ZoomOAuthTokenResponse>
+}
+
+// Server-to-Server OAuth for admin-managed apps
+export async function getServerToServerToken(): Promise<ZoomServerTokenResponse> {
+  const accountId = process.env.ZOOM_ACCOUNT_ID
+  const clientId = process.env.ZOOM_CLIENT_ID
+  const clientSecret = process.env.ZOOM_CLIENT_SECRET
+
+  if (!accountId || !clientId || !clientSecret) {
+    throw new Error('Missing ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, or ZOOM_CLIENT_SECRET for server-to-server OAuth')
+  }
+
+  const url = `${ZOOM_OAUTH_BASE}/token?grant_type=account_credentials&account_id=${encodeURIComponent(accountId)}`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`Zoom server-to-server token failed: ${text}`)
+  }
+
+  return response.json() as Promise<ZoomServerTokenResponse>
 }
 
 export async function zoomGet<T>(accessToken: string, path: string): Promise<T> {

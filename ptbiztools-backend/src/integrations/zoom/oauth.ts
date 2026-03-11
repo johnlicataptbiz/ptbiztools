@@ -18,6 +18,15 @@ export function buildZoomAuthorizeUrl(state: string): string {
     state,
   })
 
+  // Required scopes for reading cloud recordings
+  const scopes = [
+    'cloud_recording:read:list_user_recordings',
+    'cloud_recording:read:list_user_recordings:admin',
+    'user:read:user',
+    'user:read:user:admin',
+  ]
+  params.append('scope', scopes.join(' '))
+
   return `https://zoom.us/oauth/authorize?${params.toString()}`
 }
 

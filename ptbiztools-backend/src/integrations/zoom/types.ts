@@ -8,6 +8,14 @@ export interface ZoomOAuthTokenResponse {
   account_id?: string
 }
 
+// Server-to-Server OAuth response (no refresh token, shorter expiry)
+export interface ZoomServerTokenResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  scope: string
+}
+
 export interface ZoomUserProfile {
   id?: string
   account_id?: string
