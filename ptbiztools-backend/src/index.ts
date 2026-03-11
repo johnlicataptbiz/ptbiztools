@@ -8,10 +8,13 @@ import { plImportRouter } from './routes/plImport.js';
 import transcriptRouter from './routes/transcript.js';
 import { dannyToolsRouter } from './routes/dannyTools.js';
 import { zoomRouter } from './routes/zoom.js';
+import zoomConnectRouter from './routes/zoomConnect.js';
 import { prisma } from './services/prisma.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const VERSION = '1.0.1';
+const BUILD_TIMESTAMP = new Date().toISOString();
 
 const configuredOrigins = [
   process.env.FRONTEND_URL,
@@ -54,23 +57,45 @@ app.use('/api/pl-imports', plImportRouter);
 app.use('/api/transcripts', transcriptRouter);
 app.use('/api/danny-tools', dannyToolsRouter);
 app.use('/api/zoom', zoomRouter);
+app.use('/api/zoom', zoomConnectRouter);
+
+// Log all registered routes for debugging
+console.log('[server] Registered routes:');
+app._router.stack.forEach((r: any) => {
+  if (r.route && r.route.path) {
+    console.log(`  ${Object.keys(r.route.methods).join(',')} ${r.route.path}`);
+  } else if (r.name === 'router') {
+    r.handle.stack.forEach((layer: any) => {
+      if (layer.route) {
+        const path = layer.route.path;
+        const methods = Object.keys(layer.route.methods);
+        console.log(`  ${methods.join(',')} ${r.regexp} -> ${path}`);
+      }
+    });
+  }
+});
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.1' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: VERSION, build: BUILD_TIMESTAMP });
 });
 
 async function main() {
+  console.log(`[server] Starting PT Biz Tools API v${VERSION} (built: ${BUILD_TIMESTAMP})`);
+  console.log(`[server] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[server] Port: ${PORT}`);
+  
   try {
     await prisma.$connect();
-    console.log('Database connected');
+    console.log('[server] Database connected');
     // Note: Database schema is managed by Prisma migrations (see prisma/schema.prisma)
     // Run `npx prisma db push` or `npx prisma migrate dev` to sync the schema.
   } catch (error) {
-    console.error('Database connection error:', error);
+    console.error('[server] Database connection error:', error);
   }
   
   app.listen(PORT, () => {
-    console.log(`PT Biz Tools API running on port ${PORT}`);
+    console.log(`[server] PT Biz Tools API running on port ${PORT}`);
+    console.log(`[server] Health check: http://localhost:${PORT}/health`);
   });
 }
 

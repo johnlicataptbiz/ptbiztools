@@ -380,6 +380,23 @@ async function handleWebhook(req: RawBodyRequest, res: Response) {
 zoomRouter.post('/webhook', handleWebhook)
 zoomRouter.post('/webhook/', handleWebhook)
 
+// Add GET handler for webhook (Zoom sometimes uses GET for validation)
+zoomRouter.get('/webhook', (req, res) => {
+  console.log('[zoom/webhook] GET request received - returning 200 for validation')
+  res.status(200).json({ status: 'ok', message: 'Webhook endpoint ready' })
+})
+
+zoomRouter.get('/webhook/', (req, res) => {
+  console.log('[zoom/webhook] GET request received (trailing slash) - returning 200 for validation')
+  res.status(200).json({ status: 'ok', message: 'Webhook endpoint ready' })
+})
+
+console.log('[zoom] Routes registered:')
+console.log('  POST /api/zoom/webhook')
+console.log('  POST /api/zoom/webhook/')
+console.log('  GET /api/zoom/webhook')
+console.log('  GET /api/zoom/webhook/')
+
 zoomRouter.get('/jobs/summary', requireAdmin, async (_req: SessionRequest, res: Response) => {
   try {
     const summary = await getZoomIngestSummary()
