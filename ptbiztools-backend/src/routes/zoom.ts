@@ -288,7 +288,7 @@ zoomRouter.post('/webhook', async (req: RawBodyRequest, res: Response) => {
     }
   }
 
-  if (event === 'recording.deleted') {
+  if (event === 'recording.deleted' || event === 'recording.trashed') {
     const payload = req.body?.payload || {}
     const object = payload?.object || {}
     if (!object?.uuid) {
@@ -300,8 +300,45 @@ zoomRouter.post('/webhook', async (req: RawBodyRequest, res: Response) => {
       where: { zoomMeetingUuid: meetingUuid },
       data: {
         deleteConfirmedAt: new Date(),
-        deleteStatus: 'deleted',
+        deleteStatus: event === 'recording.trashed' ? 'trashed' : 'deleted',
       },
+    })
+  }
+
+  if (event === 'recording.recovered') {
+    const payload = req.body?.payload || {}
+    const object = payload?.object || {}
+    if (!object?.uuid) {
+      return res.status(200).json({ ok: true })
+    }
+    const meetingUuid = String(object.uuid)
+
+    await prisma.zoomRecording.updateMany({
+      where: { zoomMeetingUuid: meetingUuid },
+      data: {
+        deleteStatus: 'active',
+        deleteConfirmedAt: null,
+      },
+    })
+  }
+
+  if (event === 'recording.cloud_storage_usage_updated') {
+    // Log storage usage updates - could be used for analytics
+    const payload = req.body?.payload || {}
+    console.log('[zoom/webhook] Cloud storage usage updated:', {
+      accountId: payload?.account_id,
+      usage: payload?.object?.usage,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  if (event === 'account.vanity_url_approved') {
+    // Log vanity URL approval - could trigger notifications
+    const payload = req.body?.payload || {}
+    console.log('[zoom/webhook] Account vanity URL approved:', {
+      accountId: payload?.account_id,
+      vanityUrl: payload?.object?.vanity_url,
+      timestamp: new Date().toISOString(),
     })
   }
 

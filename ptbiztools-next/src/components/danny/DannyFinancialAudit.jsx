@@ -553,38 +553,27 @@ export default function DannyFinancialAudit() {
     }
   };
 
-  const handleDownload = () => {
-    const grade = score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F";
-    const gc = score >= 80 ? "#047857" : score >= 60 ? "#B45309" : "#DC2626";
-    const dt = new Date().toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" });
-    const plRows = tRows.map(r => { const bm = r.k ? adjBM.find(b => b.k === r.k) : null; const st = bm ? stat(m[r.k], bm) : "none"; const c = r.k ? PSX[st] : "#6B7280"; return "<tr" + (r.bold ? " style='background:#f8f9fa;font-weight:700'" : "") + "><td style='padding:6px 14px;color:#374151;" + (r.bold ? "" : "padding-left:28px") + "'>" + r.l + "</td><td style='padding:6px 14px;text-align:right;font-family:monospace;color:#6B7280'>" + $(r.a) + "</td><td style='padding:6px 14px;text-align:right;font-family:monospace;font-weight:" + (r.k ? "600" : "400") + ";color:" + c + "'>" + (r.pc !== null ? pf(r.pc) : "—") + "</td><td style='padding:6px 14px;text-align:right;color:#9CA3AF;font-size:11px'>" + r.tgt + "</td></tr>"; }).join("");
-    const bmRows = adjBM.map(bm => { const v = m[bm.k]; const st = stat(v, bm); const c = PSX[st]; const ap = apPcts[bm.k]; const tgt = bm.inv ? "≥" + bm.h[0] + "%" : bm.band ? bm.h[0] + "–" + bm.h[1] + "%" : "<" + bm.h[1] + "%"; return "<tr><td style='padding:7px 14px;color:#374151'>" + bm.l + "</td><td style='padding:7px 14px;text-align:right;font-weight:600;color:" + c + ";font-family:monospace'>" + (v !== null ? pf(v) : "—") + "</td><td style='padding:7px 14px;text-align:right;color:#6B7280;font-size:11px'>" + tgt + "</td><td style='padding:7px 14px;text-align:right;color:#2E86F5;font-size:11px'>" + (ap !== null ? pf(ap) : "—") + "</td><td style='padding:7px 14px;text-align:center'><span style='font-size:10px;font-weight:700;color:" + c + "'>" + (SX[st]?.lb || "—") + "</span></td></tr>"; }).join("");
-    const cfHTML = cashFlow.map(s => "<div style='padding:14px;border:1px solid #e5e7eb;border-radius:8px'><b>" + s.icon + " " + s.title + "</b><p style='margin:6px 0 0;font-size:12px;color:#4B5563;line-height:1.5'>" + s.text + "</p></div>").join("");
-    const planHTML = plan ? plan.phases.map((p, i) => "<div style='padding:16px;border:1px solid #e5e7eb;border-left:4px solid #2E86F5;border-radius:8px;margin-bottom:10px'><b style='color:#2E86F5;font-size:10px'>PHASE " + (i + 1) + " — DAYS " + p.days + "</b><div style='font-size:15px;font-weight:700;margin:4px 0 8px'>" + p.title + "</div>" + p.actions.map(a => "<p style='margin:0 0 6px;font-size:12px;color:#4B5563;line-height:1.5'>" + a + "</p>").join("") + "<div style='padding:8px 12px;background:#f0f7ff;border-radius:6px;margin-top:8px'><b style='color:#2E86F5;font-size:11px'>Projected Impact: </b><b style='color:#047857;font-size:16px'>" + $(p.impact) + "</b></div></div>").join("") : "";
-    const pc = { HIGH:"#DC2626", MED:"#B45309", LOW:"#6B7280", INFO:"#047857" };
-    const recHTML = recs.map(r => "<div style='padding:14px 16px;border:1px solid #e5e7eb;border-left:4px solid " + pc[r.p] + ";border-radius:8px;margin-bottom:8px'><div style='font-size:9px;color:" + pc[r.p] + ";font-weight:700;margin-bottom:2px'>" + (r.p === "MED" ? "MEDIUM" : r.p) + " PRIORITY — " + r.cat + "</div><div style='font-size:14px;font-weight:700;margin-bottom:4px'>" + r.icon + " " + r.title + "</div><p style='margin:0;font-size:12px;color:#4B5563;line-height:1.5'>" + r.detail + "</p></div>").join("");
-
-    const html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>" + (clinicName || "Clinic") + " Financial Audit</title><link href='https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap' rel='stylesheet'><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Barlow',sans-serif;color:#1a1a1a;background:white;max-width:900px;margin:0 auto;padding:24px 32px}@page{margin:0.5in}@media print{.no-print{display:none!important}}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;padding:8px 14px;font-size:10px;color:#6B7280;font-weight:600;text-transform:uppercase;border-bottom:2px solid #e5e7eb}td{border-bottom:1px solid #f3f4f6}h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;margin:24px 0 10px}</style></head><body>" +
-      "<div class='no-print' style='position:fixed;top:16px;right:16px'><button onclick='window.print()' style='background:#2E86F5;border:none;border-radius:6px;color:white;font-size:14px;font-weight:700;padding:12px 24px;cursor:pointer'>Save as PDF</button></div>" +
-      "<div style='border-bottom:3px solid #2E86F5;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center'><div><b style='font-family:\"Barlow Condensed\",sans-serif;font-style:italic;font-size:24px'><span style='color:#2E86F5'>PT</span> <span style='color:#374151'>BIZ</span></b> <span style='font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-left:8px'>Financial Audit Report</span></div><span style='color:#9CA3AF;font-size:12px'>" + dt + "</span></div>" +
-      "<div style='display:flex;gap:24px;align-items:center;padding:20px;background:#f8f9fa;border-radius:12px;border:1px solid #e5e7eb;margin-bottom:20px;flex-wrap:wrap'><div style='width:100px;height:100px;border-radius:50%;border:6px solid " + gc + ";display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0'><span style='font-family:\"Barlow Condensed\",sans-serif;font-size:36px;font-weight:800;color:" + gc + "'>" + grade + "</span><span style='font-size:11px;color:#6B7280'>" + score + "/100</span></div><div style='flex:1;min-width:200px'><div style='font-size:12px;color:#9CA3AF;font-style:italic'>Financial Health Score</div><div style='font-size:24px;font-weight:800;font-family:\"Barlow Condensed\",sans-serif'>" + (clinicName || "Clinic") + "</div><div style='font-size:12px;color:#9CA3AF'>" + (period || "Annual Review") + "</div></div><div style='text-align:right'><div style='font-size:10px;color:#6B7280'>REVENUE</div><div style='font-size:22px;font-weight:700;font-family:monospace'>" + $(rev) + "</div><div style='font-size:10px;color:#6B7280;margin-top:6px'>OWNER'S DISCRETIONARY EARNINGS</div><div style='font-size:22px;font-weight:700;font-family:monospace;color:" + (odePct >= 20 && odePct <= 35 ? "#047857" : odePct >= 15 ? "#B45309" : "#DC2626") + "'>" + $(ode) + " <span style='font-size:13px'>" + pf(odePct) + "</span></div></div></div>" +
-      "<div style='background:#1a1a1e;border-radius:10px;padding:20px;margin-bottom:20px;color:white'><div style='font-size:18px;font-weight:700;font-style:italic;margin-bottom:12px'>Quick Analysis</div>" + [{l:"Net Profit",v:m.netPct,c:m.netPct>=15?"#34D399":m.netPct>=10?"#FBBF24":"#F87171"},{l:"Owner's Discretionary Earnings",v:odePct,c:odePct>=20&&odePct<=35?"#34D399":odePct>=15?"#FBBF24":"#F87171"},{l:"Facility Load",v:m.facilityPct,c:m.facilityPct<8?"#34D399":m.facilityPct<=10?"#FBBF24":"#F87171"},{l:"People Load",v:m.peoplePct,c:m.peoplePct<42?"#34D399":m.peoplePct<=45?"#FBBF24":"#F87171"}].map((it,i) => "<div style='display:flex;justify-content:space-between;padding:10px 0;" + (i < 3 ? "border-bottom:1px solid #35353A" : "") + "'><span style='color:#9CA3AF;text-transform:uppercase;font-size:13px;letter-spacing:0.06em'>" + it.l + "</span><span style='font-family:monospace;font-size:18px;font-weight:700;color:" + it.c + "'>" + pf(it.v) + "</span></div>").join("") + "</div>" +
-      "<h3>P&L Breakdown</h3><div style='border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:20px'><table><thead><tr><th>Category</th><th style='text-align:right'>Amount</th><th style='text-align:right'>% of Rev</th><th style='text-align:right'>Target</th></tr></thead><tbody>" + plRows + "<tr style='border-top:2px solid #e5e7eb;background:#f8f9fa'><td style='padding:10px 14px;font-weight:700'>Total Expenses</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace'>" + $(totalExp) + "</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace'>" + (rev > 0 ? pf((totalExp/rev)*100) : "—") + "</td><td></td></tr><tr><td style='padding:10px 14px;font-weight:700;color:" + netPrint + "'>Net Income</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace;color:" + netPrint + "'>" + $(netIncome) + "</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace;color:" + netPrint + "'>" + pf(m.netPct) + "</td><td style='padding:10px 14px;text-align:right;color:#9CA3AF;font-size:11px'>" + tgt.netTgt + "</td></tr><tr style='background:#2E86F508'><td style='padding:10px 14px;font-weight:700;color:#2E86F5'>Owner's Discretionary Earnings</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace;color:" + odePrint + ";font-size:15px'>" + $(ode) + "</td><td style='padding:10px 14px;text-align:right;font-weight:700;font-family:monospace;color:" + odePrint + ";font-size:15px'>" + pf(odePct) + "</td><td style='padding:10px 14px;text-align:right;color:#9CA3AF;font-size:10px'>" + tgt.odeTgt + "</td></tr></tbody></table></div>" +
-      "<h3>Benchmark Analysis</h3><div style='border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:20px'><table><thead><tr><th>Metric</th><th style='text-align:right'>Your Clinic</th><th style='text-align:right'>Target</th><th style='text-align:right;color:#2E86F5'>Top Performer</th><th style='text-align:center'>Status</th></tr></thead><tbody>" + bmRows + "</tbody></table></div>" +
-      "<h3>Cash Flow Analysis</h3><div style='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px'>" + cfHTML + "</div>" +
-      (plan ? "<div style='display:flex;justify-content:space-between;align-items:center;margin:24px 0 14px;flex-wrap:wrap;gap:12px'><h3 style='margin:0'>90-Day Profit Improvement Plan</h3><div style='background:#f0f7ff;border:1px solid #2E86F533;border-radius:10px;padding:12px 18px;text-align:center'><div style='font-size:10px;color:#2E86F5;text-transform:uppercase;font-weight:600'>Total Projected Profit Increase</div><div style='font-size:26px;font-weight:700;color:#047857;font-family:monospace'>" + $(plan.total) + "</div></div></div>" + planHTML : "") +
-      (recs.length > 0 ? "<h3>Recommendations</h3>" + recHTML : "") +
-      "<div style='text-align:center;padding:20px 0;border-top:1px solid #e5e7eb;margin-top:24px'><p style='color:#9CA3AF;font-size:10px'>This report is for educational purposes and does not constitute financial advice.</p><p style='color:#6B7280;font-size:11px;margin-top:4px'>Need help? <b style='color:#2E86F5'>ptbiz.com</b></p></div></body></html>";
-
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = (clinicName || "Clinic").replace(/[^a-zA-Z0-9]/g, "_") + "_Financial_Audit.html";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDownload = async () => {
+    // Import and use the new PDF generator
+    const { generatePLPDF } = await import("@/utils/plPdfGenerator");
+    
+    await generatePLPDF(
+      clinicName,
+      period,
+      rev,
+      totalExp,
+      netIncome,
+      ode,
+      m,
+      tRows,
+      score,
+      recs,
+      plan,
+      cashFlow,
+      clinicType,
+      payerMix,
+      bizPhase
+    );
 
     void Promise.allSettled([
       savePdfExport({
@@ -595,12 +584,12 @@ export default function DannyFinancialAudit() {
           tool: "pl_calculator",
           summary: `${clinicName || "Clinic"} financial audit export`,
           period: period || null,
-          grade,
+          grade: score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F",
         },
       }),
       logAction({
         actionType: "pdf_generated",
-        description: `P&L report export generated for ${clinicName || "Unknown Clinic"}`,
+        description: `P&L PDF generated for ${clinicName || "Unknown Clinic"}`,
         metadata: {
           tool: "pl_calculator",
           clinicName: clinicName || null,
