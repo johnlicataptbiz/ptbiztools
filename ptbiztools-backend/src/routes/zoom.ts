@@ -194,9 +194,6 @@ zoomRouter.get('/oauth/callback', async (req: Request, res: Response) => {
   }
 })
 
-zoomRouter.post('/webhook', handleWebhook)
-zoomRouter.post('/webhook/', handleWebhook)
-
 async function handleWebhook(req: RawBodyRequest, res: Response) {
   const rawBody = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body || {})
   const event = req.body?.event
@@ -378,6 +375,10 @@ async function handleWebhook(req: RawBodyRequest, res: Response) {
 
   return res.status(200).json({ ok: true })
 }
+
+// Register webhook routes after function is defined
+zoomRouter.post('/webhook', handleWebhook)
+zoomRouter.post('/webhook/', handleWebhook)
 
 zoomRouter.get('/jobs/summary', requireAdmin, async (_req: SessionRequest, res: Response) => {
   try {
