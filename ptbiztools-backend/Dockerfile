@@ -12,7 +12,7 @@ COPY prisma ./prisma/
 COPY tsconfig.json ./tsconfig.json
 
 # Force cache invalidation for source code
-ARG CACHE_BUST=2
+ARG CACHE_BUST=3
 RUN echo "Cache bust: $CACHE_BUST"
 
 COPY src ./src
