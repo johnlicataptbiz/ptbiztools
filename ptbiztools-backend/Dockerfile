@@ -11,12 +11,9 @@ RUN npm ci
 COPY prisma ./prisma/
 COPY tsconfig.json ./tsconfig.json
 
-# Force cache invalidation - must be last before source copy
-ARG CACHE_BUST=4
-ENV CACHE_BUST=${CACHE_BUST}
-RUN echo "Building with cache bust: ${CACHE_BUST} at $(date)"
-
+# Copy source and build
 COPY src ./src
+COPY BUILD_TIMESTAMP ./
 
 RUN npx prisma generate
 RUN npm run build
