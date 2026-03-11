@@ -11,9 +11,10 @@ RUN npm ci
 COPY prisma ./prisma/
 COPY tsconfig.json ./tsconfig.json
 
-# Force cache invalidation for source code
-ARG CACHE_BUST=3
-RUN echo "Cache bust: $CACHE_BUST"
+# Force cache invalidation - must be last before source copy
+ARG CACHE_BUST=4
+ENV CACHE_BUST=${CACHE_BUST}
+RUN echo "Building with cache bust: ${CACHE_BUST} at $(date)"
 
 COPY src ./src
 
