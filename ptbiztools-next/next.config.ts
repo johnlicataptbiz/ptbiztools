@@ -22,6 +22,7 @@ function ensureApiBase(url: string) {
 const backendApiBase = ensureApiBase(rawBackendUrl);
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: projectRoot,
   turbopack: {
     root: projectRoot,
   },
