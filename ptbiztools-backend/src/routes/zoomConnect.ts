@@ -8,21 +8,19 @@ router.post('/connect', async (req, res) => {
   try {
     const {
       zoomUserId,
-      email,
-      firstName,
-      lastName,
+      zoomAccountId,
       accessToken,
       refreshToken,
       expiresIn,
       scope,
-      connectedAt,
+      tokenType,
     } = req.body;
 
     // Validate required fields
-    if (!zoomUserId || !accessToken || !refreshToken) {
+    if (!zoomUserId || !zoomAccountId || !accessToken || !refreshToken) {
       return res.status(400).json({
         error: 'Missing required fields',
-        details: 'zoomUserId, accessToken, and refreshToken are required',
+        details: 'zoomUserId, zoomAccountId, accessToken, and refreshToken are required',
       });
     }
 
@@ -42,40 +40,35 @@ router.post('/connect', async (req, res) => {
     // Upsert Zoom connection for the user
     const zoomConnection = await prisma.zoomConnection.upsert({
       where: {
-        userId,
+        zoomUserId_zoomAccountId: {
+          zoomUserId,
+          zoomAccountId,
+        },
       },
       update: {
-        zoomUserId,
-        email,
-        firstName,
-        lastName,
+        userId,
         accessToken,
         refreshToken,
         expiresAt,
         scope,
-        connectedAt: new Date(connectedAt),
-        status: 'active',
+        tokenType: tokenType || 'bearer',
       },
       create: {
         userId,
         zoomUserId,
-        email,
-        firstName,
-        lastName,
+        zoomAccountId,
         accessToken,
         refreshToken,
         expiresAt,
         scope,
-        connectedAt: new Date(connectedAt),
-        status: 'active',
+        tokenType: tokenType || 'bearer',
       },
     });
 
     // Log the connection
     console.log(`Zoom connected for user ${userId}:`, {
       zoomUserId,
-      email,
-      connectedAt,
+      zoomAccountId,
     });
 
     return res.status(200).json({
@@ -84,9 +77,8 @@ router.post('/connect', async (req, res) => {
       data: {
         id: zoomConnection.id,
         zoomUserId: zoomConnection.zoomUserId,
-        email: zoomConnection.email,
-        connectedAt: zoomConnection.connectedAt,
-        status: zoomConnection.status,
+        zoomAccountId: zoomConnection.zoomAccountId,
+        createdAt: zoomConnection.createdAt,
       },
     });
 
@@ -107,7 +99,7 @@ router.get('/status', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const connection = await prisma.zoomConnection.findUnique({
+    const connection = await prisma.zoomConnection.findFirst({
       where: { userId },
     });
 
@@ -123,9 +115,9 @@ router.get('/status', async (req, res) => {
     
     return res.status(200).json({
       connected: true,
-      status: connection.status,
-      email: connection.email,
-      connectedAt: connection.connectedAt,
+      zoomUserId: connection.zoomUserId,
+      zoomAccountId: connection.zoomAccountId,
+      createdAt: connection.createdAt,
       isExpired,
       scopes: connection.scope?.split(' ') || [],
     });
@@ -146,7 +138,8 @@ router.post('/disconnect', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    await prisma.zoomConnection.delete({
+    // Delete all Zoom connections for this user
+    await prisma.zoomConnection.deleteMany({
       where: { userId },
     });
 
