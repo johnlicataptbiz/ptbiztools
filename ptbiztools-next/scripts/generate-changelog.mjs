@@ -87,6 +87,10 @@ async function fetchGithubEntries() {
   );
 
   if (!response.ok) {
+    if (response.status === 403) {
+      console.warn("[generate-changelog] GitHub API rate limited or unauthorized; skipping fallback");
+      return [];
+    }
     throw new Error(`GitHub API request failed (${response.status})`);
   }
 
