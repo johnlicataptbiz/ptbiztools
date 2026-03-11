@@ -34,7 +34,11 @@ function createPayload(entries) {
     (a, b) => new Date(b).getTime() - new Date(a).getTime(),
   );
 
-  const intro = `An ode to steady hustle: ${entries.length} commits and counting, celebrating the relentless focus on building PT Biz Tools. Each date below tells a chapter in that story.`;
+  const period = sortedDates.length
+    ? { from: sortedDates[sortedDates.length - 1], to: sortedDates[0], days: sortedDates.length }
+    : { from: null, to: null, days: 0 };
+
+  const summary = `This timeline shows steady progress on PT Biz Tools: ${entries.length} commits across ${period.days} active days. Use the dates below to see the work grow over time.`;
 
   return {
     success: true,
@@ -42,7 +46,8 @@ function createPayload(entries) {
     dates: sortedDates,
     entries: grouped,
     lastUpdated: new Date().toISOString(),
-    blurb: intro,
+    summary,
+    period,
   };
 }
 
