@@ -56,7 +56,7 @@ app.use('/api/danny-tools', dannyToolsRouter);
 app.use('/api/zoom', zoomRouter);
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.1' });
 });
 
 async function main() {
