@@ -2,16 +2,17 @@ import type { GradeResult } from "@/utils/grader";
 import { DISCOVERY_PDF_LOGO_WHITE_URL } from "@/constants/branding";
 
 const COLORS = {
-  dark: '#1a1a2e',
+  dark: '#0b1220',
   accent: '#e94560',
-  medium: '#0f3460',
-  lightBg: '#f5f5f7',
-  green: '#2d8a4e',
-  amber: '#c47f17',
-  red: '#c0392b',
+  medium: '#2e86f5',
+  lightBg: '#111827',
+  green: '#34d399',
+  amber: '#fbbf24',
+  red: '#f87171',
   white: '#ffffff',
-  lightGray: '#e0e0e0',
-  textGray: '#4a4a4a',
+  lightGray: '#1f2937',
+  textGray: '#cbd5f5',
+  muted: '#94a3b8',
 };
 
 const LOGO_CACHE = new Map<string, string | null>();
@@ -95,18 +96,18 @@ export async function generatePDF(
 
   const drawHeader = (continuation = false) => {
     doc.setFillColor(COLORS.dark);
-    doc.rect(0, 0, pageWidth, 44, 'F');
+    doc.rect(0, 0, pageWidth, 46, 'F');
 
     doc.setTextColor(COLORS.white);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(continuation ? 17 : 22);
+    doc.setFontSize(continuation ? 16 : 21);
     doc.text(continuation ? 'Discovery Call Audit (continued)' : 'Discovery Call Audit', margin, continuation ? 18 : 22);
 
     if (logoDataUrl) {
-      const logoWidth = 46;
-      const logoHeight = 11;
+      const logoWidth = 48;
+      const logoHeight = 12;
       const logoX = pageWidth - margin - logoWidth;
-      const logoY = 13;
+      const logoY = 14;
       doc.addImage(logoDataUrl, 'PNG', logoX, logoY, logoWidth, logoHeight, undefined, 'FAST');
     } else {
       doc.setFont('helvetica', 'bold');
@@ -115,7 +116,7 @@ export async function generatePDF(
     }
 
     y = 54;
-    doc.setTextColor(COLORS.textGray);
+    doc.setTextColor(COLORS.muted);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
 
@@ -152,7 +153,7 @@ export async function generatePDF(
 
     if (items.length === 0) {
       ensureSpace(7);
-      doc.setTextColor(COLORS.textGray);
+      doc.setTextColor(COLORS.muted);
       doc.text(emptyFallback, margin + 4, y);
       y += 6;
       return;
@@ -169,11 +170,35 @@ export async function generatePDF(
     }
   };
 
+  const drawCard = (title: string, lines: string[], titleColor: string, bgColor = COLORS.lightBg) => {
+    const content = lines.filter(Boolean);
+    const lineHeight = 4.6;
+    const height = 10 + content.length * lineHeight + 8;
+    ensureSpace(height + 4);
+    doc.setFillColor(bgColor);
+    doc.setDrawColor(COLORS.lightGray);
+    doc.roundedRect(margin, y, contentWidth, height, 3, 3, 'FD');
+    doc.setTextColor(titleColor);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(title, margin + 6, y + 7);
+    let cursorY = y + 12;
+    doc.setTextColor(COLORS.textGray);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    for (const line of content) {
+      const parts = doc.splitTextToSize(line, contentWidth - 12);
+      doc.text(parts, margin + 6, cursorY);
+      cursorY += parts.length * lineHeight;
+    }
+    y += height + 6;
+  };
+
   drawHeader(false);
 
   const scoreColor = getScoreColor(grade.score);
-  const scoreBoxHeight = 42;
-  const phaseBoxHeight = Math.max(42, grade.phaseScores.length * 5 + 9);
+  const scoreBoxHeight = 44;
+  const phaseBoxHeight = Math.max(44, grade.phaseScores.length * 5 + 11);
   const topBoxHeight = Math.max(scoreBoxHeight, phaseBoxHeight);
 
   ensureSpace(topBoxHeight + 10);
@@ -193,9 +218,9 @@ export async function generatePDF(
   const phaseX = margin + 58;
   const phaseWidth = pageWidth - margin - phaseX;
   doc.setDrawColor('#d8e0ec');
-  doc.setFillColor('#f7f9fc');
+  doc.setFillColor('#0f172a');
   doc.roundedRect(phaseX, y, phaseWidth, phaseBoxHeight, 2, 2, 'FD');
-  doc.setTextColor(COLORS.medium);
+  doc.setTextColor(COLORS.muted);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('Phase Breakdown', phaseX + 3, y + 6);
@@ -206,7 +231,7 @@ export async function generatePDF(
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9.5);
     doc.text(phase.name, phaseX + 3, rowY);
-    doc.setTextColor(COLORS.dark);
+    doc.setTextColor(COLORS.white);
     doc.setFont('helvetica', 'bold');
     doc.text(`${phase.score}/${phase.maxScore}`, phaseX + phaseWidth - 3, rowY, { align: 'right' });
     rowY += 5;
@@ -296,7 +321,7 @@ export async function generatePDF(
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.setTextColor(COLORS.dark);
+      doc.setTextColor(COLORS.white);
       doc.text(cb.name, margin, y);
       
       doc.setFont('helvetica', 'bold');
@@ -321,7 +346,7 @@ export async function generatePDF(
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor('#9ca3af');
-        for (const quote of cb.evidence.slice(0, 2)) {
+        for (const quote of cb.evidence.slice(0, 4)) {
           const quoteLines = doc.splitTextToSize(`"${quote}"`, contentWidth - 15);
           for (const ql of quoteLines) {
             ensureSpace(5);
@@ -334,46 +359,47 @@ export async function generatePDF(
     }
   }
 
-  // Add Phase Evidence if available
+  // Add Phase Evidence + Coaching Scripts
   const phasesWithEvidence = grade.phaseScores.filter(p => p.evidence && p.evidence.length > 0);
   if (phasesWithEvidence.length > 0) {
     y += 8;
-    drawSectionTitle('Phase Evidence', COLORS.medium);
+    drawSectionTitle('Phase Evidence + Coaching', COLORS.medium);
     
     for (const phase of phasesWithEvidence) {
       ensureSpace(15);
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.setTextColor(COLORS.dark);
+      doc.setTextColor(COLORS.white);
       doc.text(`${phase.name}: ${phase.score}/${phase.maxScore}`, margin, y);
       y += 5;
-      
-      if (phase.summary) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(COLORS.textGray);
-        const summaryLines = doc.splitTextToSize(phase.summary, contentWidth - 10);
-        doc.text(summaryLines, margin + 5, y);
-        y += summaryLines.length * 4 + 2;
-      }
-      
+
+      const phaseSummary = phase.summary || '';
+      const coachingLines = phaseSummary
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      drawCard('Phase Summary / Coaching', coachingLines, COLORS.medium);
+
       if (phase.evidence && phase.evidence.length > 0) {
-        doc.setFont('helvetica', 'italic');
-        doc.setFontSize(8);
-        doc.setTextColor('#9ca3af');
-        for (const quote of phase.evidence.slice(0, 2)) {
-          const quoteLines = doc.splitTextToSize(`"${quote}"`, contentWidth - 15);
-          for (const ql of quoteLines) {
-            ensureSpace(5);
-            doc.text(ql, margin + 5, y);
-            y += 4;
-          }
-        }
-        y += 3;
+        const evidenceLines = phase.evidence.slice(0, 6).map((quote) => `"${quote}"`);
+        drawCard('Evidence Quotes', evidenceLines, COLORS.green);
       }
     }
   }
+
+  // Add Action Plan
+  y += 6;
+  drawSectionTitle('Coach Action Plan (Next Call)', COLORS.medium);
+  drawBulletedList(
+    [
+      'Open with a clear agenda and outcome: “By the end of this call, we’ll know if an eval makes sense.”',
+      'Find the cost of inaction: “What’s this keeping you from doing right now?”',
+      'Use a confident close: “Based on what you shared, the next step is to book your eval. Do mornings or afternoons work best?”',
+    ],
+    COLORS.medium,
+    ''
+  );
 
   const totalPages = doc.getNumberOfPages();
   const footerText = 'Generated by PT Biz Discovery Call Grader. Transcript content is de-identified.';
