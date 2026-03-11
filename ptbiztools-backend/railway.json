@@ -4,8 +4,15 @@
     "builder": "NIXPACKS",
     "nixpacksPlan": {
       "phases": {
+        "setup": {
+          "nixPkgs": ["nodejs", "npm"]
+        },
         "build": {
-          "cmds": ["npm ci", "npx prisma generate", "npm run build"]
+          "cmds": [
+            "npm ci",
+            "npx prisma generate",
+            "npm run build"
+          ]
         }
       }
     }
