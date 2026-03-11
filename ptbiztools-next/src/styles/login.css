@@ -55,8 +55,8 @@
 .login-card {
   position: relative;
   z-index: 1;
-  width: min(700px, 100%);
-  border-radius: 24px;
+  width: min(520px, 100%);
+  border-radius: 20px;
   border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
   background: 
     linear-gradient(
@@ -69,7 +69,7 @@
     0 12px 40px rgba(0, 0, 0, 0.08),
     0 0 0 1px color-mix(in oklab, var(--border) 40%, transparent),
     inset 0 1px 0 color-mix(in oklab, white 50%, transparent);
-  padding: clamp(24px, 4vw, 48px);
+  padding: clamp(20px, 3vw, 32px);
   overflow: hidden;
   backdrop-filter: blur(20px);
 }
@@ -305,27 +305,27 @@
 /* Profile Grid */
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
 }
 
 /* Profile Cards */
 .profile-card {
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: 
     linear-gradient(
       145deg,
       color-mix(in oklab, var(--surface) 100%, transparent) 0%,
       color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
     );
-  padding: 20px;
+  padding: 16px 12px;
   text-align: center;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -341,14 +341,14 @@
 
 .profile-card-avatar {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
 }
 
 .profile-avatar-img {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
   display: block;
   border-radius: 50%;
