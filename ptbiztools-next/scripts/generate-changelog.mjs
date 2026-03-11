@@ -34,12 +34,15 @@ function createPayload(entries) {
     (a, b) => new Date(b).getTime() - new Date(a).getTime(),
   );
 
+  const intro = `An ode to steady hustle: ${entries.length} commits and counting, celebrating the relentless focus on building PT Biz Tools. Each date below tells a chapter in that story.`;
+
   return {
     success: true,
     totalCommits: entries.length,
     dates: sortedDates,
     entries: grouped,
     lastUpdated: new Date().toISOString(),
+    blurb: intro,
   };
 }
 
