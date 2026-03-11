@@ -197,18 +197,49 @@ zoomRouter.get('/oauth/callback', async (req: Request, res: Response) => {
 zoomRouter.post('/webhook', async (req: RawBodyRequest, res: Response) => {
   const rawBody = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body || {})
   const event = req.body?.event
+  
+  console.log('[zoom/webhook] Received event:', event)
+  console.log('[zoom/webhook] Headers:', {
+    'x-zm-signature': req.headers['x-zm-signature'],
+    'x-zm-request-timestamp': req.headers['x-zm-request-timestamp'],
+  })
+  console.log('[zoom/webhook] Body preview:', rawBody.substring(0, 200))
 
+  // Handle endpoint validation first (no signature check needed)
   if (event === 'endpoint.url_validation') {
     const plainToken = req.body?.payload?.plainToken
-    if (!plainToken) return res.status(400).json({ error: 'Missing plainToken' })
-    return res.status(200).json(buildZoomEndpointValidationResponse(plainToken))
+    console.log('[zoom/webhook] Validation request, plainToken:', plainToken)
+    
+    if (!plainToken) {
+      console.log('[zoom/webhook] Missing plainToken')
+      return res.status(400).json({ error: 'Missing plainToken' })
+    }
+    
+    try {
+      const response = buildZoomEndpointValidationResponse(plainToken)
+      console.log('[zoom/webhook] Validation response:', response)
+      return res.status(200).json(response)
+    } catch (error) {
+      console.error('[zoom/webhook] Validation error:', error)
+      return res.status(500).json({ error: 'Validation failed', details: error instanceof Error ? error.message : 'Unknown error' })
+    }
   }
 
+  // For all other events, verify signature
   const signature = String(req.headers['x-zm-signature'] || '')
   const timestamp = String(req.headers['x-zm-request-timestamp'] || '')
 
-  if (!verifyZoomWebhookSignature(rawBody, timestamp, signature)) {
-    return res.status(401).json({ error: 'Invalid signature' })
+  console.log('[zoom/webhook] Verifying signature...')
+  
+  try {
+    if (!verifyZoomWebhookSignature(rawBody, timestamp, signature)) {
+      console.log('[zoom/webhook] Invalid signature')
+      return res.status(401).json({ error: 'Invalid signature' })
+    }
+    console.log('[zoom/webhook] Signature verified')
+  } catch (error) {
+    console.error('[zoom/webhook] Signature verification error:', error)
+    return res.status(401).json({ error: 'Signature verification failed', details: error instanceof Error ? error.message : 'Unknown error' })
   }
 
   if (event === 'recording.completed' || event === 'recording.transcript_completed') {
