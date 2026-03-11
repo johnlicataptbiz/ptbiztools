@@ -1,0 +1,7 @@
+# Ignore files that might cause caching issues
+Dockerfile.bak
+BUILD_TIMESTAMP
+.force_rebuild
+*.log
+node_modules/
+dist/
