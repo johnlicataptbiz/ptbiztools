@@ -32,9 +32,11 @@ import {
   getZoomIngestSummary,
   runZoomBackfill,
   runZoomQueuedJobs,
+  getZoomAnalyses,
   type ActionStatsSummary,
   type AdminUsageSummary,
   type ZoomIngestSummary,
+  type ZoomAnalysisRecord,
 } from "@/lib/ptbiz-api";
 import "@/styles/dashboard.css";
 
@@ -281,6 +283,7 @@ function getInitials(name?: string) {
 export default function DashboardPage() {
   const { user } = useSession();
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [zoomDetail, setZoomDetail] = useState<ZoomAnalysisRecord | null>(null);
   const [zoomControlState, setZoomControlState] = useState<ZoomControlState>({
     runningQueue: false,
     runningBackfill: false,
@@ -305,6 +308,17 @@ export default function DashboardPage() {
     staleTime: 30_000,
   });
 
+  const zoomReportsQuery = useQuery({
+    queryKey: ["home", "zoom-analyses", isAdmin ? "admin" : "advisor"],
+    queryFn: async () => {
+      const result = await getZoomAnalyses({ limit: 12 });
+      if (result.error) throw new Error(result.error);
+      return result.data ?? { analyses: [], total: 0 };
+    },
+    enabled: isAdmin || isAdvisor,
+    staleTime: 60_000,
+  });
+
   const zoomSummaryQuery = useQuery({
     queryKey: ["home", "zoom-ingest-summary"],
     queryFn: async () => {
@@ -321,6 +335,7 @@ export default function DashboardPage() {
   const actionStats = adminUsageQuery.data?.actionStats ?? null;
   const zoomSummary: ZoomIngestSummary | null = zoomSummaryQuery.data ?? null;
   const coachActionStats = coachStats.actionBreakdown;
+  const zoomReports = zoomReportsQuery.data?.analyses ?? [];
 
   const greeting = useMemo(() => {
     const firstName = user?.name.split(" ")[0] || "Coach";
@@ -762,6 +777,68 @@ export default function DashboardPage() {
           </motion.section>
         )}
 
+        {(isAdmin || isAdvisor) && (
+          <motion.section variants={itemVariants} className="chart-section">
+            <div className="chart-card zoom-report-card">
+              <div className="chart-header">
+                <div className="chart-title">
+                  <ScrollText size={20} />
+                  <h3>Zoom Graded Reports</h3>
+                </div>
+                <button
+                  type="button"
+                  className="zoom-action-btn"
+                  onClick={() => zoomReportsQuery.refetch()}
+                  disabled={zoomReportsQuery.isLoading}
+                >
+                  Refresh
+                </button>
+              </div>
+              <div className="zoom-report-list">
+                {zoomReportsQuery.isLoading ? (
+                  <div className="activity-empty">
+                    <p>Loading reports…</p>
+                  </div>
+                ) : zoomReports.length === 0 ? (
+                  <div className="activity-empty">
+                    <p>No Zoom grading records yet.</p>
+                  </div>
+                ) : (
+                  zoomReports.map((report) => (
+                    <div key={report.id} className="zoom-report-row">
+                      <div>
+                        <strong>{report.clientName || report.summary}</strong>
+                        <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="zoom-report-meta">
+                        <span className="zoom-report-score">{report.score.toFixed(0)}</span>
+                        <span>{report.outcome}</span>
+                        {isAdmin && report.coachName && <span>Coach: {report.coachName}</span>}
+                        <span>{report.zoomRecording?.topic || "Zoom"}</span>
+                      </div>
+                      <div className="zoom-report-actions">
+                        <button type="button" className="zoom-action-btn" onClick={() => setZoomDetail(report)}>
+                          View Transcript
+                        </button>
+                        {report.zoomRecording?.downloadUrl && (
+                          <a
+                            href={report.zoomRecording.downloadUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="zoom-action-btn"
+                          >
+                            Play Recording
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.section>
+        )}
+
         <motion.section variants={itemVariants} className="activity-section" data-tour={TourAnchors.dashboard.activity}>
           <h2>{isAdmin ? "Recent App Activity" : "Your Team Activity Feed"}</h2>
           <div className="activity-list">
@@ -809,7 +886,29 @@ export default function DashboardPage() {
           </div>
         </motion.section>
       </motion.div>
-      
+      {zoomDetail && (
+        <div className="zoom-report-modal" role="dialog" aria-modal="true">
+          <div className="zoom-report-modal-backdrop" onClick={() => setZoomDetail(null)} />
+          <div className="zoom-report-modal-card">
+            <header>
+              <h3>Transcript for {zoomDetail.clientName || "Untitled"}</h3>
+              <button type="button" onClick={() => setZoomDetail(null)}>
+                Close
+              </button>
+            </header>
+            <div className="zoom-report-modal-body">
+              <p>
+                <strong>Score:</strong> {zoomDetail.score.toFixed(0)} · <strong>Outcome:</strong> {zoomDetail.outcome}
+              </p>
+              <p>{zoomDetail.summary}</p>
+              <div className="zoom-transcript-block">
+                <pre>{zoomDetail.redactedTranscript || "Transcript unavailable."}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
     </div>
   );

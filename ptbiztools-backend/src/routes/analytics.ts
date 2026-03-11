@@ -442,6 +442,87 @@ analyticsRouter.get('/coaching-analyses', requireAuth, async (req: SessionReques
   }
 });
 
+analyticsRouter.get('/coaching-analyses/zoom', requireAuth, async (req: SessionRequest, res: Response) => {
+  try {
+    const rawLimit = Number.parseInt(String(req.query.limit || '20'), 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 5), 100) : 20;
+    const offset = Number.isFinite(Number.parseInt(String(req.query.offset || '0'), 10))
+      ? Math.max(Number.parseInt(String(req.query.offset || '0'), 10), 0)
+      : 0;
+
+    const filters: Prisma.CoachingAnalysisWhereInput = {
+      ...(req.query.from
+        ? { createdAt: { gte: new Date(String(req.query.from)) } }
+        : {}),
+      ...(req.query.to
+        ? { createdAt: { lte: new Date(String(req.query.to)) } }
+        : {}),
+      zoomRecordings: { some: {} },
+    };
+
+    const userFilter = isAdminRole(req.currentUserRole)
+      ? undefined
+      : { userId: req.currentUserId };
+
+    const where = userFilter ? { ...filters, ...userFilter } : filters;
+
+    const [analyses, total] = await Promise.all([
+      prisma.coachingAnalysis.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, title: true, teamSection: true } },
+          zoomRecordings: {
+            select: {
+              id: true,
+              topic: true,
+              recordingStartAt: true,
+              downloadUrl: true,
+              status: true,
+              hostEmail: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.coachingAnalysis.count({ where }),
+    ]);
+
+    res.json({
+      analyses: analyses.map((analysis) => ({
+        id: analysis.id,
+        callDate: analysis.callDate,
+        createdAt: analysis.createdAt,
+        updatedAt: analysis.updatedAt,
+        score: analysis.score,
+        outcome: analysis.outcome,
+        summary: analysis.summary,
+        clientName: analysis.clientName,
+        coachName: analysis.coachName,
+        transcriptHash: analysis.transcriptHash,
+        redactedTranscript: analysis.deidentifiedTranscript,
+        zoomRecording: analysis.zoomRecordings[0]
+          ? {
+              id: analysis.zoomRecordings[0].id,
+              topic: analysis.zoomRecordings[0].topic,
+              recordingStartAt: analysis.zoomRecordings[0].recordingStartAt,
+              downloadUrl: analysis.zoomRecordings[0].downloadUrl,
+              status: analysis.zoomRecordings[0].status,
+              hostEmail: analysis.zoomRecordings[0].hostEmail,
+            }
+          : null,
+      })),
+      total,
+    });
+  } catch (error) {
+    console.error('Error fetching Zoom coaching analyses:', error);
+    res.status(500).json({ error: 'Failed to fetch Zoom coaching analyses' });
+  }
+});
+
 analyticsRouter.get('/pdf-exports', requireAuth, async (req: SessionRequest, res: Response) => {
   try {
     const rawLimit = Number.parseInt(String(req.query.limit || '100'), 10);

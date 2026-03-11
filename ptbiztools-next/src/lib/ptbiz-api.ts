@@ -312,6 +312,28 @@ export interface CoachingAnalysisRecord {
   user?: UsageUserLite | null;
 }
 
+export interface ZoomAnalysisRecord {
+  id: string;
+  callDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  score: number;
+  outcome: string;
+  summary: string;
+  clientName?: string | null;
+  coachName?: string | null;
+  transcriptHash?: string;
+  redactedTranscript?: string;
+  zoomRecording?: {
+    id: string;
+    topic?: string | null;
+    recordingStartAt?: string | null;
+    downloadUrl?: string | null;
+    status: string;
+    hostEmail?: string | null;
+  } | null;
+}
+
 export interface PdfExportRecord {
   id: string;
   userId: string | null;
@@ -554,6 +576,32 @@ export async function runZoomBackfill(input?: {
       body: JSON.stringify(input || {}),
     });
     return { data: data.result };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
+    return { error: message };
+  }
+}
+
+export async function getZoomAnalyses(input?: {
+  limit?: number;
+  offset?: number;
+  from?: string;
+  to?: string;
+  userId?: string;
+}): Promise<{ data?: { analyses: ZoomAnalysisRecord[]; total: number }; error?: string }> {
+  try {
+    const params = new URLSearchParams();
+    if (input?.limit) params.set("limit", String(input.limit));
+    if (input?.offset) params.set("offset", String(input.offset));
+    if (input?.from) params.set("from", input.from);
+    if (input?.to) params.set("to", input.to);
+    if (input?.userId) params.set("userId", input.userId);
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const data = await requestJson<{ analyses: ZoomAnalysisRecord[]; total: number }>(
+      `/analytics/coaching-analyses/zoom${query}`,
+    );
+    return { data };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Network error";
     return { error: message };
