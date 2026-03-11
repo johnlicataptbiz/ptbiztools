@@ -3,11 +3,11 @@ import { CRITICAL_BEHAVIOR_IDS, PHASE_IDS } from './callGraderProfiles.js'
 
 const phaseEvidenceSchema = z
   .array(z.string().trim().min(1).max(300))
-  .max(6)
+  .max(10)
 
 const phaseAssessmentSchema = z.object({
   score: z.number().int().min(0).max(100),
-  summary: z.string().trim().min(8).max(800),
+  summary: z.string().trim().min(8).max(1200),
   evidence: phaseEvidenceSchema,
 })
 
@@ -15,8 +15,8 @@ const behaviorStatusSchema = z.enum(['pass', 'fail', 'unknown'])
 
 const behaviorAssessmentSchema = z.object({
   status: behaviorStatusSchema,
-  note: z.string().trim().min(3).max(600),
-  evidence: z.array(z.string().trim().min(1).max(300)).max(4),
+  note: z.string().trim().min(3).max(800),
+  evidence: z.array(z.string().trim().min(1).max(300)).max(6),
 })
 
 export const salesGradeV2RequestSchema = z.object({
@@ -49,9 +49,9 @@ export const extractionResultSchema = z.object({
     time_management: behaviorAssessmentSchema,
     personal_story: behaviorAssessmentSchema,
   }),
-  top_strength: z.string().trim().min(5).max(600),
-  top_improvement: z.string().trim().min(5).max(600),
-  prospect_summary: z.string().trim().min(5).max(1000),
+  top_strength: z.string().trim().min(5).max(800),
+  top_improvement: z.string().trim().min(5).max(800),
+  prospect_summary: z.string().trim().min(5).max(1600),
 })
 
 export type SalesGradeV2Request = z.infer<typeof salesGradeV2RequestSchema>
