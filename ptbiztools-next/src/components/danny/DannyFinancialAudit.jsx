@@ -6,6 +6,18 @@ import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 import "@/styles/danny-tools.css";
 
+// Print styles - hide UI elements when printing
+const printStyles = `
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+    #pl-report-print-root { 
+      box-shadow: none !important; 
+      border: none !important;
+    }
+  }
+`;
+
 // Light theme color palette
 const B = { 
   blue:"#2E86F5", 
@@ -553,23 +565,50 @@ export default function DannyFinancialAudit() {
     }
   };
 
-  const handlePrint = () => {
+  const handleDownload = async () => {
     if (typeof score !== 'number' || Number.isNaN(score) || score === 0) {
-      alert("Please run the analysis first before printing the report.");
+      alert("Please run the analysis first before downloading the report.");
       return;
     }
     if (typeof rev !== 'number' || Number.isNaN(rev)) {
       alert("Please complete the analysis first.");
       return;
     }
-    logAction({
-      actionType: "report_printed",
-      description: `P&L Report printed for ${clinicName || "Unknown Clinic"}`,
-      metadata: {
-        tool: "pl_calculator",
-      },
-    });
-    window.print();
+
+    try {
+      // Log the export action
+      void Promise.allSettled([
+        savePdfExport({
+          sessionId,
+          clientName: clinicName || "P&L Audit",
+          score,
+          metadata: {
+            tool: "pl_calculator",
+            summary: `${clinicName || "Clinic"} financial audit print export`,
+            period: period || null,
+            grade: score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F",
+          },
+        }),
+        logAction({
+          actionType: "pdf_generated",
+          description: `P&L print-ready report opened for ${clinicName || "Unknown Clinic"}`,
+          metadata: {
+            tool: "pl_calculator",
+            clinicName: clinicName || null,
+            period: period || null,
+            score,
+            exportType: "print_dialog",
+          },
+          sessionId,
+        }),
+      ]);
+
+      // Trigger browser print dialog directly - this avoids popup blockers
+      window.print();
+    } catch (err) {
+      console.error("Print failed:", err);
+      alert("Failed to open print dialog. Please try again.");
+    }
   };
 
   const priClr = { HIGH:"#F87171", MED:"#FBBF24", LOW:B.gray, INFO:"#34D399" };
@@ -589,12 +628,9 @@ export default function DannyFinancialAudit() {
   // ===== INPUT STEP =====
   if (step === "input") {
     return (
-      <div className="grade-modal-overlay" style={{ position: "relative", background: "transparent", padding: 0 }}>
-        <div className="grade-modal-container" style={{ maxWidth: 980, maxHeight: "none", overflow: "visible" }}>
-          <div className="grade-modal-header" style={{ textAlign: "left" }}>
-            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
-              ×
-            </button>
+      <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
@@ -602,15 +638,14 @@ export default function DannyFinancialAudit() {
                 <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>P&amp;L Audit</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Upload a statement or enter figures manually</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>P&amp;L Audit</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Upload a statement or enter figures manually</p>
               </div>
             </div>
+            <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
           </div>
-          <div className="grade-modal-content">
-            <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-            <div style={pageShellStyle}>
-              <div style={canvasStyle}>
+          <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+          <div style={canvasStyle}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div style={{ width:1, height:28, background:B.bdr }} />
@@ -704,19 +739,15 @@ export default function DannyFinancialAudit() {
           </div>
         </div>
       </div>
-    </div>
-  </div>
     );
   }
 
   // ===== REPORT STEP =====
   return (
-    <div className="grade-modal-overlay" style={{ position: "relative", background: "transparent", padding: 0 }}>
-      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980, maxHeight: "none", overflow: "visible" }}>
-        <div className="grade-modal-header" style={{ textAlign: "left" }}>
-          <button className="grade-modal-close" onClick={() => setStep("input")} aria-label="Close report">
-            ×
-          </button>
+    <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
+      <style>{printStyles}</style>
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
@@ -724,24 +755,24 @@ export default function DannyFinancialAudit() {
               <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                 PT Biz Coach Tools
               </div>
-              <h2 className="grade-modal-title" style={{ textAlign: "left" }}>P&amp;L Report</h2>
-              <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Financial audit with action-ready insights</p>
+              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>P&amp;L Report</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Financial audit with action-ready insights</p>
             </div>
           </div>
+          <button onClick={() => setStep("input")} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Edit Numbers</button>
         </div>
-        <div className="grade-modal-content">
-          <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-          <div style={pageShellStyle}>
-            <div style={canvasStyle}>
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+        <div style={pageShellStyle}>
+          <div id="pl-report-print-root" style={canvasStyle}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:1, height:28, background:B.bdr }} />
             <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
           </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }} className="no-print">
           <button onClick={() => setStep("input")} style={{ background:"none", border:"none", color:B.grayDk, cursor:"pointer", fontSize:12 }}>← Edit numbers</button>
-          <button onClick={handlePrint} style={{ background:B.blue, border:"none", borderRadius:6, color:"#fff", fontSize:13, fontWeight:700, padding:"10px 20px", cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>🖨️ Print Report</button>
+          <button onClick={handleDownload} style={{ background:B.blue, border:"none", borderRadius:6, color:"#fff", fontSize:13, fontWeight:700, padding:"10px 20px", cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>📥 Download Report</button>
         </div>
 
         {/* HEADER */}
@@ -938,20 +969,19 @@ export default function DannyFinancialAudit() {
         )}
 
         {/* CTA */}
-        <div style={{ background:B.blue + "12", borderRadius:12, padding:"28px 24px", border:"1px solid " + B.blue + "33", textAlign:"center", marginBottom:20 }}>
+        <div style={{ background:B.blue + "12", borderRadius:12, padding:"28px 24px", border:"1px solid " + B.blue + "33", textAlign:"center", marginBottom:20 }} className="no-print">
           <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:800, color:B.wht, margin:"0 0 8px", textTransform:"uppercase" }}>Want Help Implementing This Plan?</h3>
           <p style={{ color:B.gray, fontSize:13, margin:"0 0 16px", lineHeight:1.5 }}>PT Biz has helped 1,000+ clinic owners build profitable, scalable practices. Our coaches are clinic owners who have been where you are.</p>
           <a href="https://ptbiz.com" target="_blank" rel="noopener noreferrer" style={{ display:"inline-block", padding:"12px 32px", background:B.blue, color:"#fff", borderRadius:8, fontSize:14, fontWeight:700, textDecoration:"none", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>Learn About PT Biz →</a>
         </div>
 
-        <div style={{ textAlign:"center", padding:"20px 0", borderTop:"1px solid " + B.bdr }}>
+        <div style={{ textAlign:"center", padding:"20px 0", borderTop:"1px solid " + B.bdr }} className="no-print">
           <p style={{ color:B.grayXDk, fontSize:10, margin:"0 0 3px" }}>This report is for educational purposes and does not constitute financial advice.</p>
           <p style={{ color:B.grayDk, fontSize:11, margin:0 }}><span style={{ color:B.blue, fontWeight:600 }}>ptbiz.com</span></p>
         </div>
       </div>
     </div>
+      </div>
     </div>
-  </div>
-  </div>
   );
 }

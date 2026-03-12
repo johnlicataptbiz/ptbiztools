@@ -165,10 +165,12 @@ export default function App() {
   // ── INPUT VIEW ──
   if (step === "input") {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
-        <style>{printStyles}</style>
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
+      <div className="grade-modal-overlay">
+        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
+          <div className="grade-modal-header" style={{ textAlign: "left" }}>
+            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
+              ×
+            </button>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
@@ -176,14 +178,13 @@ export default function App() {
                 <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Calculator</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Find the right comp range before you hire</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Calculator</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Find the right comp range before you hire</p>
               </div>
             </div>
-            <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back to Dashboard</button>
           </div>
-          <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-          <div style={pageShellStyle}>
+          <div className="grade-modal-content">
+            <div style={pageShellStyle}>
               <div style={canvasStyle}>
 
         {/* Location */}
@@ -265,12 +266,14 @@ export default function App() {
         </div>
 
         <button onClick={() => canCalc && setStep("results")} disabled={!canCalc} style={{ width:"100%", padding:"14px", background:canCalc ? B.blue : B.bdr, border:"none", borderRadius:10, color:canCalc ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:canCalc ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:canCalc ? "0 4px 20px " + B.glow : "none" }}>Calculate Compensation →</button>
+          </div>
+        </div>
       </div>
     </div>
-      </div>
-    </div>
+  </div>
   );
-}
+  }
+
   // ── RESULTS VIEW ──
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: "#FAFAFB", padding: "24px 0 64px" }}>
@@ -288,7 +291,9 @@ export default function App() {
               <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Compensation guidance with total cost clarity</p>
             </div>
           </div>
+          <button onClick={() => setStep("input")} style={{ background: "transparent", border: "1px solid #E5E7EB", borderRadius: 8, color: "#9CA3AF", padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Edit Inputs</button>
         </div>
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }} className="no-print">
           <button onClick={() => setStep("input")} style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: 12 }}>← Edit numbers</button>
           <button onClick={handleDownload} style={{ background: B.blue, border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, padding: "10px 20px", cursor: "pointer", fontFamily: "'Barlow Condensed',sans-serif", textTransform: "uppercase", letterSpacing: "0.04em" }}>📥 Download Report</button>
@@ -458,9 +463,9 @@ export default function App() {
         ))}
       </div>
 
-      <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:10, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>← Edit Inputs</button>
-      </div>
-    </div>
+      <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:10, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }} className="no-print">← Edit Inputs</button>
+          </div>
+        </div>
       </div>
     </div>
   );
