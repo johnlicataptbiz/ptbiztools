@@ -1,0 +1,232 @@
+.app-shell {
+  background: var(--color-bg);
+}
+
+.app-shell-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, var(--brand-dark) 0%, color-mix(in oklab, var(--brand-dark) 74%, #000 26%) 100%);
+  box-shadow: 2px 0 14px rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.app-shell-logo-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.app-shell-logo-image {
+  height: 68px;
+  width: auto;
+  object-fit: contain;
+  filter: var(--logo-filter);
+  -webkit-mask-image: var(--logo-mask);
+  mask-image: var(--logo-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.app-shell-logo-link:hover .app-shell-logo-image {
+  transform: translateY(-1px) scale(1.015);
+}
+
+.app-shell-logo-copy {
+  font-size: 0.68rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.app-shell-mobile-close {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.6rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.35rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.app-shell-mobile-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-shell-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.78rem;
+  border-radius: 0.72rem;
+  padding: 0.8rem 0.86rem;
+  min-height: 48px;
+  font-size: 0.96rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+  text-decoration: none;
+}
+
+.app-shell-nav-icon-fallback {
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-shell-nav-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  border-radius: 0 2px 2px 0;
+  background: color-mix(in oklab, var(--brand-accent-light) 82%, #ffffff 18%);
+  transition: height 150ms ease;
+}
+
+.app-shell-nav-link-idle {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.app-shell-nav-link-idle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  transform: translateX(2px);
+}
+
+.app-shell-nav-link-active {
+  background: color-mix(in oklab, var(--brand-accent) 30%, transparent);
+  color: color-mix(in oklab, var(--brand-accent-light) 65%, #ffffff 35%);
+}
+
+.app-shell-nav-link-active::before {
+  height: 24px;
+}
+
+.app-shell-user-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+.app-shell-user-slot {
+  margin-top: clamp(18px, 4vh, 36px);
+}
+
+.app-shell-user-card p:first-child {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.app-shell-user-card p:last-child {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.app-shell-user-card button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.app-shell-user-card button:hover {
+  background: color-mix(in oklab, var(--brand-accent) 34%, transparent);
+  border-color: color-mix(in oklab, var(--brand-accent) 52%, transparent);
+}
+
+.app-shell-header {
+  background: color-mix(in oklab, var(--background) 84%, white 16%);
+  backdrop-filter: blur(7px);
+  box-shadow: 0 8px 20px rgba(24, 24, 27, 0.07);
+}
+
+.app-shell-theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-shell-theme-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, black 12%);
+  font-weight: 600;
+}
+
+.app-shell-theme-select {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, #bcb4a8 14%);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 28px 6px 10px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23615a4f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.app-shell-theme-select:hover {
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+}
+
+.app-shell-theme-select:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent) 60%, #1a1410);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 22%, white 78%);
+}
+
+.app-shell-main {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(1000px 460px at 8% -28%, var(--shell-radial-a), transparent 55%),
+    radial-gradient(900px 420px at 95% 105%, var(--shell-radial-b), transparent 45%),
+    linear-gradient(180deg, var(--shell-linear-start), var(--shell-linear-end));
+}
+
+.app-shell-main > main {
+  flex: 1;
+}
+
+.app-shell-footer {
+  background: color-mix(in oklab, var(--surface) 80%, white 20%);
+}
+
+.app-shell-footer p {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, black 15%);
+}
+
+.app-shell-footer-tag {
+  font-style: italic;
+}
+
+@media (max-width: 1023px) {
+  .app-shell-sidebar {
+    box-shadow: 14px 0 42px rgba(24, 24, 27, 0.38);
+  }
+
+  .app-shell-logo-image {
+    height: 56px;
+  }
+
+  .app-shell-theme-label {
+    display: none;
+  }
+}

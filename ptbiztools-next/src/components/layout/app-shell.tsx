@@ -18,7 +18,7 @@ import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole, getRoleLabel } from "@/lib/auth/roles";
 import { useTheme } from "@/lib/theme/theme-context";
 import { TourAnchors } from "@/lib/tour/anchors";
-import { SITE_LOGO_URL, LOGO_SIZES } from "@/constants/branding";
+import { SITE_LOGO_URL } from "@/constants/branding";
 import "@/styles/app-shell.css";
 
 interface NavItem {
@@ -129,15 +129,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="app-shell-logo-link"
             onClick={() => setMenuOpen(false)}
             data-tour={TourAnchors.shell.logo}
-            title="PT Biz Tools - Back to Dashboard"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              className="app-shell-logo-image" 
-              src={SITE_LOGO_URL} 
-              alt="PT Biz Tools"
-              style={{ height: LOGO_SIZES.sidebar.height }}
-            />
+            <img className="app-shell-logo-image" src={SITE_LOGO_URL} alt="PT Biz Tools" />
+            <span className="app-shell-logo-copy">PTBizCoach</span>
           </Link>
           <button className="app-shell-mobile-close lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Close menu">
             <X size={16} />
