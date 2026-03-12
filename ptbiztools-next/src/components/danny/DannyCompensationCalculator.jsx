@@ -5,6 +5,14 @@ import { useState, useCallback } from "react";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 import "@/styles/danny-tools.css";
 
+// Print styles - hide UI elements when printing
+const printStyles = `
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+  }
+`;
+
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
 // Light theme color palette
@@ -129,6 +137,10 @@ export default function App() {
     }
   };
 
+  const handleDownload = () => {
+    window.print();
+  };
+
   const canCalc = grossMonthly > 0;
   const pageShellStyle = { maxWidth:980, margin:"0 auto", padding:"0 24px 64px" };
   const canvasStyle = {
@@ -153,12 +165,10 @@ export default function App() {
   // ── INPUT VIEW ──
   if (step === "input") {
     return (
-      <div className="grade-modal-overlay">
-        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
-          <div className="grade-modal-header" style={{ textAlign: "left" }}>
-            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
-              ×
-            </button>
+      <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
+        <style>{printStyles}</style>
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
@@ -166,13 +176,14 @@ export default function App() {
                 <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Calculator</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Find the right comp range before you hire</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Calculator</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Find the right comp range before you hire</p>
               </div>
             </div>
+            <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back to Dashboard</button>
           </div>
-          <div className="grade-modal-content">
-            <div style={pageShellStyle}>
+          <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+          <div style={pageShellStyle}>
               <div style={canvasStyle}>
 
         {/* Location */}
@@ -258,18 +269,15 @@ export default function App() {
         </div>
       </div>
     </div>
-  </div>
   );
   }
 
   // ── RESULTS VIEW ──
   return (
-    <div className="grade-modal-overlay" onClick={() => setStep("input")}>
-      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980 }}>
-        <div className="grade-modal-header" style={{ textAlign: "left" }}>
-          <button className="grade-modal-close" onClick={() => setStep("input")} aria-label="Close results">
-            ×
-          </button>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FAFAFB", padding: "24px 0 64px" }}>
+      <style>{printStyles}</style>
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E5E7EB" }} className="no-print">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
@@ -277,14 +285,17 @@ export default function App() {
               <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                 PT Biz Coach Tools
               </div>
-              <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Results</h2>
-              <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Compensation guidance with total cost clarity</p>
+              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Results</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Compensation guidance with total cost clarity</p>
             </div>
           </div>
         </div>
-        <div className="grade-modal-content">
-          <div style={pageShellStyle}>
-            <div style={canvasStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }} className="no-print">
+          <button onClick={() => setStep("input")} style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: 12 }}>← Edit numbers</button>
+          <button onClick={handleDownload} style={{ background: B.blue, border: "none", borderRadius: 6, color: "#fff", fontSize: 13, fontWeight: 700, padding: "10px 20px", cursor: "pointer", fontFamily: "'Barlow Condensed',sans-serif", textTransform: "uppercase", letterSpacing: "0.04em" }}>📥 Download Report</button>
+        </div>
+        <div style={pageShellStyle}>
+          <div style={canvasStyle}>
       <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:20 }}>
         <span style={{ fontSize:10, fontWeight:700, color:"#7C3AED", background:"#7C3AED15", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #7C3AED33" }}>{expLevel === "newgrad" ? "NEW GRAD" : expLevel === "moderate" ? "1-3 YRS" : expLevel === "experienced" ? "3-5 YRS" : "SENIOR"}</span>
         <span style={{ fontSize:10, fontWeight:700, color:"#059669", background:"#05966915", padding:"3px 10px", borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.08em", border:"1px solid #05966933" }}>{$(grossMonthly)}/MO GROSS</span>
@@ -449,9 +460,6 @@ export default function App() {
       </div>
 
       <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:10, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>← Edit Inputs</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

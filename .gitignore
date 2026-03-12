@@ -5,6 +5,7 @@ dist/
 *.log
 .DS_Store
 .vercel
+.next/
 
 # Local tooling artifacts
 /.playwright-cli/
