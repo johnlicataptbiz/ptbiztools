@@ -554,25 +554,35 @@ export default function DannyFinancialAudit() {
   };
 
   const handleDownload = async () => {
+    // Validate data exists before generating PDF
+    if (typeof score !== 'number' || Number.isNaN(score) || score === 0) {
+      alert("Please run the analysis first before downloading the report.");
+      return;
+    }
+    if (typeof rev !== 'number' || Number.isNaN(rev)) {
+      alert("Please complete the analysis first.");
+      return;
+    }
+    
     try {
       const { generatePLPDF } = await import("@/utils/plPdfGenerator");
       
       await generatePLPDF(
-        clinicName,
-        period,
-        rev,
-        totalExp,
-        netIncome,
-        ode,
-        m,
-        tRows,
-        score,
-        recs,
-        plan,
-        cashFlow,
-        clinicType,
-        payerMix,
-        bizPhase
+        clinicName || "Clinic",
+        period || "Annual Review",
+        rev || 0,
+        totalExp || 0,
+        netIncome || 0,
+        ode || 0,
+        m || {},
+        tRows || [],
+        score || 0,
+        recs || [],
+        plan || null,
+        cashFlow || [],
+        clinicType || "solo",
+        payerMix || "cash",
+        bizPhase || "maintenance"
       );
 
       void Promise.allSettled([

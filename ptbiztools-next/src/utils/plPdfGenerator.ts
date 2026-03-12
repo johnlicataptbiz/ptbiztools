@@ -1,5 +1,3 @@
-import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
-
 const COLORS = {
   dark: '#0b1220',
   accent: '#e94560',
@@ -52,11 +50,22 @@ async function loadImageDataUrl(url: string): Promise<string | null> {
   }
 }
 
+function safeText(text: unknown, fallback = ''): string {
+  if (text === null || text === undefined || Number.isNaN(text)) return fallback;
+  return String(text);
+}
+
+function safeNum(value: unknown, fallback = 0): number {
+  if (value === null || value === undefined || Number.isNaN(value)) return fallback;
+  const num = Number(value);
+  return Number.isNaN(num) ? fallback : num;
+}
+
 const $ = (v: number) => 
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(safeNum(v));
 
 const pf = (v: number | null) => 
-  v === null || isNaN(v) ? "—" : v.toFixed(1) + "%";
+  v === null || isNaN(v) ? "—" : safeNum(v).toFixed(1) + "%";
 
 interface PLRow {
   label: string;
@@ -134,7 +143,6 @@ export async function generatePLPDF(
   const margin = 20;
   const contentWidth = pageWidth - margin * 2;
   const bottomLimit = pageHeight - 20;
-  const logoDataUrl = await loadImageDataUrl(PTBIZ_LOGO_DARK_BG_URL);
   let y = 0;
 
   const grade = score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F";
@@ -149,17 +157,9 @@ export async function generatePLPDF(
     doc.setFontSize(continuation ? 16 : 21);
     doc.text(continuation ? 'P&L Financial Audit (continued)' : 'P&L Financial Audit', margin, continuation ? 18 : 22);
 
-    if (logoDataUrl) {
-      const logoWidth = 48;
-      const logoHeight = 12;
-      const logoX = pageWidth - margin - logoWidth;
-      const logoY = 14;
-      doc.addImage(logoDataUrl, 'PNG', logoX, logoY, logoWidth, logoHeight, undefined, 'FAST');
-    } else {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('PT Biz', pageWidth - margin, 22, { align: 'right' });
-    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('PT Biz', pageWidth - margin, 22, { align: 'right' });
 
     y = 54;
     doc.setTextColor(COLORS.muted);
@@ -475,7 +475,8 @@ export async function generatePLPDF(
       doc.setTextColor(COLORS.white);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.text(`${item.icon} ${item.title}`, margin + 2, y + 5);
+      const titleText = item.title.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+      doc.text(titleText, margin + 2, y + 5);
       
       y += 7;
       
