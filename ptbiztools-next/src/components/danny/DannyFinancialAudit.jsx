@@ -656,7 +656,6 @@ export default function DannyFinancialAudit() {
               <div style={canvasStyle}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <Logo big />
               <div style={{ width:1, height:28, background:B.bdr }} />
               <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
             </div>
@@ -779,7 +778,6 @@ export default function DannyFinancialAudit() {
             <div style={canvasStyle}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <Logo big />
             <div style={{ width:1, height:28, background:B.bdr }} />
             <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
           </div>
