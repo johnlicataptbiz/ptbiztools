@@ -25,10 +25,12 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState, useRef } from "react";
-import { LOGIN_LOGO_URL, LOGIN_BACKGROUND_IMAGE_URL } from "@/constants/branding";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
+import { LOGIN_LOGO_URL } from "@/constants/branding";
+import { CMS_ASSETS, getCmsAsset } from "@/constants/cms-assets";
+import { HeroImage } from "@/components/ui/OptimizedImage";
 
 const REMEMBERED_USER_KEY = "ptbiz_selected_user_id";
 const JACK_NAME = "jack licata";
@@ -777,16 +779,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div 
-      className="login-shell"
-      style={{
-        backgroundImage: `url(${LOGIN_BACKGROUND_IMAGE_URL})`,
-        backgroundSize: 'contain',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-      }}
-    >
+    <div className="login-shell">
+      {/* Hero Background with CMS Asset */}
+      <div className="login-hero-background">
+        <HeroImage
+          asset={CMS_ASSETS.brand.heroPrimary}
+          height="100%"
+          overlayOpacity={0.7}
+        />
+      </div>
+
+      {/* Logo Hero Section - NEW: Prominent brand logo */}
+      {!selectedUser && (
+        <div className="login-logo-hero-section">
+          <div className="login-logo-glow" />
+          <div className="login-logo-hero">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              className="login-logo-image-hero" 
+              src={LOGIN_LOGO_URL} 
+              alt="PT Biz Tools" 
+            />
+          </div>
+          <p className="login-brand-tagline">Professional tools for PT business growth</p>
+        </div>
+      )}
+
       {/* Alphabet Index - Quick Scan Aid */}
       {alphabetIndex.length > 0 && !selectedUser && (
         <div className="alphabet-index" role="navigation" aria-label="Alphabetical index">
@@ -809,14 +827,9 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <header className="login-header" style={{ padding: "24px 24px 16px" }}>
-          <div className="login-logo-hero" style={{ marginBottom: "16px" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" style={{ maxHeight: "48px" }} />
-          </div>
-          
-          <h1 style={{ fontSize: "22px", margin: "0 0 4px 0" }}>Welcome Back</h1>
-          <p style={{ fontSize: "13px", margin: 0, opacity: 0.7 }}>Select your profile to sign in.</p>
+        <header className="login-header" style={{ padding: "24px 24px 16px", textAlign: "center" }}>
+          <h1 style={{ fontSize: "24px", margin: "0 0 8px 0", fontWeight: 700 }}>Welcome Back</h1>
+          <p style={{ fontSize: "14px", margin: 0, opacity: 0.7 }}>Select your profile to sign in</p>
         </header>
 
         {!selectedUser && (

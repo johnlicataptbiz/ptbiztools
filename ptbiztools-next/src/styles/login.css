@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Login Page - Unified Premium Redesign with New Brand Logo
+   Login Page - Brand-First Redesign with Prominent Logo
    ========================================================================== */
 
 .login-shell {
@@ -10,31 +10,98 @@
   align-items: center;
   justify-content: flex-start;
   padding: clamp(16px, 2.4vw, 30px);
-  padding-top: 180px; /* Space for the logo at top */
-  background: 
-    radial-gradient(ellipse 80% 60% at 50% 120%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 20% -20%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 50%),
-    linear-gradient(
-      165deg,
-      color-mix(in oklab, var(--background) 100%, transparent) 0%,
-      color-mix(in oklab, var(--background) 98%, transparent) 50%,
-      var(--background) 100%
-    );
+  padding-top: 40px; /* Reduced padding, logo is now in hero */
+  background: var(--surface-base);
   overflow-x: hidden;
   isolation: isolate;
 }
 
-/* Logo overlay gradient + decorative elements */
+/* Hero Background with CMS Asset */
+.login-hero-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.login-hero-background > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* Logo hero section - NEW */
+.login-logo-hero-section {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Large logo display */
+.login-logo-hero {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-logo-image-hero {
+  display: block;
+  width: min(100%, 280px);
+  height: clamp(80px, 15vw, 140px);
+  object-fit: contain;
+  image-rendering: auto;
+  filter: var(--logo-filter);
+  -webkit-mask-image: var(--logo-mask);
+  mask-image: var(--logo-mask);
+  transition: transform 300ms ease, filter 300ms ease;
+}
+
+.login-logo-image-hero:hover {
+  transform: scale(1.02) translateY(-2px);
+  filter: saturate(1.08) contrast(1.08);
+}
+
+/* Logo glow effect */
+.login-logo-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--logo-glow) 0%, transparent 70%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Brand tagline under logo */
+.login-brand-tagline {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+  margin-top: 8px;
+}
+
+/* Decorative background elements */
 .login-shell::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image: 
-    radial-gradient(circle at 2% 3%, var(--brand-accent) 0.5%, transparent 0.5%),
-    radial-gradient(circle at 98% 97%, var(--brand-medium) 0.3%, transparent 0.3%);
+    radial-gradient(circle at 2% 3%, var(--brand-primary) 0.5%, transparent 0.5%),
+    radial-gradient(circle at 98% 97%, var(--brand-secondary) 0.3%, transparent 0.3%);
   background-size: 100% 100%;
-  opacity: 0.15;
+  opacity: 0.12;
   filter: blur(80px);
   z-index: 0;
 }
@@ -45,10 +112,10 @@
   inset: -20%;
   pointer-events: none;
   background: 
-    radial-gradient(ellipse 50% 40% at 15% 85%, color-mix(in oklab, var(--brand-accent) 8%, transparent), transparent 50%),
-    radial-gradient(ellipse 40% 35% at 85% 15%, color-mix(in oklab, var(--brand-medium) 6%, transparent), transparent 50%);
+    radial-gradient(ellipse 50% 40% at 15% 85%, color-mix(in oklab, var(--brand-primary) 6%, transparent), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 85% 15%, color-mix(in oklab, var(--brand-secondary) 4%, transparent), transparent 50%);
   filter: blur(60px);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 /* Main Card */
