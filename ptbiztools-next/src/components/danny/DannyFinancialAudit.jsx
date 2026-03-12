@@ -554,51 +554,55 @@ export default function DannyFinancialAudit() {
   };
 
   const handleDownload = async () => {
-    // Import and use the new PDF generator
-    const { generatePLPDF } = await import("@/utils/plPdfGenerator");
-    
-    await generatePLPDF(
-      clinicName,
-      period,
-      rev,
-      totalExp,
-      netIncome,
-      ode,
-      m,
-      tRows,
-      score,
-      recs,
-      plan,
-      cashFlow,
-      clinicType,
-      payerMix,
-      bizPhase
-    );
-
-    void Promise.allSettled([
-      savePdfExport({
-        sessionId,
-        clientName: clinicName || "P&L Audit",
+    try {
+      const { generatePLPDF } = await import("@/utils/plPdfGenerator");
+      
+      await generatePLPDF(
+        clinicName,
+        period,
+        rev,
+        totalExp,
+        netIncome,
+        ode,
+        m,
+        tRows,
         score,
-        metadata: {
-          tool: "pl_calculator",
-          summary: `${clinicName || "Clinic"} financial audit export`,
-          period: period || null,
-          grade: score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F",
-        },
-      }),
-      logAction({
-        actionType: "pdf_generated",
-        description: `P&L PDF generated for ${clinicName || "Unknown Clinic"}`,
-        metadata: {
-          tool: "pl_calculator",
-          clinicName: clinicName || null,
-          period: period || null,
+        recs,
+        plan,
+        cashFlow,
+        clinicType,
+        payerMix,
+        bizPhase
+      );
+
+      void Promise.allSettled([
+        savePdfExport({
+          sessionId,
+          clientName: clinicName || "P&L Audit",
           score,
-        },
-        sessionId,
-      }),
-    ]);
+          metadata: {
+            tool: "pl_calculator",
+            summary: `${clinicName || "Clinic"} financial audit export`,
+            period: period || null,
+            grade: score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F",
+          },
+        }),
+        logAction({
+          actionType: "pdf_generated",
+          description: `P&L PDF generated for ${clinicName || "Unknown Clinic"}`,
+          metadata: {
+            tool: "pl_calculator",
+            clinicName: clinicName || null,
+            period: period || null,
+            score,
+          },
+          sessionId,
+        }),
+      ]);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   const priClr = { HIGH:"#F87171", MED:"#FBBF24", LOW:B.gray, INFO:"#34D399" };

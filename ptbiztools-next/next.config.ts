@@ -26,6 +26,30 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '22001532.fs1.hubspotusercontent-na1.net',
+        pathname: '/hubfs/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.hubspotusercontent-na1.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ca.slack-edge.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'logos.hunter.io',
+        pathname: '/**',
+      },
+    ],
+  },
   async redirects() {
     return [
       {
