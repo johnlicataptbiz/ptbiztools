@@ -122,12 +122,23 @@ function mapOutcome(outcome?: string): GradeResult['outcome'] {
 }
 
 function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
+  // Map phase IDs to their actual max points from PHASES array
+  const phaseMaxPoints: Record<string, number> = {
+    connection: 10,
+    discovery: 15,
+    gap_creation: 15,
+    solution: 20,
+    temp_check: 15,
+    close: 15,
+    followup: 10,
+  }
+
   const phaseScores = LEGACY_PHASE_MAP.map((phase) => ({
     name: phase.name,
-    score: v2.phaseScores[phase.id].score,
-    maxScore: 100,
-    summary: v2.phaseScores[phase.id].summary,
-    evidence: v2.phaseScores[phase.id].evidence,
+    score: v2.phaseScores[phase.id]?.score ?? 0,
+    maxScore: phaseMaxPoints[phase.id] ?? 100,
+    summary: v2.phaseScores[phase.id]?.summary ?? '',
+    evidence: v2.phaseScores[phase.id]?.evidence ?? [],
   }))
   const redFlags = Object.entries(v2.criticalBehaviors)
     .filter(([, value]) => value.status === 'fail')
@@ -147,8 +158,8 @@ function adaptV2ToGradeResult(v2: SalesGradeV2Response): GradeResult {
     outcome: mapOutcome(v2.metadata.outcome),
     summary: `Deterministic score ${v2.deterministic.overallScore}/100. Confidence ${v2.confidence.score}/100.`,
     phaseScores,
-    strengths: [v2.highlights.topStrength].filter(Boolean),
-    improvements: [v2.highlights.topImprovement].filter(Boolean),
+    strengths: v2.highlights?.topStrength ? [v2.highlights.topStrength] : ['Good effort on the call'],
+    improvements: v2.highlights?.topImprovement ? [v2.highlights.topImprovement] : ['Continue practicing the discovery framework'],
     redFlags,
     deidentifiedTranscript: v2.storage?.redactedTranscript || '',
     // Extended data from v2 API
