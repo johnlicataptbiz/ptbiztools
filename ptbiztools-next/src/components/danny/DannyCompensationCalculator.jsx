@@ -461,5 +461,7 @@ export default function App() {
       <button onClick={() => setStep("input")} style={{ width:"100%", padding:"14px", background:B.surf, border:"1px solid " + B.bdr, borderRadius:10, color:B.gray, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em" }}>← Edit Inputs</button>
       </div>
     </div>
+      </div>
+    </div>
   );
 }
