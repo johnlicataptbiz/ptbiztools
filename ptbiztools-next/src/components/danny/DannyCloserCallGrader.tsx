@@ -1340,13 +1340,13 @@ export default function SalesCallGrader() {
           .sales-modal-close { display: none !important; }
         }
       `}</style>
-      <div className="tool-page" style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
+      <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px" }}>
         {/* Header */}
         <div className="no-print" style={{ textAlign: "center", marginBottom: "16px" }}>
-          <h1 className="tool-page-title" style={{ margin: "0 0 6px 0", fontSize: "22px" }}>
+          <h1 className="tool-page-title" style={{ margin: "0 0 6px 0", fontSize: "22px", color: textPrimary }}>
             Sales Call Grader
           </h1>
-          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "13px" }}>
+          <p className="tool-page-subtitle" style={{ margin: 0, fontSize: "13px", color: textSecondary }}>
             Grade calls against the 7-phase framework. Export clean reports when you&apos;re ready.
           </p>
         </div>
