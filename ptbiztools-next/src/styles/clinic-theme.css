@@ -1,0 +1,84 @@
+/* Clinic Theme - Integrates SVG pack elements */
+
+/* CSS Vars for clinic patterns/colors */
+.clinic-root {
+  --clinic-growth: url('/clinic-icons/growth_arrow_banner.svg');
+  --clinic-kpi: url('/clinic-icons/kpi_chart_texture.svg');
+  --clinic-performance: url('/clinic-icons/clinic_performance_banner.svg');
+  --clinic-network: url('/clinic-icons/node_network_pattern.svg');
+  --clinic-analytics: url('/clinic-icons/analytics_strip.svg');
+  
+  --clinic-glow: rgba(52, 211, 153, 0.15); /* Teal for PT theme */
+  --clinic-arrow-glow: rgba(46, 134, 245, 0.2);
+}
+
+/* Background pattern utilities */
+.clinic-pattern-growth {
+  background-image: var(--clinic-growth);
+  background-repeat: repeat-x;
+  background-size: 120px auto;
+  opacity: 0.06;
+}
+
+.clinic-pattern-kpi {
+  background-image: var(--clinic-kpi);
+  background-repeat: repeat;
+  background-size: 60px;
+  opacity: 0.04;
+}
+
+.clinic-pattern-performance {
+  background-image: var(--clinic-performance);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.1;
+}
+
+.clinic-pattern-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Icon hover animations */
+.clinic-icon-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.clinic-icon-hover:hover {
+  transform: scale(1.05) translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(46, 134, 245, 0.3));
+}
+
+/* Dashboard card enhancements */
+.dashboard-stat.clinic-enhanced .stat-icon {
+  background-image: var(--clinic-kpi);
+  background-blend-mode: overlay;
+  background-size: cover;
+}
+
+/* Modal header patterns */
+.danny-modal-header.clinic-pattern {
+  background-image: linear-gradient(135deg, var(--clinic-arrow-glow), transparent), var(--clinic-growth);
+}
+
+/* Progress bar textures */
+.progress-fill.clinic-textured {
+  background-image: linear-gradient(90deg, var(--clinic-performance), var(--clinic-kpi));
+  background-size: 40px 100%;
+  background-repeat: repeat-x;
+}
+
+/* Print optimizations */
+@media print {
+  .clinic-pattern-* { opacity: 0.02 !important; }
+  .clinic-icon-hover { transform: none !important; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .clinic-pattern-growth { background-size: 80px auto; }
+}
+

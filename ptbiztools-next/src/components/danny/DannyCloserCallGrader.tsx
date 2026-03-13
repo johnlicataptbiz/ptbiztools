@@ -1,37 +1,9 @@
-## Error Type
-Build Error
+"use client";
 
-## Error Message
-Parsing ecmascript source code failed
-
-## Build Output
-./src/components/danny/DannyFinancialAudit.jsx:726:8
-Parsing ecmascript source code failed
-  724 |           </div>
-  725 |         </div>
-> 726 |       </div>
-      |        ^^^^^
-  727 |     );
-  728 |   }
-  729 |
-
-Unterminated regexp literal
-
-Import traces:
-  Client Component Browser:
-    ./src/components/danny/DannyFinancialAudit.jsx [Client Component Browser]
-    ./src/app/(app)/pl-calculator/page.tsx [Client Component Browser]
-    ./src/app/(app)/pl-calculator/page.tsx [Server Component]
-
-  Client Component SSR:
-    ./src/components/danny/DannyFinancialAudit.jsx [Client Component SSR]
-    ./src/app/(app)/pl-calculator/page.tsx [Client Component SSR]
-    ./src/app/(app)/pl-calculator/page.tsx [Server Component]
-
-Next.js version: 16.1.6 (Turbopack)
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
+
 import { TOOL_BADGES } from "@/constants/tool-badges";
 import {
   extractTranscriptFromFile,
@@ -41,6 +13,9 @@ import {
   savePdfExport,
   gradeDannySalesCallV2,
 } from "@/lib/ptbiz-api";
+import { ClinicIcon } from "@/components/clinic/ClinicIcon";
+import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
+import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import {
   canSubmitByWordCount,
   getWordGateMessage,
@@ -173,11 +148,12 @@ function SalesModal({
 }) {
   if (!isOpen) return null;
   return (
-    <div className="grade-modal-overlay sales-modal-overlay" onClick={onClose}>
+    <div className="grade-modal-overlay sales-modal-overlay clinic-pattern-overlay" onClick={onClose} style={{ position: 'relative' }}>
+      <ClinicBackground pattern="kpiTexture" opacity={0.04} />
       <div
-        className="grade-modal-container sales-modal-container"
+        className="grade-modal-container sales-modal-container clinic-pattern-kpi"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth }}
+        style={{ maxWidth, position: 'relative', zIndex: 1 }}
       >
         <div className="grade-modal-header sales-modal-header">
           <button className="grade-modal-close" onClick={onClose} aria-label="Close modal">
@@ -186,6 +162,7 @@ function SalesModal({
           <div className="sales-modal-title-row">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={badgeSrc} alt={badgeAlt} className="grade-modal-badge sales-modal-badge" />
+            <ClinicIcon name="growth" size={24} className="clinic-icon-hover" />
 
           </div>
         </div>

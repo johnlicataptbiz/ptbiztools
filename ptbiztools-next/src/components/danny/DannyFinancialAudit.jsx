@@ -4,6 +4,9 @@ import { useState, useRef, useCallback } from "react";
 import { extractDannyPLFromPdf, logAction, savePdfExport } from "@/lib/ptbiz-api";
 import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
 import { TOOL_BADGES } from "@/constants/tool-badges";
+import { ClinicIcon } from "@/components/clinic/ClinicIcon";
+import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
+import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import "@/styles/danny-tools.css";
 
 // Print styles - hide UI elements when printing
@@ -150,7 +153,8 @@ function Gauge({ value, bm, apVal }) {
   const w = dv !== null ? Math.min((dv / mx) * 100, 100) : 0;
   const aw = apVal !== null ? Math.min((apVal / mx) * 100, 100) : 0;
   return (
-    <div style={{ marginBottom:12, padding:"12px 16px", background:c.bg, borderRadius:8, border:`1px solid ${c.ac}33` }}>
+    <div style={{ marginBottom:12, padding:"12px 16px", background: c.bg, borderRadius:8, border:`1px solid ${c.ac}33`, position: 'relative' }} className="clinic-icon-hover clinic-pattern-kpi" style={{ '--clinic-kpi': `url(${CLINIC_SVGS.kpiTexture})` }}>
+      <ClinicIcon name="kpiTexture" size={16} style={{ position: 'absolute', top: 4, right: 8, opacity: 0.3 }} />
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6, flexWrap:"wrap", gap:4 }}>
         <div style={{ flex:"1 1 auto", minWidth:0 }}>
           <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600, fontSize:14, color:B.wht, textTransform:"uppercase", letterSpacing:"0.02em" }}>{bm.l}</span>
@@ -618,21 +622,23 @@ export default function DannyFinancialAudit() {
       <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
+              <ClinicIcon name="analyticsStrip" size={28} className="clinic-icon-hover" />
               </div>
 
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
           </div>
           <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-          <div style={canvasStyle}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:1, height:28, background:B.bdr }} />
-              <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
-            </div>
+          <div style={{ ...canvasStyle, position: 'relative' }} className="clinic-pattern-overlay">
+            <ClinicBackground pattern="nodeNetwork" opacity={0.03} />
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ width:1, height:28, background:B.bdr }} />
+                <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
+              </div>
           </div>
           <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:24, fontWeight:800, color:B.wht, marginBottom:4, textTransform:"uppercase" }}>How Healthy Are Your Clinic Finances?</h2>
           <p style={{ color:B.grayDk, fontSize:12, margin:"0 0 20px" }}>Upload is processed server-side for field mapping with authenticated access.</p>
@@ -726,6 +732,8 @@ export default function DannyFinancialAudit() {
 
   // ===== REPORT STEP =====
   return (
+
+
     <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
       <style>{printStyles}</style>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>

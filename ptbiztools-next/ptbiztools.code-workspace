@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"uri": "vscode-vfs://github/johnlicataptbiz/ptbiztools"
+			"path": ".."
 		},
 		{
-			"uri": "vscode-vfs://github/johnlicataptbiz/ptbiztools/ptbiztools-next/docs"
+			"path": "../../../Downloads/clinic_svg_pack"
 		}
 	],
 	"settings": {}

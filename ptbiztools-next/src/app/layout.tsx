@@ -8,6 +8,7 @@ import "@/styles/discovery-call-grader.css";
 import "@/styles/analysis-history.css";
 import "@/styles/tool-page.css";
 import "@/styles/login.css";
+import "@/styles/clinic-theme.css";
 
 const brandSans = Space_Grotesk({
   variable: "--font-brand-sans",

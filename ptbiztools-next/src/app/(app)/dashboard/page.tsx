@@ -7,18 +7,16 @@ import { useState, useMemo, type ComponentType, type CSSProperties } from "react
 import {
   Activity,
   BarChart3,
-  Calculator,
   ClipboardList,
   Clock,
   FileText,
   LogIn,
   Medal,
-  Phone,
-  PhoneCall,
   ScrollText,
-  TrendingUp,
   Users,
 } from "lucide-react";
+import { ClinicIcon, type ClinicSvgName } from "@/components/clinic/ClinicIcon";
+import { CLINIC_SVGS, ClinicIcon, type ClinicSvgName } from "@/constants/clinic-svgs";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";
@@ -110,11 +108,11 @@ const trackedPdfActions = new Set(["pdf_generated", "PDF_GENERATED", "pl_pdf_gen
 const trackedLoginActions = new Set(["login_success", "LOGIN_SUCCESS"]);
 
 const TOOL_CARDS: ToolCard[] = [
-  {
+{
     title: "Discovery Call Grader",
     description: "Grade and analyze discovery call transcripts with immediate coaching feedback.",
     href: "/discovery-call-grader",
-    icon: Phone,
+    icon: () => <ClinicIcon name="network" size={28} />,
     badgeUrl: TOOL_BADGES.discovery,
     color: "var(--accent)",
   },
@@ -122,7 +120,7 @@ const TOOL_CARDS: ToolCard[] = [
     title: "P&L Calculator",
     description: "Analyze clinic financial performance with benchmarks and action steps.",
     href: "/pl-calculator",
-    icon: TrendingUp,
+    icon: () => <ClinicIcon name="performance" size={28} />,
     badgeUrl: TOOL_BADGES.pl,
     color: "var(--success)",
   },
@@ -130,7 +128,7 @@ const TOOL_CARDS: ToolCard[] = [
     title: "Comp Calculator",
     description: "Model compensation structures and targets with PT Biz assumptions.",
     href: "/compensation-calculator",
-    icon: Calculator,
+    icon: () => <ClinicIcon name="kpiBarbell" size={28} />,
     badgeUrl: TOOL_BADGES.comp,
     color: "var(--warning)",
   },
@@ -138,7 +136,7 @@ const TOOL_CARDS: ToolCard[] = [
     title: "Sales Grader",
     description: "Run the deterministic sales discovery grading system for closer calls.",
     href: "/sales-discovery-grader",
-    icon: PhoneCall,
+    icon: () => <ClinicIcon name="growth" size={28} />,
     badgeUrl: TOOL_BADGES.sales,
     color: "#1f6f8b",
     adminsAndAdvisorsOnly: true,
@@ -470,19 +468,20 @@ export default function DashboardPage() {
   return (
     <div className="home">
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
-        <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
-          <div className="dashboard-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
-            <button 
-              className="changelog-trigger-btn"
-              onClick={() => setChangelogOpen(true)}
-              title="View changelog"
-              style={{ marginLeft: "auto" }}
-            >
-              <History size={18} />
-            </button>
-          </div>
-        </motion.section>
+<motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header clinic-pattern-overlay clinic-pattern-growth" style={{ position: 'relative' }}>
+  <ClinicBackground pattern="growth" opacity={0.06} />
+  <div className="dashboard-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: 'relative', zIndex: 1 }}>
+    <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
+    <button 
+      className="changelog-trigger-btn"
+      onClick={() => setChangelogOpen(true)}
+      title="View changelog"
+      style={{ marginLeft: "auto" }}
+    >
+      <History size={18} />
+    </button>
+  </div>
+</motion.section>
 
         <motion.section variants={itemVariants} className="stats-grid">
           <article className="stat-card">
