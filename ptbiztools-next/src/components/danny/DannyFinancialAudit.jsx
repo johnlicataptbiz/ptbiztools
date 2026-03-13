@@ -18,21 +18,8 @@ const printStyles = `
   }
 `;
 
-// Light theme color palette
-const B = { 
-  blue:"#2E86F5", 
-  blueLt:"#5BA0F7", 
-  blueDk:"#1A6AD4", 
-  glow:"rgba(46,134,245,0.15)", 
-  dark:"#FAFAFB", 
-  surf:"#FFFFFF", 
-  bdr:"#E5E7EB", 
-  bdrLt:"#D1D5DB", 
-  wht:"#111827", 
-  gray:"#6B7280", 
-  grayDk:"#9CA3AF", 
-  grayXDk:"#D1D5DB" 
-};
+// Dark theme color palette
+const B = { blue:"#2E86F5", blueLt:"#5BA0F7", blueDk:"#1A6AD4", glow:"rgba(46,134,245,0.25)", dark:"#1A1A1E", surf:"#242428", bdr:"#35353A", bdrLt:"#45454B", wht:"#F5F5F7", gray:"#9A9AA0", grayDk:"#6A6A70", grayXDk:"#4A4A50" };
 const REF = { rev:961260, rent:46807, util:4909, staff:278433, ptax:25785, ben:15596, owner:61539, mkt:58137, merch:28764, sw:11489, dues:15967, oSup:10109, ptSup:7172, med:0, prof:16874, cont:0, ins:5092, ce:3170, meal:5157, trav:5348, int:2095, oth:8721 };
 
 const BM = [

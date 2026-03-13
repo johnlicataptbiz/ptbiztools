@@ -17,19 +17,19 @@ const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID"
 
 // Light theme color palette
 const B = {
-  bg:"#FAFAFB",
-  surf:"#FFFFFF", 
-  dark:"#F3F4F6", 
-  bdr:"#E5E7EB", 
+  bg:"#1A1A1E",
+  surf:"#242428", 
+  dark:"#1A1A1E", 
+  bdr:"#35353A", 
   blue:"#2E86F5", 
-  wht:"#111827", 
-  gray:"#6B7280", 
-  grayDk:"#9CA3AF", 
-  grayXDk:"#D1D5DB", 
+  wht:"#F5F5F7", 
+  gray:"#9A9AA0", 
+  grayDk:"#6A6A70", 
+  grayXDk:"#4A4A50", 
   green:"#059669", 
   yellow:"#D97706", 
   red:"#DC2626", 
-  glow:"rgba(46,134,245,0.15)"
+  glow:"rgba(46,134,245,0.25)"
 };
 
 const $ = v => v === null || v === undefined || isNaN(v) ? "—" : "$" + Math.round(v).toLocaleString("en-US");
