@@ -173,11 +173,7 @@ export default function App() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
               <div>
-                <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
-                  PT Biz Coach Tools
-                </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0, color: "#F5F5F7" }}>Comp Calculator</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0, color: "#9A9AA0" }}>Find the right comp range before you hire</p>
+
               </div>
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>

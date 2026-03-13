@@ -1,3 +1,34 @@
+## Error Type
+Build Error
+
+## Error Message
+Parsing ecmascript source code failed
+
+## Build Output
+./src/components/danny/DannyFinancialAudit.jsx:726:8
+Parsing ecmascript source code failed
+  724 |           </div>
+  725 |         </div>
+> 726 |       </div>
+      |        ^^^^^
+  727 |     );
+  728 |   }
+  729 |
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./src/components/danny/DannyFinancialAudit.jsx [Client Component Browser]
+    ./src/app/(app)/pl-calculator/page.tsx [Client Component Browser]
+    ./src/app/(app)/pl-calculator/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/danny/DannyFinancialAudit.jsx [Client Component SSR]
+    ./src/app/(app)/pl-calculator/page.tsx [Client Component SSR]
+    ./src/app/(app)/pl-calculator/page.tsx [Server Component]
+
+Next.js version: 16.1.6 (Turbopack)
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
@@ -155,11 +186,7 @@ function SalesModal({
           <div className="sales-modal-title-row">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={badgeSrc} alt={badgeAlt} className="grade-modal-badge sales-modal-badge" />
-            <div className="sales-modal-title-block">
-              <div className="sales-modal-kicker">PT Biz Coach Tools</div>
-              <h2 className="grade-modal-title sales-modal-title">{title}</h2>
-              <p className="grade-modal-subtitle sales-modal-subtitle">{subtitle}</p>
-            </div>
+
           </div>
         </div>
         <div className="grade-modal-content sales-modal-content">{children}</div>

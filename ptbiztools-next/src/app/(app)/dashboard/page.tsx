@@ -579,18 +579,18 @@ export default function DashboardPage() {
         </motion.section>
 
         <motion.section variants={itemVariants} className="tools-section" data-tour={TourAnchors.dashboard.tools}>
-          <h2>{isAdmin ? "Tools" : "Your Tools"}</h2>
+
           <div className="tools-grid">
             {toolCards.map((tool) => {
               const Icon = tool.icon;
               return (
                 <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
-                  <div className="tool-icon" style={{ background: `${tool.color}20` }}>
+                  <div className="tool-icon">
                     {tool.badgeUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tool.badgeUrl}
-                        alt={`${tool.title} icon`}
+                        alt={tool.title}
                         className="tool-badge"
                         onError={(event) => {
                           (event.currentTarget as HTMLImageElement).style.display = "none";
@@ -602,9 +602,6 @@ export default function DashboardPage() {
                     <span className="tool-icon-fallback" style={{ display: tool.badgeUrl ? "none" : "inline-flex" }}>
                       <Icon size={28} style={{ color: tool.color }} />
                     </span>
-                  </div>
-                  <div className="tool-content">
-                    <h3>{tool.title}</h3>
                   </div>
                 </Link>
               );

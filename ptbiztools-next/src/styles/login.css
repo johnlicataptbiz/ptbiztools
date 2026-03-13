@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Login Page - Unified Premium Redesign
+   Login Page - Premium Animated Redesign
    ========================================================================== */
 
 .login-shell {
@@ -10,29 +10,43 @@
   justify-content: center;
   padding: clamp(16px, 2.4vw, 30px);
   background: 
-    radial-gradient(ellipse 80% 60% at 50% 120%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 20% -20%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 50%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, color-mix(in oklab, var(--brand-accent) 15%, transparent), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 0%, color-mix(in oklab, var(--brand-medium) 12%, transparent), transparent 40%),
     linear-gradient(
       165deg,
       color-mix(in oklab, var(--background) 100%, transparent) 0%,
-      color-mix(in oklab, var(--background) 98%, transparent) 50%,
+      color-mix(in oklab, var(--surface) 95%, transparent) 50%,
       var(--background) 100%
     );
   overflow-x: hidden;
   isolation: isolate;
+  contain: layout style paint;
 }
 
+/* Simplified floating orbs - GPU optimized */
 .login-shell::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: 
-    radial-gradient(circle at 2% 3%, var(--brand-accent) 0.5%, transparent 0.5%),
-    radial-gradient(circle at 98% 97%, var(--brand-medium) 0.3%, transparent 0.3%);
-  background-size: 100% 100%;
-  opacity: 0.15;
+  background: 
+    radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--brand-accent) 20%, transparent) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, color-mix(in oklab, var(--accent) 15%, transparent) 0%, transparent 40%);
   filter: blur(80px);
+  opacity: 0.5;
+  will-change: transform, opacity;
+  animation: orbFloat 12s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate3d(20px, -20px, 0);
+    opacity: 0.7;
+  }
 }
 
 .login-shell::after {
@@ -41,67 +55,119 @@
   inset: -20%;
   pointer-events: none;
   background: 
-    radial-gradient(ellipse 50% 40% at 15% 85%, color-mix(in oklab, var(--brand-accent) 8%, transparent), transparent 50%),
-    radial-gradient(ellipse 40% 35% at 85% 15%, color-mix(in oklab, var(--brand-medium) 6%, transparent), transparent 50%);
-  filter: blur(60px);
-  opacity: 0.6;
+    radial-gradient(ellipse 50% 40% at 25% 75%, color-mix(in oklab, var(--brand-accent) 10%, transparent), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 75% 25%, color-mix(in oklab, var(--brand-medium) 8%, transparent), transparent 50%);
+  filter: blur(100px);
+  opacity: 0.3;
+  will-change: transform;
+  animation: orbFloat2 15s ease-in-out infinite;
 }
 
-/* Main Card */
+@keyframes orbFloat2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-30px, 30px, 0);
+  }
+}
+
+/* Main Card - Optimized Glassmorphism */
 .login-card {
   position: relative;
   z-index: 1;
-  width: min(520px, 100%);
-  border-radius: 20px;
-  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  width: min(560px, 100%);
+  border-radius: 24px;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   background: 
     linear-gradient(
       165deg,
-      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
-      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
+      color-mix(in oklab, var(--surface) 90%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 75%, transparent) 100%
     );
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 12px 40px rgba(0, 0, 0, 0.08),
-    0 0 0 1px color-mix(in oklab, var(--border) 40%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 50%, transparent);
-  padding: clamp(20px, 3vw, 32px);
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 24px 80px rgba(0, 0, 0, 0.12),
+    0 0 0 1px color-mix(in oklab, var(--border) 30%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 20%, transparent);
+  padding: clamp(24px, 4vw, 40px);
   overflow: hidden;
   backdrop-filter: blur(20px);
+  will-change: transform, opacity;
+  animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle border glow - static */
 .login-card::before {
   content: '';
   position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    color-mix(in oklab, var(--brand-accent) 30%, transparent) 50%, 
-    transparent 100%
+  inset: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--brand-accent) 40%, transparent) 0%,
+    color-mix(in oklab, var(--accent) 50%, transparent) 50%,
+    color-mix(in oklab, var(--brand-medium) 40%, transparent) 100%
   );
-  opacity: 0.6;
-}
-
-.login-card::after {
-  content: '';
-  position: absolute;
-  inset: 12px;
-  border-radius: 18px;
-  border: 1px solid color-mix(in oklab, var(--border) 15%, transparent);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
   pointer-events: none;
 }
 
-/* Header */
+/* Inner glow - static */
+.login-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 23px;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 0%,
+    color-mix(in oklab, var(--brand-accent) 10%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* Header - Premium Typography */
 .login-header {
   margin-bottom: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
+  gap: 12px;
+  animation: headerEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes headerEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-theme-row {
@@ -165,38 +231,58 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  position: relative;
 }
 
 .login-logo-image {
   display: block;
-  width: min(100%, 320px);
-  height: clamp(56px, 10vw, 88px);
+  width: min(100%, 340px);
+  height: clamp(64px, 12vw, 100px);
   object-fit: contain;
   image-rendering: auto;
   filter: var(--logo-filter);
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+  transition: transform 0.3s ease;
+}
+
+.login-logo-image:hover {
+  transform: scale(1.02);
 }
 
 .login-tagline {
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: 8px;
+  font-size: 14px;
   color: var(--muted-foreground);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   font-weight: 500;
+  opacity: 0.9;
 }
 
 .login-header h1 {
-  margin: 16px 0 0;
-  font-size: clamp(32px, 5vw, 42px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  margin: 20px 0 0;
+  font-size: clamp(36px, 6vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
   color: var(--foreground);
   font-family: var(--font-brand-sans), system-ui, -apple-system, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--foreground) 0%,
+    color-mix(in oklab, var(--foreground) 80%, var(--brand-accent)) 50%,
+    var(--foreground) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 100%;
 }
 
 .login-header p {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   width: 100%;
   max-width: 480px;
   display: block;
@@ -204,8 +290,10 @@
   overflow-wrap: anywhere;
   text-wrap: balance;
   color: var(--muted-foreground);
-  font-size: clamp(14px, 1.4vw, 16px);
-  line-height: 1.5;
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 /* Member Picker */
@@ -214,110 +302,202 @@
   gap: 16px;
 }
 
-/* Search */
+/* Search - Premium Glass Input */
 .search-container {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  animation: searchEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes searchEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .search-icon {
   position: absolute;
-  left: 16px;
+  left: 18px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground);
   pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 .search-input {
   width: 100%;
-  padding: 14px 16px 14px 44px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  padding: 16px 100px 16px 50px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 90%, transparent) 0%,
+      color-mix(in oklab, var(--background) 70%, transparent) 100%
+    );
   color: var(--foreground);
-  font-size: 15px;
-  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 60%, var(--border));
+  box-shadow: 
+    0 4px 20px color-mix(in oklab, var(--accent) 15%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--accent) 10%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 15%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 95%, transparent) 0%,
+      color-mix(in oklab, var(--background) 80%, transparent) 100%
+    );
+}
+
+.search-input:focus + .search-icon,
+.search-container:focus-within .search-icon {
+  color: var(--accent);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .search-input::placeholder {
   color: var(--muted-foreground);
-  opacity: 0.6;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
-/* Department Tabs */
+/* Department Tabs - Premium Pill Design */
 .department-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 24px;
+  animation: tabsEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+@keyframes tabsEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .department-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 85%, transparent) 0%,
+      color-mix(in oklab, var(--background) 60%, transparent) 100%
+    );
   color: var(--muted-foreground);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.department-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    color-mix(in oklab, var(--accent) 10%, transparent) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .department-tab:hover {
-  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
   color: var(--foreground);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.department-tab:hover::before {
+  opacity: 1;
 }
 
 .department-tab.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 85%, var(--accent-strong)));
+  border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 30%, transparent);
+  box-shadow: 
+    0 4px 20px color-mix(in oklab, var(--accent) 40%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.department-tab.active::before {
+  opacity: 0;
 }
 
 .department-count {
   font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--border) 50%, transparent);
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--border) 60%, transparent);
+  transition: all 0.3s ease;
+}
+
+.department-tab:hover .department-count {
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
 }
 
 .department-tab.active .department-count {
-  background: color-mix(in oklab, white 20%, transparent);
+  background: color-mix(in oklab, white 25%, transparent);
+  color: #fff;
 }
 
-/* Profile Grid */
+/* Profile Grid - Staggered Animation */
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
 }
 
-/* Profile Cards */
+/* Profile Cards - Smooth Optimized Design */
 .profile-card {
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 16px;
   background: 
     linear-gradient(
       145deg,
-      color-mix(in oklab, var(--surface) 100%, transparent) 0%,
-      color-mix(in oklab, var(--surface) 96%, var(--background) 4%) 100%
+      color-mix(in oklab, var(--surface) 95%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 80%, transparent) 100%
     );
-  padding: 16px 12px;
+  padding: 18px 12px;
   text-align: center;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -325,30 +505,47 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px color-mix(in oklab, var(--border) 15%, transparent);
+  will-change: transform;
+  animation: cardStagger 0.4s ease both;
+  animation-delay: calc(var(--card-index, 0) * 0.04s + 0.3s);
+}
+
+@keyframes cardStagger {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-card:hover {
   border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-6px);
   box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.1),
-    0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
+    0 12px 24px rgba(0, 0, 0, 0.1),
+    0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent);
 }
 
 .profile-card-avatar {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   flex-shrink: 0;
 }
 
 .profile-avatar-img {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
   display: block;
   border-radius: 50%;
-  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  border: 2px solid color-mix(in oklab, var(--accent) 35%, var(--border));
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.15),
     0 0 0 3px color-mix(in oklab, var(--surface) 50%, transparent);
@@ -358,24 +555,36 @@
 .profile-card:hover .profile-avatar-img {
   border-color: var(--accent);
   box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    0 0 20px color-mix(in oklab, var(--accent) 25%, transparent);
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);
   transform: scale(1.05);
 }
 
 .profile-avatar-fallback {
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
   background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
-  border: 2px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  border: 2px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 0 3px color-mix(in oklab, var(--surface) 50%, transparent);
+  transition: all 0.25s ease;
+}
+
+.profile-card:hover .profile-avatar-fallback {
+  border-color: var(--accent);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);
+  transform: scale(1.05);
 }
 
 .profile-card-info {
@@ -387,7 +596,7 @@
 
 .profile-name {
   color: var(--foreground);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -398,63 +607,73 @@
 
 .profile-title {
   color: var(--muted-foreground);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
 }
 
 .profile-department {
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.8;
-  margin-top: 4px;
+  opacity: 0.7;
+  margin-top: 2px;
+  font-weight: 600;
 }
 
 .profile-card-action {
   margin-top: 8px;
   border-radius: 20px;
-  border: 1px solid var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 50%, var(--border));
   background: transparent;
   color: var(--accent);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 6px 16px;
+  padding: 6px 14px;
   transition: all 0.2s ease;
+  opacity: 0.8;
 }
 
 .profile-card:hover .profile-card-action {
   background: var(--accent);
   color: #fff;
-  transform: translateY(-1px);
+  border-color: var(--accent);
   box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent);
+  opacity: 1;
 }
 
 .no-results {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 40px;
+  padding: 48px 24px;
   color: var(--muted-foreground);
+  animation: fadeIn 0.5s ease;
 }
 
-/* Selected User Section */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Selected User Section - Optimized Design */
 .selected-user-section {
   display: grid;
   gap: 20px;
-  animation: slideIn 0.35s ease;
+  animation: sectionEntrance 0.4s ease;
 }
 
-@keyframes slideIn {
-  from {
+@keyframes sectionEntrance {
+  0% {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(15px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
@@ -463,39 +682,52 @@
 .change-user-btn {
   width: fit-content;
   border-radius: 20px;
-  border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
   color: var(--muted-foreground);
-  padding: 8px 14px;
+  padding: 10px 18px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .change-user-btn:hover {
-  border-color: var(--accent);
-  background: var(--surface);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+  background: color-mix(in oklab, var(--surface) 95%, transparent);
   color: var(--accent);
+  transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .selected-user-card {
   border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  padding: 20px;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 90%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 80%, transparent) 100%
+    );
+  padding: 24px;
   display: flex;
   gap: 20px;
   align-items: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--border) 15%, transparent);
+  position: relative;
+  overflow: hidden;
 }
 
 .selected-user-photo-shell {
   width: 80px;
   height: 80px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .selected-user-photo {
@@ -504,7 +736,14 @@
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--accent);
-  box-shadow: 0 0 20px color-mix(in oklab, var(--accent) 30%, transparent);
+  box-shadow: 
+    0 4px 16px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 0 0 6px color-mix(in oklab, var(--accent) 15%, transparent);
+  transition: transform 0.3s ease;
+}
+
+.selected-user-photo:hover {
+  transform: scale(1.05);
 }
 
 .selected-user-photo-fallback {
@@ -514,133 +753,200 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
   border: 3px solid var(--accent);
+  box-shadow: 
+    0 4px 16px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 0 0 6px color-mix(in oklab, var(--accent) 15%, transparent);
+  transition: transform 0.3s ease;
+}
+
+.selected-user-photo-fallback:hover {
+  transform: scale(1.05);
+}
+
+.selected-user-card > div:last-child {
+  position: relative;
+  z-index: 1;
 }
 
 .selected-user-card h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
   color: var(--foreground);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .selected-user-card p {
-  margin: 4px 0;
-  font-size: 14px;
+  margin: 6px 0;
+  font-size: 15px;
   color: var(--muted-foreground);
+  font-weight: 500;
 }
 
 .selected-user-card span {
   color: var(--muted-foreground);
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
 .selected-user-badge-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .selected-user-badge-chip {
   color: var(--accent-strong);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
-  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 1.5px solid color-mix(in oklab, var(--accent) 40%, var(--border));
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--accent) 15%, var(--surface)) 0%,
+      color-mix(in oklab, var(--accent) 8%, var(--surface)) 100%
+    );
+  backdrop-filter: blur(10px);
 }
 
-/* Auth Form */
+/* Auth Form - Optimized Design */
 .auth-form {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  padding: 24px;
-  animation: fadeIn 0.3s ease;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 90%, transparent) 0%,
+      color-mix(in oklab, var(--surface) 80%, transparent) 100%
+    );
+  padding: 28px;
+  animation: formEntrance 0.4s ease;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--border) 15%, transparent);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes formEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-form h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--foreground);
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-form p {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted-foreground);
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-trust {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-trust svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   color: var(--success);
 }
 
 .auth-form label {
   display: grid;
-  gap: 6px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 14px;
   color: var(--muted-foreground);
+  position: relative;
+  z-index: 1;
 }
 
 .auth-form .corex-field {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .auth-form .corex-field-label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted-foreground);
+  font-weight: 500;
 }
 
 .auth-form .corex-input {
-  min-height: 52px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  min-height: 56px;
+  border-radius: 16px;
+  border: 1.5px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 90%, transparent) 0%,
+      color-mix(in oklab, var(--background) 70%, transparent) 100%
+    );
   color: var(--foreground);
-  padding: 14px 16px;
-  font-size: 15px;
-  transition: all 0.2s ease;
+  padding: 16px 18px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
 }
 
 .auth-form .corex-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 70%, var(--border));
+  box-shadow: 
+    0 4px 20px color-mix(in oklab, var(--accent) 15%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--accent) 10%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 15%, transparent);
   outline: none;
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface) 95%, transparent) 0%,
+      color-mix(in oklab, var(--background) 80%, transparent) 100%
+    );
 }
 
 .auth-form .corex-input::placeholder {
   color: var(--muted-foreground);
   opacity: 0.6;
+  font-weight: 400;
 }
 
 .password-input-wrapper {
@@ -649,55 +955,67 @@
 
 .password-toggle {
   position: absolute;
-  right: 14px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .password-toggle:hover {
-  color: var(--foreground);
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
 .checkbox-row {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: 12px;
+  font-size: 14px;
   color: var(--foreground);
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
 .checkbox-row input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .auth-links {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-link {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted-foreground);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .auth-link:hover {
   color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
+/* Optimized Login Button */
 .login-primary-btn {
   margin-top: 8px;
   border-radius: 14px;
@@ -707,13 +1025,18 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--accent) 40%, transparent);
+  letter-spacing: 0.01em;
+  box-shadow: 
+    0 4px 16px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent);
   transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  will-change: transform;
 }
 
 .login-primary-btn.corex-button {
@@ -722,7 +1045,9 @@
 
 .login-primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px color-mix(in oklab, var(--accent) 50%, transparent);
+  box-shadow: 
+    0 6px 20px color-mix(in oklab, var(--accent) 45%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent);
 }
 
 .login-primary-btn:active {
@@ -730,129 +1055,228 @@
 }
 
 .login-primary-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   transform: none;
   cursor: not-allowed;
 }
 
+/* Premium Error State */
 .auth-error {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--danger) 10%, var(--surface));
-  border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--border));
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--danger) 12%, var(--surface)) 0%,
+      color-mix(in oklab, var(--danger) 8%, var(--surface)) 100%
+    );
+  border: 1.5px solid color-mix(in oklab, var(--danger) 40%, var(--border));
   color: var(--danger);
-  font-size: 13px;
-  animation: shake 0.4s ease;
+  font-size: 14px;
+  font-weight: 500;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--danger) 20%, transparent);
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
 }
 
+/* Optimized Success Animation */
 .login-success {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 32px;
+  gap: 16px;
+  padding: 40px 28px;
   text-align: center;
+  animation: successEntrance 0.5s ease;
+}
+
+@keyframes successEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .success-checkmark {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--success), color-mix(in oklab, var(--success) 80%, var(--accent-strong)));
+  background: linear-gradient(135deg, var(--success) 0%, color-mix(in oklab, var(--success) 85%, var(--accent-strong)) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  animation: successPulse 0.6s ease;
+  box-shadow: 
+    0 6px 20px color-mix(in oklab, var(--success) 40%, transparent),
+    0 0 0 6px color-mix(in oklab, var(--success) 15%, transparent);
+  animation: successPulse 0.5s ease;
+  will-change: transform;
 }
 
 @keyframes successPulse {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+  0% { 
+    transform: scale(0); 
+    opacity: 0; 
+  }
+  60% { 
+    transform: scale(1.1); 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
 }
 
 .success-checkmark svg {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 
 .login-success p {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--foreground);
+  letter-spacing: -0.01em;
+  animation: textFadeUp 0.3s ease 0.2s both;
 }
 
+@keyframes textFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Premium Message State */
 .login-message {
-  margin-top: 16px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
-  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
+  margin-top: 20px;
+  border-radius: 14px;
+  border: 1.5px solid color-mix(in oklab, var(--accent) 40%, var(--border));
+  background: 
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--accent) 12%, var(--surface)) 0%,
+      color-mix(in oklab, var(--accent) 6%, var(--surface)) 100%
+    );
   color: var(--accent-strong);
-  font-size: 13px;
-  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 14px 18px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--accent) 15%, transparent);
+  animation: messageSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Responsive */
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive - Premium Mobile Experience */
 @media (max-width: 768px) {
   .login-shell {
-    padding: 12px;
+    padding: 16px;
     align-items: flex-start;
-    padding-top: 24px;
+    padding-top: 32px;
   }
 
   .login-card {
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 24px;
+    padding: 24px;
+    width: 100%;
   }
 
   .login-header {
-    gap: 6px;
+    gap: 10px;
   }
 
   .login-logo-image {
-    width: min(100%, 260px);
+    width: min(100%, 280px);
+    height: clamp(56px, 10vw, 72px);
   }
 
   .login-header h1 {
-    font-size: 28px;
+    font-size: 32px;
   }
 
   .login-header p {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .login-theme-label {
     display: none;
   }
 
+  /* Search mobile */
+  .search-container {
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    padding: 14px 80px 14px 44px;
+    font-size: 15px;
+  }
+
+  /* Department tabs mobile */
+  .department-tabs {
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .department-tab {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Profile grid mobile */
   .profile-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
   .profile-card {
-    padding: 16px;
+    padding: 16px 12px;
+    border-radius: 16px;
   }
 
   .profile-card-avatar,
   .profile-avatar-img,
   .profile-avatar-fallback {
-    width: 64px;
-    height: 64px;
-    font-size: 20px;
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
   }
 
   .profile-name {
@@ -860,13 +1284,20 @@
   }
 
   .profile-title {
-    font-size: 12px;
+    font-size: 11px;
   }
 
+  .profile-card-action {
+    padding: 6px 14px;
+    font-size: 10px;
+  }
+
+  /* Selected user mobile */
   .selected-user-card {
     flex-direction: column;
     text-align: center;
-    padding: 16px;
+    padding: 20px;
+    gap: 16px;
   }
 
   .selected-user-photo-shell,
@@ -876,31 +1307,126 @@
     height: 72px;
   }
 
+  .selected-user-photo {
+    border-width: 3px;
+  }
+
+  .selected-user-card h2 {
+    font-size: 22px;
+  }
+
+  /* Auth form mobile */
+  .auth-form {
+    padding: 24px;
+    gap: 16px;
+  }
+
+  .auth-form h3 {
+    font-size: 20px;
+  }
+
+  .auth-form .corex-input {
+    min-height: 52px;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .login-primary-btn {
+    min-height: 52px;
+    font-size: 15px;
+  }
+
   .auth-links {
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
+  }
+
+  /* Success mobile */
+  .login-success {
+    padding: 32px 24px;
+  }
+
+  .success-checkmark {
+    width: 64px;
+    height: 64px;
+  }
+
+  .success-checkmark svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .login-success p {
+    font-size: 18px;
+  }
+
+  /* Alphabet index hide on mobile */
+  .alphabet-index {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
+  .login-shell {
+    padding: 12px;
+    padding-top: 24px;
+  }
+
+  .login-card {
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .login-header h1 {
+    font-size: 28px;
+  }
+
   .profile-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .profile-card {
     flex-direction: row;
     text-align: left;
-    padding: 12px;
-    gap: 12px;
+    padding: 14px;
+    gap: 14px;
+    align-items: center;
   }
 
   .profile-card-avatar {
     flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+  }
+
+  .profile-avatar-img,
+  .profile-avatar-fallback {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
   }
 
   .profile-card-info {
     text-align: left;
+    flex: 1;
+  }
+
+  .profile-name {
+    font-size: 15px;
+  }
+
+  .profile-title {
+    font-size: 12px;
+  }
+
+  .profile-credential-badges {
+    justify-content: flex-start;
+  }
+
+  .profile-card-action {
+    display: none;
   }
 
   .department-tabs {
@@ -909,7 +1435,58 @@
 
   .department-tab {
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .search-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .auth-form {
+    padding: 20px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .profile-card:hover {
+    transform: none;
+  }
+
+  .profile-card:active {
+    transform: scale(0.98);
+  }
+
+  .department-tab:hover {
+    transform: none;
+  }
+
+  .login-primary-btn:hover {
+    transform: none;
+  }
+
+  .login-primary-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .login-shell,
+  .login-shell::before,
+  .login-shell::after,
+  .login-card,
+  .login-header,
+  .search-container,
+  .department-tabs,
+  .profile-card,
+  .success-checkmark,
+  .login-primary-btn {
+    animation: none;
+  }
+
+  .profile-card {
+    animation: cardStagger 0.3s ease both;
   }
 }
 
