@@ -268,7 +268,6 @@ export default function App() {
       </div>
     </div>
   );
-  }
 
   // ── RESULTS VIEW ──
   return (
