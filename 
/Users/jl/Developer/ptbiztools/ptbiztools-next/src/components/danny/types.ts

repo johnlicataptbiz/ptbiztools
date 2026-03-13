@@ -1,0 +1,127 @@
+
+export interface NormalizedGraderResult {
+  version?: string;
+  overall_score: number;
+  phases: Record<string, {
+    score: number;
+    summary: string;
+    evidence?: string[];
+  }>;
+  critical_behaviors: Record<string, {
+    status: 'pass' | 'fail' | 'unknown';
+    pass?: boolean;
+    note: string;
+    evidence?: string[];
+  }>;
+  top_strength: string;
+  top_improvement: string;
+  prospect_summary: string;
+  deterministic?: {
+    weightedPhaseScore: number;
+    penaltyPoints: number;
+    unknownPenalty: number;
+    overallScore: number;
+  };
+  confidence?: {
+    score: number;
+    evidenceCoverage: number;
+    quoteVerificationRate: number;
+    transcriptQuality: number;
+  };
+  qualityGate?: {
+    accepted: boolean;
+    reasons: string[];
+  };
+  metadata?: {
+    closer: string;
+    outcome?: string;
+    model: string;
+  };
+}
+
+export interface GraderFormState {
+  closer: 'John' | 'Toni' | 'Other';
+  outcome: 'Won' | 'Lost';
+  program: 'Rainmaker' | 'Mastermind';
+  prospectName: string;
+  transcript: string;
+  chunks: string[];
+}
+
+export interface UploadedFile {
+  name: string;
+  type: string;
+  text: string;
+}
+
+export interface HistoryEntry {
+  id: number;
+  date: string;
+  closer: string;
+  outcome: string;
+  program: string;
+  prospectName: string;
+  result: NormalizedGraderResult;
+}
+
+export interface CompFormState {
+  state: string;
+  city: string;
+  avgVisitRate: number | null;
+  monthlyVisits: number | null;
+  grossRevOverride: number | null;
+  useGross: boolean;
+  healthIns: number | null;
+  ceBudget: number | null;
+}
+
+export interface PLAuditFormState {
+  revenue: string;
+  rent: string;
+  utilities: string;
+  staffWages: string;
+  contractLabor: string;
+  payrollTaxes: string;
+  payrollFees: string;
+  benefits: string;
+  ownerComp: string;
+  marketing: string;
+  merchantFees: string;
+  software: string;
+  duesSubs: string;
+  officeSupplies: string;
+  ptSupplies: string;
+  medBilling: string;
+  profFees: string;
+  contractedSvcs: string;
+  insurance: string;
+  ce: string;
+  mealsEnt: string;
+  travelAuto: string;
+  interest: string;
+  depreciation: string;
+  other: string;
+  clinicName: string;
+  period: string;
+}
+
+export interface Theme {
+  bg: string;
+  surf: string;
+  dark: string;
+  bdr: string;
+  blue: string;
+  wht: string;
+  gray: string;
+  grayDk: string;
+  grayXDk: string;
+  green: string;
+  yellow: string;
+  red: string;
+  glow: string;
+}
+
+export type ClinicType = 'solo' | 'multi';
+export type PayerMix = 'cash' | 'hybrid';
+export type BizPhase = 'growth' | 'maintenance';
+

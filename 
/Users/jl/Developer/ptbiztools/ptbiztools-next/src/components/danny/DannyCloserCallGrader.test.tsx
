@@ -1,0 +1,91 @@
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { vi, describe, test, expect, beforeEach, beforeAll } from 'vitest';
+import SalesCallGrader from './DannyCloserCallGrader';
+import * as api from '@/lib/ptbiz-api';
+import * as helpers from './graderV2Helpers';
+
+// Mock modules
+vi.mock('@/lib/ptbiz-api');
+vi.mock('sonner');
+vi.mock('@/constants/tool-badges', () => ({ TOOL_BADGES: { sales: '/mock-sales-badge.png' } }));
+
+// Mock localStorage
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+  },
+  writable: true,
+});
+
+// Mock crypto using vi.stubGlobal
+beforeAll(() => {
+  vi.stubGlobal('crypto', {
+    randomUUID: vi.fn(() => 'mock-session-id'),
+  });
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  (window.localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(null);
+  (api.gradeDannySalesCallV2 as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockGradeResponse });
+  (api.logAction as ReturnType<typeof vi.fn>).mockResolvedValue({});
+  (api.saveCoachingAnalysis as ReturnType<typeof vi.fn>).mockResolvedValue({ analysisId: 'mock-id' });
+  (api.savePdfExport as ReturnType<typeof vi.fn>).mockResolvedValue({});
+  (api.extractTranscriptFromFile as ReturnType<typeof vi.fn>).mockResolvedValue({ text: 'mock transcript', wordCount: 200, sourceType: 'pdf' });
+});
+
+const mockGradeResponse = {
+  version: 'v2',
+  deterministic: { weightedPhaseScore: 72, penaltyPoints: 5, unknownPenalty: 0, overallScore: 67 },
+  phaseScores: {
+    connection: { score: 85, summary: 'Good rapport' },
+    discovery: { score: 60, summary: 'More depth needed' },
+  },
+  criticalBehaviors: {
+    free_consulting: { status: 'fail', note: 'Gave advice' },
+    emotional_depth: { status: 'pass', note: 'Good probing' },
+  },
+  highlights: {
+    topStrength: 'Strong connection',
+    topImprovement: 'Deeper discovery',
+    prospectSummary: 'Ready but price sensitive',
+  },
+  confidence: { score: 92, evidenceCoverage: 0.95 },
+};
+
+describe('DannyCloserCallGrader', () => {
+  test('renders grade view initially', () => {
+    render(<SalesCallGrader />);
+    expect(screen.getByText('Sales Call Grader')).toBeInTheDocument();
+    expect(screen.getByText(/Drop a file here/)).toBeInTheDocument();
+  });
+
+  test('switches to history view', () => {
+    render(<SalesCallGrader />);
+    fireEvent.click(screen.getByText('Dashboard'));
+    expect(screen.getByText('No calls graded yet')).toBeInTheDocument();
+  });
+
+  test('utils: canSubmitByWordCount', () => {
+    expect(helpers.canSubmitByWordCount(100, 120)).toBe(false);
+    expect(helpers.canSubmitByWordCount(130, 120)).toBe(true);
+  });
+
+  test('word count gate disables/enables grade button', async () => {
+    render(<SalesCallGrader />);
+    const textarea = screen.getByRole('textbox');
+    
+    // Below threshold
+    fireEvent.change(textarea, { target: { value: 'short text' } });
+    expect(screen.getByText('Grade This Call')).toBeDisabled();
+    
+    // Above threshold
+    fireEvent.change(textarea, { target: { value: 'word '.repeat(150) } });
+    await waitFor(() => expect(screen.getByText('Grade This Call')).not.toBeDisabled());
+  });
+});
+
