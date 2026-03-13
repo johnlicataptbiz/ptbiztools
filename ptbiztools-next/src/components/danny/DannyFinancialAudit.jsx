@@ -632,8 +632,8 @@ export default function DannyFinancialAudit() {
   // ===== INPUT STEP =====
   if (step === "input") {
     return (
-      <div className="grade-modal-overlay">
-        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
+      <div className="grade-modal-overlay" style={{ position: "relative", background: "transparent", padding: 0 }}>
+        <div className="grade-modal-container" style={{ maxWidth: 980, maxHeight: "none", overflow: "visible" }}>
           <div className="grade-modal-header" style={{ textAlign: "left" }}>
             <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
               ×
@@ -754,8 +754,8 @@ export default function DannyFinancialAudit() {
 
   // ===== REPORT STEP =====
   return (
-    <div className="grade-modal-overlay" onClick={() => setStep("input")}>
-      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980 }}>
+    <div className="grade-modal-overlay" style={{ position: "relative", background: "transparent", padding: 0 }}>
+      <div className="grade-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 980, maxHeight: "none", overflow: "visible" }}>
         <div className="grade-modal-header" style={{ textAlign: "left" }}>
           <button className="grade-modal-close" onClick={() => setStep("input")} aria-label="Close report">
             ×
