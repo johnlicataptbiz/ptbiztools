@@ -176,8 +176,8 @@ export default function App() {
                 <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Calculator</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Find the right comp range before you hire</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0, color: "#F5F5F7" }}>Comp Calculator</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0, color: "#9A9AA0" }}>Find the right comp range before you hire</p>
               </div>
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
@@ -282,8 +282,8 @@ export default function App() {
               <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                 PT Biz Coach Tools
               </div>
-              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Results</h2>
-              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Compensation guidance with total cost clarity</p>
+              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0, color: "#F5F5F7" }}>Comp Results</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0, color: "#9A9AA0" }}>Compensation guidance with total cost clarity</p>
             </div>
           </div>
           <button onClick={() => setStep("input")} style={{ background: "transparent", border: "1px solid #E5E7EB", borderRadius: 8, color: "#9CA3AF", padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Edit Inputs</button>

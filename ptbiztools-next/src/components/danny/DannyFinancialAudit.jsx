@@ -625,8 +625,8 @@ export default function DannyFinancialAudit() {
                 <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>P&amp;L Audit</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Upload a statement or enter figures manually</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0, color: "#F5F5F7" }}>P&amp;L Audit</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0, color: "#9A9AA0" }}>Upload a statement or enter figures manually</p>
               </div>
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
@@ -742,8 +742,8 @@ export default function DannyFinancialAudit() {
               <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                 PT Biz Coach Tools
               </div>
-              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>P&amp;L Report</h2>
-              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Financial audit with action-ready insights</p>
+              <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0, color: "#F5F5F7" }}>P&amp;L Report</h2>
+              <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0, color: "#9A9AA0" }}>Financial audit with action-ready insights</p>
             </div>
           </div>
           <button onClick={() => setStep("input")} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Edit Numbers</button>
