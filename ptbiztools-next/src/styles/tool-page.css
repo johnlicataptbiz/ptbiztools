@@ -686,3 +686,35 @@
     width: 100%;
   }
 }
+
+@media print {
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: white !important;
+  }
+  .grade-modal-overlay,
+  .grade-modal-container,
+  .grade-modal-header,
+  .grade-modal-content {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  nav, header, footer, .no-print {
+    display: none !important;
+  }
+  button {
+    display: none !important;
+  }
+}

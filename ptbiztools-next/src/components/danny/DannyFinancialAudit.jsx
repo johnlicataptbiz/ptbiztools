@@ -553,66 +553,23 @@ export default function DannyFinancialAudit() {
     }
   };
 
-  const handleDownload = async () => {
-    // Validate data exists before generating PDF
+  const handlePrint = () => {
     if (typeof score !== 'number' || Number.isNaN(score) || score === 0) {
-      alert("Please run the analysis first before downloading the report.");
+      alert("Please run the analysis first before printing the report.");
       return;
     }
     if (typeof rev !== 'number' || Number.isNaN(rev)) {
       alert("Please complete the analysis first.");
       return;
     }
-    
-    try {
-      const { generatePLPDF } = await import("@/utils/plPdfGenerator");
-      
-      await generatePLPDF(
-        clinicName || "Clinic",
-        period || "Annual Review",
-        rev || 0,
-        totalExp || 0,
-        netIncome || 0,
-        ode || 0,
-        m || {},
-        tRows || [],
-        score || 0,
-        recs || [],
-        plan || null,
-        cashFlow || [],
-        clinicType || "solo",
-        payerMix || "cash",
-        bizPhase || "maintenance"
-      );
-
-      void Promise.allSettled([
-        savePdfExport({
-          sessionId,
-          clientName: clinicName || "P&L Audit",
-          score,
-          metadata: {
-            tool: "pl_calculator",
-            summary: `${clinicName || "Clinic"} financial audit export`,
-            period: period || null,
-            grade: score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F",
-          },
-        }),
-        logAction({
-          actionType: "pdf_generated",
-          description: `P&L PDF generated for ${clinicName || "Unknown Clinic"}`,
-          metadata: {
-            tool: "pl_calculator",
-            clinicName: clinicName || null,
-            period: period || null,
-            score,
-          },
-          sessionId,
-        }),
-      ]);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-      alert("Failed to generate PDF. Please try again.");
-    }
+    logAction({
+      actionType: "report_printed",
+      description: `P&L Report printed for ${clinicName || "Unknown Clinic"}`,
+      metadata: {
+        tool: "pl_calculator",
+      },
+    });
+    window.print();
   };
 
   const priClr = { HIGH:"#F87171", MED:"#FBBF24", LOW:B.gray, INFO:"#34D399" };
@@ -784,7 +741,7 @@ export default function DannyFinancialAudit() {
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <button onClick={() => setStep("input")} style={{ background:"none", border:"none", color:B.grayDk, cursor:"pointer", fontSize:12 }}>← Edit numbers</button>
-          <button onClick={handleDownload} style={{ background:B.blue, border:"none", borderRadius:6, color:"#fff", fontSize:13, fontWeight:700, padding:"10px 20px", cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>📥 Download Report</button>
+          <button onClick={handlePrint} style={{ background:B.blue, border:"none", borderRadius:6, color:"#fff", fontSize:13, fontWeight:700, padding:"10px 20px", cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>🖨️ Print Report</button>
         </div>
 
         {/* HEADER */}
