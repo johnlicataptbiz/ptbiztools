@@ -49,10 +49,10 @@ function parseNumericInput(value) {
 function Inp({ label, value, name, onChange, hint, prefix }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <label style={{ display:"block", fontSize:10, fontWeight:600, color:"#6B7280", marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</label>
+      <label style={{ display:"block", fontSize:10, fontWeight:600, color:B.gray, marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</label>
       <div style={{ position:"relative" }}>
-        {prefix && <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"#9CA3AF", fontSize:13, fontFamily:"'JetBrains Mono',monospace", pointerEvents:"none" }}>{prefix}</span>}
-        <input type="text" value={value} name={name} onChange={onChange} placeholder={hint || ""} style={{ width:"100%", padding:"9px 11px", paddingLeft:prefix ? 24 : 11, background:"#FFFFFF", border:"1px solid #E5E7EB", borderRadius:6, color:"#111827", fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }} />
+        {prefix && <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:B.grayDk, fontSize:13, fontFamily:"'JetBrains Mono',monospace", pointerEvents:"none" }}>{prefix}</span>}
+        <input type="text" value={value} name={name} onChange={onChange} placeholder={hint || ""} style={{ width:"100%", padding:"9px 11px", paddingLeft:prefix ? 24 : 11, background:B.surf, border:"1px solid "+B.bdr, borderRadius:6, color:B.wht, fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }} />
       </div>
     </div>
   );
@@ -148,52 +148,49 @@ export default function App() {
     margin:"0 auto",
     padding:"24px 24px 26px",
     fontFamily:"'Barlow',sans-serif",
-    color:"#111827",
-    background:"#FFFFFF",
-    border:"1px solid #E5E7EB",
+    color:B.wht,
+    background:B.surf,
+    border:"1px solid " + B.bdr,
     borderRadius:16,
-    boxShadow:"0 4px 24px rgba(0, 0, 0, 0.08)",
+    boxShadow:"0 4px 24px rgba(0,0,0,0.4)",
   };
   const sectionStyle = {
-    background:"#F3F4F6",
+    background:B.dark,
     borderRadius:14,
     padding:"18px 20px",
     marginBottom:14,
-    border:"1px solid #E5E7EB",
+    border:"1px solid " + B.bdr,
   };
 
   // ── INPUT VIEW ──
   if (step === "input") {
     return (
-      <div className="grade-modal-overlay">
-        <div className="grade-modal-container" style={{ maxWidth: 980 }}>
-          <div className="grade-modal-header" style={{ textAlign: "left" }}>
-            <button className="grade-modal-close" onClick={closeInputModal} aria-label="Close">
-              ×
-            </button>
+      <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
+        <style>{printStyles}</style>
+        <div style={pageShellStyle}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
               <div>
-                <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+                <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                   PT Biz Coach Tools
                 </div>
-                <h2 className="grade-modal-title" style={{ textAlign: "left" }}>Comp Calculator</h2>
-                <p className="grade-modal-subtitle" style={{ textAlign: "left" }}>Find the right comp range before you hire</p>
+                <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Calculator</h2>
+                <p className="grade-modal-subtitle" style={{ textAlign: "left", margin: 0 }}>Find the right comp range before you hire</p>
               </div>
             </div>
+            <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
           </div>
-          <div className="grade-modal-content">
-            <div style={pageShellStyle}>
-              <div style={canvasStyle}>
+          <div style={canvasStyle}>
 
         {/* Location */}
         <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Location</h3>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 14px" }}>
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:"block", fontSize:10, fontWeight:600, color:"#6B7280", marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>State</label>
-              <select name="state" value={f.state} onChange={handleChange} style={{ width:"100%", padding:"9px 11px", background:"#FFFFFF", border:"1px solid #E5E7EB", borderRadius:6, color:"#111827", fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }}>
+              <label style={{ display:"block", fontSize:10, fontWeight:600, color:B.gray, marginBottom:3, fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>State</label>
+              <select name="state" value={f.state} onChange={handleChange} style={{ width:"100%", padding:"9px 11px", background:B.surf, border:"1px solid "+B.bdr, borderRadius:6, color:B.wht, fontSize:13, fontFamily:"'JetBrains Mono',monospace", outline:"none", boxSizing:"border-box" }}>
                 {STATES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -204,7 +201,7 @@ export default function App() {
         {/* Revenue Inputs */}
         <div style={sectionStyle}>
           <h3 style={{ margin:"0 0 12px", fontSize:12, fontWeight:700, color:B.blue, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif" }}>Provider Revenue</h3>
-          <div style={{ display:"flex", gap:0, borderRadius:6, overflow:"hidden", border:"1px solid #E5E7EB", marginBottom:14 }}>
+          <div style={{ display:"flex", gap:0, borderRadius:6, overflow:"hidden", border:"1px solid "+B.bdr, marginBottom:14 }}>
             {[["visits","Calculate from Visits"],["gross","Enter Gross Revenue"]].map(([v, lb]) => (
               <button key={v} onClick={() => setF(p => ({ ...p, useGross: v === "gross" }))} style={{ flex:1, padding:"9px 6px", background:(v === "gross") === f.useGross ? "#2E86F5" : "#F3F4F6", border:"none", color:(v === "gross") === f.useGross ? "#fff" : "#6B7280", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.04em" }}>{lb}</button>
             ))}
@@ -269,22 +266,20 @@ export default function App() {
           </div>
         </div>
       </div>
-    </div>
-  </div>
   );
   }
 
   // ── RESULTS VIEW ──
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FAFAFB", padding: "24px 0 64px" }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
       <style>{printStyles}</style>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E5E7EB" }} className="no-print">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
             <div>
-              <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
+              <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>
                 PT Biz Coach Tools
               </div>
               <h2 className="grade-modal-title" style={{ textAlign: "left", margin: 0 }}>Comp Results</h2>
