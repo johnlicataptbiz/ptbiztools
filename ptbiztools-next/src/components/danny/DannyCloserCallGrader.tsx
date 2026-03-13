@@ -16,6 +16,7 @@ import {
 import { ClinicIcon } from "@/components/clinic/ClinicIcon";
 import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
 import { CLINIC_SVGS } from "@/constants/clinic-svgs";
+import { generateSalesCallPdf } from "@/utils/salesCallPdf";
 import {
   canSubmitByWordCount,
   getWordGateMessage,
@@ -62,7 +63,7 @@ const formatElapsed = (seconds: number) => {
 };
 
 
-function ScoreBar({ score, size = "md" }: { score: number; size?: "md" | "lg" }) {
+function ScoreBar({ score, size = "md" }: { score: number; size?: "sm" | "md" | "lg" }) {
   const getColor = (s: number) => {
     if (s >= 80) return "#22c55e";
     if (s >= 65) return "#84cc16";
@@ -77,13 +78,14 @@ function ScoreBar({ score, size = "md" }: { score: number; size?: "md" | "lg" })
     if (s >= 35) return "Weak";
     return "Critical";
   };
-  const height = size === "lg" ? "10px" : "6px";
+  const height = size === "lg" ? "10px" : size === "md" ? "6px" : "4px";
+  const fontSize = size === "lg" ? "18px" : size === "sm" ? "12px" : "13px";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
       <div style={{ flex: 1, background: "#2C2C31", borderRadius: "4px", height, overflow: "hidden" }}>
         <div style={{ width: `${score}%`, height: "100%", background: getColor(score), borderRadius: "4px", transition: "width 0.8s ease" }} />
       </div>
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: size === "lg" ? "18px" : "13px", fontWeight: 700, color: getColor(score), minWidth: "32px" }}>{score}</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 700, color: getColor(score), minWidth: "32px" }}>{score}</span>
       {size === "lg" && <span style={{ fontSize: "11px", color: getColor(score), fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{getLabel(score)}</span>}
     </div>
   );
@@ -120,6 +122,15 @@ interface HistoryEntry {
   prospectName: string;
   result: NormalizedGraderResult;
 }
+
+type TimePeriod = "week" | "month" | "quarter" | "all";
+
+const TIME_PERIOD_FILTERS: Array<[TimePeriod, string]> = [
+  ["week", "7 Days"],
+  ["month", "30 Days"],
+  ["quarter", "90 Days"],
+  ["all", "All Time"],
+];
 
 interface UploadedFile {
   name: string;
@@ -186,7 +197,7 @@ export default function SalesCallGrader() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [selectedHistory, setSelectedHistory] = useState<HistoryEntry | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  const [timePeriod, setTimePeriod] = useState<"week" | "month" | "quarter" | "all">("all");
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
   const [reportData, setReportData] = useState<HistoryEntry | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -621,19 +632,37 @@ export default function SalesCallGrader() {
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <div style={cardStyle}>
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
-          {[["Closer", closer, setCloser, ["John", "Toni", "Other"]],
-            ["Outcome", outcome, setOutcome, ["Won", "Lost"]],
-            ["Program", program, setProgram, ["Rainmaker", "Mastermind"]]
-          ].map(([label, val, setter, opts]) => (
+          {[
+            {
+              label: "Closer",
+              value: closer,
+              setter: setCloser,
+              options: ["John", "Toni", "Other"] as const,
+            },
+            {
+              label: "Outcome",
+              value: outcome,
+              setter: (val: string) => setOutcome(val as unknown as "Won" | "Lost"),
+              options: ["Won", "Lost"] as const,
+            },
+            {
+              label: "Program",
+              value: program,
+              setter: (val: string) => setProgram(val as unknown as "Rainmaker" | "Mastermind"),
+              options: ["Rainmaker", "Mastermind"] as const,
+            },
+          ].map(({ label, value, setter, options }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>{label}</span>
               <div style={{ display: "flex", gap: "2px", background: cardSoft, borderRadius: "5px", padding: "2px" }}>
-                {opts.map(o => (
-                  <button key={o} onClick={() => setter(o)} style={{
-                    ...btnBase, padding: "6px 14px", fontSize: "12px",
-                    background: val === o ? accent : "transparent",
-                    color: val === o ? "#ffffff" : textSecondary,
-                  }}>{o}</button>
+                {options.map(option => (
+                  <button key={option} onClick={() => setter(option)} style={{
+                    ...btnBase,
+                    padding: "6px 14px",
+                    fontSize: "12px",
+                    background: value === option ? accent : "transparent",
+                    color: value === option ? "#ffffff" : textSecondary,
+                  }}>{option}</button>
                 ))}
               </div>
             </div>
@@ -680,7 +709,7 @@ export default function SalesCallGrader() {
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              onClick={() => document.getElementById("file-input").click()}
+              onClick={() => document.getElementById("file-input")?.click()}
               style={{
                 marginBottom: "10px", padding: "20px", border: `2px dashed ${border}`, borderRadius: "6px",
                 textAlign: "center", cursor: "pointer", transition: "border-color 0.15s ease",
@@ -823,7 +852,7 @@ export default function SalesCallGrader() {
     </div>
   );
 
-  const renderResults = (data, meta = null) => (
+  const renderResults = (data: NormalizedGraderResult, meta: HistoryEntry | null = null) => (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {meta && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
@@ -970,7 +999,7 @@ export default function SalesCallGrader() {
         {/* Time Period Filter */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
           <div style={{ display: "flex", gap: "2px", background: card, borderRadius: "5px", padding: "2px" }}>
-            {[["week", "7 Days"], ["month", "30 Days"], ["quarter", "90 Days"], ["all", "All Time"]].map(([val, label]) => (
+            {TIME_PERIOD_FILTERS.map(([val, label]) => (
               <button key={val} onClick={() => setTimePeriod(val)} style={{
                 ...btnBase, padding: "6px 14px", fontSize: "11px",
                 background: timePeriod === val ? accent : "transparent",
@@ -1104,7 +1133,7 @@ export default function SalesCallGrader() {
       border: "#1f2937",
       lightBg: "#111827",
     };
-    const scoreColor = (s) => s >= 65 ? rpt.green : s >= 50 ? rpt.yellow : rpt.red;
+    const scoreColor = (s: number): string => (s >= 65 ? rpt.green : s >= 50 ? rpt.yellow : rpt.red);
 
     return (
       <div>

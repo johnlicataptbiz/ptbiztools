@@ -16,5 +16,4 @@ export const CLINIC_SVGS = {
 } as const;
 
 export type ClinicSvgName = keyof typeof CLINIC_SVGS;
-export { ClinicIcon } from '@/components/clinic/ClinicIcon';
 

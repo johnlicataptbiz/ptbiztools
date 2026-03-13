@@ -1,7 +1,9 @@
 "use client";
 
 import { CLINIC_SVGS, type ClinicSvgName } from '@/constants/clinic-svgs';
-import { cn } from '@/lib/utils'; // assume exists, or inline
+import { cn } from '@/lib/utils';
+
+export type { ClinicSvgName };
 
 interface ClinicIconProps {
   name: ClinicSvgName;

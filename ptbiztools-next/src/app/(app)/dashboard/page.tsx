@@ -7,16 +7,19 @@ import { useState, useMemo, type ComponentType, type CSSProperties } from "react
 import {
   Activity,
   BarChart3,
+  Calculator,
   ClipboardList,
   Clock,
   FileText,
   LogIn,
   Medal,
+  PhoneCall,
   ScrollText,
   Users,
 } from "lucide-react";
 import { ClinicIcon, type ClinicSvgName } from "@/components/clinic/ClinicIcon";
-import { CLINIC_SVGS, ClinicIcon, type ClinicSvgName } from "@/constants/clinic-svgs";
+import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
+import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";

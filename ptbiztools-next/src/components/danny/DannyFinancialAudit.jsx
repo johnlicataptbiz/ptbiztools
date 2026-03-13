@@ -152,8 +152,19 @@ function Gauge({ value, bm, apVal }) {
   const mx = bm.inv ? 60 : 20;
   const w = dv !== null ? Math.min((dv / mx) * 100, 100) : 0;
   const aw = apVal !== null ? Math.min((apVal / mx) * 100, 100) : 0;
+  /** @type {import("react").CSSProperties & { "--clinic-kpi": string }} */
+  const gaugeStyle = {
+    marginBottom: 12,
+    padding: "12px 16px",
+    background: c.bg,
+    borderRadius: 8,
+    border: `1px solid ${c.ac}33`,
+    position: "relative",
+    "--clinic-kpi": `url(${CLINIC_SVGS.kpiTexture})`,
+  };
+
   return (
-    <div style={{ marginBottom:12, padding:"12px 16px", background: c.bg, borderRadius:8, border:`1px solid ${c.ac}33`, position: 'relative' }} className="clinic-icon-hover clinic-pattern-kpi" style={{ '--clinic-kpi': `url(${CLINIC_SVGS.kpiTexture})` }}>
+    <div className="clinic-icon-hover clinic-pattern-kpi" style={gaugeStyle}>
       <ClinicIcon name="kpiTexture" size={16} style={{ position: 'absolute', top: 4, right: 8, opacity: 0.3 }} />
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6, flexWrap:"wrap", gap:4 }}>
         <div style={{ flex:"1 1 auto", minWidth:0 }}>
@@ -622,12 +633,10 @@ export default function DannyFinancialAudit() {
       <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }}>
-<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
               <ClinicIcon name="analyticsStrip" size={28} className="clinic-icon-hover" />
-              </div>
-
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
           </div>
@@ -639,7 +648,7 @@ export default function DannyFinancialAudit() {
                 <div style={{ width:1, height:28, background:B.bdr }} />
                 <div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:600 }}>Clinical Cash Flow System</div>
               </div>
-          </div>
+            </div>
           <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:24, fontWeight:800, color:B.wht, marginBottom:4, textTransform:"uppercase" }}>How Healthy Are Your Clinic Finances?</h2>
           <p style={{ color:B.grayDk, fontSize:12, margin:"0 0 20px" }}>Upload is processed server-side for field mapping with authenticated access.</p>
 
@@ -714,7 +723,7 @@ export default function DannyFinancialAudit() {
           <Sec title="Payroll & People"><Inp label="Staff Wages (Non-Owner)" value={f.staffWages} name="staffWages" onChange={handleChange} /><Inp label="Contract Labor (1099)" value={f.contractLabor} name="contractLabor" onChange={handleChange} /><Inp label="Payroll Taxes" value={f.payrollTaxes} name="payrollTaxes" onChange={handleChange} /><Inp label="Payroll Processing Fees" value={f.payrollFees} name="payrollFees" onChange={handleChange} /><Inp label="Employee Benefits" value={f.benefits} name="benefits" onChange={handleChange} /><Inp label="Owner's Compensation" value={f.ownerComp} name="ownerComp" onChange={handleChange} /></Sec>
           <Sec title="Marketing"><Inp label="Marketing & Advertising" value={f.marketing} name="marketing" onChange={handleChange} /><Inp label="Merchant / CC Fees" value={f.merchantFees} name="merchantFees" onChange={handleChange} /></Sec>
           <Sec title="Operations"><Inp label="Software & Tech" value={f.software} name="software" onChange={handleChange} /><Inp label="Dues & Subscriptions" value={f.duesSubs} name="duesSubs" onChange={handleChange} /><Inp label="Office Supplies" value={f.officeSupplies} name="officeSupplies" onChange={handleChange} /><Inp label="PT Supplies & Equipment" value={f.ptSupplies} name="ptSupplies" onChange={handleChange} /><Inp label="Medical Billing" value={f.medBilling} name="medBilling" onChange={handleChange} /><Inp label="Professional Fees (Acct/Legal)" value={f.profFees} name="profFees" onChange={handleChange} /><Inp label="Contracted Services" value={f.contractedSvcs} name="contractedSvcs" onChange={handleChange} /><Inp label="Insurance" value={f.insurance} name="insurance" onChange={handleChange} /><Inp label="Continuing Education" value={f.ce} name="ce" onChange={handleChange} /><Inp label="Meals & Entertainment" value={f.mealsEnt} name="mealsEnt" onChange={handleChange} /><Inp label="Travel & Auto" value={f.travelAuto} name="travelAuto" onChange={handleChange} /><Inp label="Interest / Debt" value={f.interest} name="interest" onChange={handleChange} /><Inp label="Depreciation & Amortization" value={f.depreciation} name="depreciation" onChange={handleChange} /><Inp label="Other Expenses" value={f.other} name="other" onChange={handleChange} /></Sec>
-          {rev > 0 && (
+          {rev > 0 ? (
             <div style={{ background:B.surf, borderRadius:12, padding:"14px 18px", marginBottom:18, border:"1px solid " + B.blue + "44" }}>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
                 <div><div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", fontFamily:"'Barlow Condensed',sans-serif" }}>Revenue</div><div style={{ fontSize:18, fontWeight:700, color:B.wht, fontFamily:"'JetBrains Mono',monospace" }}>{$(rev)}</div></div>
@@ -722,7 +731,7 @@ export default function DannyFinancialAudit() {
                 <div><div style={{ fontSize:10, color:B.grayDk, textTransform:"uppercase", fontFamily:"'Barlow Condensed',sans-serif" }}>Owner's Discretionary Earnings</div><div style={{ fontSize:18, fontWeight:700, color:odeColor, fontFamily:"'JetBrains Mono',monospace" }}>{$(ode)}</div></div>
               </div>
             </div>
-          )}
+          ) : null}
           <button onClick={handleGenerateReport} disabled={rev <= 0} style={{ width:"100%", padding:"14px", background:rev > 0 ? B.blue : B.bdr, border:"none", borderRadius:10, color:rev > 0 ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:rev > 0 ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:rev > 0 ? "0 4px 20px " + B.glow : "none" }}>Get My Financial Health Score →</button>
           </div>
         </div>

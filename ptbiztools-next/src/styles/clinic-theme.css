@@ -73,7 +73,7 @@
 
 /* Print optimizations */
 @media print {
-  .clinic-pattern-* { opacity: 0.02 !important; }
+  [class*="clinic-pattern-"] { opacity: 0.02 !important; }
   .clinic-icon-hover { transform: none !important; }
 }
 
