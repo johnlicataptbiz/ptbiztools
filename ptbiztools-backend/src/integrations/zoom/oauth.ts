@@ -19,7 +19,10 @@ export function buildZoomAuthorizeUrl(state: string): string {
   })
 
   // Required scopes for reading cloud recordings
+  // /meetings/{uuid}/recordings requires list_recording_files (not list_user_recordings)
   const scopes = [
+    'cloud_recording:read:list_recording_files',
+    'cloud_recording:read:list_recording_files:admin',
     'cloud_recording:read:list_user_recordings',
     'cloud_recording:read:list_user_recordings:admin',
     'user:read:user',
