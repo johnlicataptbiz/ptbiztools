@@ -267,6 +267,8 @@ export default function App() {
         <button onClick={() => canCalc && setStep("results")} disabled={!canCalc} style={{ width:"100%", padding:"14px", background:canCalc ? B.blue : B.bdr, border:"none", borderRadius:10, color:canCalc ? "#fff" : B.grayXDk, fontSize:15, fontWeight:700, cursor:canCalc ? "pointer" : "not-allowed", fontFamily:"'Barlow Condensed',sans-serif", textTransform:"uppercase", letterSpacing:"0.06em", boxShadow:canCalc ? "0 4px 20px " + B.glow : "none" }}>Calculate Compensation →</button>
       </div>
     </div>
+      </div>
+    </div>
   );
 }
   // ── RESULTS VIEW ──
