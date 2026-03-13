@@ -268,7 +268,7 @@ export default function App() {
       </div>
     </div>
   );
-
+}
   // ── RESULTS VIEW ──
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: "#FAFAFB", padding: "24px 0 64px" }}>
