@@ -74,7 +74,7 @@ function ScoreBar({ score, size = "md" }: { score: number; size?: "md" | "lg" })
   const height = size === "lg" ? "10px" : "6px";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-      <div style={{ flex: 1, background: "var(--color-bg-secondary)", borderRadius: "4px", height, overflow: "hidden" }}>
+      <div style={{ flex: 1, background: "#2C2C31", borderRadius: "4px", height, overflow: "hidden" }}>
         <div style={{ width: `${score}%`, height: "100%", background: getColor(score), borderRadius: "4px", transition: "width 0.8s ease" }} />
       </div>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: size === "lg" ? "18px" : "13px", fontWeight: 700, color: getColor(score), minWidth: "32px" }}>{score}</span>
@@ -589,16 +589,16 @@ export default function SalesCallGrader() {
 
   const closerNames = [...new Set(filteredHistory.map(h => h.closer))];
 
-  // Styles
-  const bg = "var(--color-bg)";
-  const card = "var(--color-card)";
-  const cardSoft = "var(--color-bg-secondary)";
-  const border = "var(--color-border)";
-  const textPrimary = "var(--color-text)";
-  const textSecondary = "var(--color-text-secondary)";
-  const textMuted = "var(--color-text-muted)";
-  const accent = "var(--accent)";
-  const fontSans = "var(--font-brand-sans), system-ui, sans-serif";
+  // Styles — hardcoded dark theme (matches P&L / comp calc)
+  const bg = "#1A1A1E";
+  const card = "#242428";
+  const cardSoft = "#2C2C31";
+  const border = "#35353A";
+  const textPrimary = "#F5F5F7";
+  const textSecondary = "#9A9AA0";
+  const textMuted = "#6A6A70";
+  const accent = "#2E86F5";
+  const fontSans = "'Barlow', system-ui, sans-serif";
   const gradingPulseDots = ".".repeat((gradingElapsed % 3) + 1);
   const gradingProgressPct = Math.min(96, 14 + gradingElapsed * 8);
   const activeGradingStage = GRADING_PROGRESS_STAGES[gradingStageIndex];
@@ -760,8 +760,8 @@ export default function SalesCallGrader() {
               marginTop: "12px",
               padding: "12px 14px",
               borderRadius: "8px",
-              border: `1px solid color-mix(in oklab, ${accent} 38%, transparent)`,
-              background: "color-mix(in oklab, var(--color-bg-secondary) 92%, var(--accent) 8%)",
+              border: `1px solid rgba(46,134,245,0.38)`,
+              background: "#252830",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
@@ -778,13 +778,13 @@ export default function SalesCallGrader() {
             <div style={{ fontSize: "12px", color: textSecondary, marginBottom: "10px" }}>
               {activeGradingStage.detail}
             </div>
-            <div style={{ height: "6px", borderRadius: "999px", background: "color-mix(in oklab, var(--color-bg-secondary) 80%, black 20%)", overflow: "hidden", marginBottom: "10px" }}>
+            <div style={{ height: "6px", borderRadius: "999px", background: "#1e1e22", overflow: "hidden", marginBottom: "10px" }}>
               <div
                 style={{
                   width: `${gradingProgressPct}%`,
                   height: "100%",
                   borderRadius: "999px",
-                  background: `linear-gradient(90deg, ${accent}, color-mix(in oklab, ${accent} 65%, #ffffff 35%))`,
+                  background: `linear-gradient(90deg, ${accent}, #6aaaf8)`,
                   transition: "width 0.8s ease",
                 }}
               />
@@ -799,8 +799,8 @@ export default function SalesCallGrader() {
                     style={{
                       padding: "6px 8px",
                       borderRadius: "6px",
-                      border: `1px solid ${isCurrent ? "color-mix(in oklab, var(--accent) 35%, transparent)" : "color-mix(in oklab, var(--color-border) 75%, transparent)"}`,
-                      background: isCurrent ? "color-mix(in oklab, var(--accent) 14%, transparent)" : "color-mix(in oklab, var(--color-bg-secondary) 88%, transparent)",
+                      border: `1px solid ${isCurrent ? "rgba(46,134,245,0.35)" : "rgba(53,53,58,0.75)"}`,
+                      background: isCurrent ? "rgba(46,134,245,0.14)" : "rgba(44,44,49,0.88)",
                       fontSize: "11px",
                       color: isComplete ? "#22c55e" : isCurrent ? textPrimary : textSecondary,
                       fontWeight: isCurrent ? 700 : 600,
