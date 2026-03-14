@@ -3,29 +3,17 @@
 import "@/styles/login-credential-badges.css";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { 
-  ArrowLeft, 
-  CheckCircle2, 
-  Dumbbell,
-  Heart,
-  LockKeyhole, 
-  Search,
-  ShieldCheck, 
-  Star, 
-  Stethoscope,
-  UserRound, 
-  Users,
-  Eye, 
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Eye,
   EyeOff,
-  Briefcase,
-  GraduationCap,
-  AlertCircle,
-  RotateCcw,
-  X
+  LockKeyhole,
+  ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState, useRef } from "react";
-import { LOGIN_LOGO_URL } from "@/constants/branding";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
@@ -38,19 +26,6 @@ const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a1
 const DEV_MODE = process.env.NODE_ENV === "development";
 const DEV_PASSWORD = "dev123";
 
-const DEPARTMENTS = ["All", "Coaches", "Partners", "Client Success", "Advisors", "Acquisitions", "Internal"] as const;
-
-// Department icons for visual recognition
-const DEPARTMENT_ICONS: Record<string, React.ReactNode> = {
-  "All": <Users size={14} />,
-  "Coaches": <Dumbbell size={14} />,
-  "Partners": <Briefcase size={14} />,
-  "Client Success": <Heart size={14} />,
-  "Advisors": <GraduationCap size={14} />,
-  "Acquisitions": <Stethoscope size={14} />,
-  "Internal": <Star size={14} />,
-};
-
 type MemberProfile = {
   badge: string;
   credentials: string;
@@ -60,7 +35,6 @@ type MemberProfile = {
 };
 
 const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
-  // Coaches (12)
   "ashley speights": {
     badge: "PT, DPT, PES",
     credentials: "Coach; PT, DPT, PES",
@@ -145,8 +119,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     experience: "11+ years with athletes; USC DPT; functional performance focus",
     clinicLogoUrl: "https://logos.hunter.io/ignitephyzio.com",
   },
-
-  // Partners (3)
   "yves gege": {
     badge: "MSPT",
     credentials: "Partner; Head of Customer Success & Coaching; MSPT",
@@ -166,8 +138,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "PT Biz CFO + acquisitions leader; USAF veteran; 8-figure digital operator; author of Killing Comfort",
   },
-
-  // Client Success (5)
   "amy gege": {
     badge: "OPS",
     credentials: "Client Success; Events & Operations",
@@ -205,8 +175,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "Supports advisor sales process and helps execute web, AI, and workflow fulfillment",
   },
-
-  // Advisors (2)
   "john licata": {
     badge: "BIZ",
     credentials: "Advisor; Senior Advisor",
@@ -220,8 +188,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     experience: "Multiple locations with husband Cole",
     clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
   },
-
-  // Acquisitions (5)
   "e'an verdugo": {
     badge: "OPS",
     credentials: "Acquisitions; Creative Director",
@@ -246,8 +212,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
     clinic: "",
     experience: "Leads website builds and acquisition support",
   },
-
-  // Internal (1)
   "pd": {
     badge: "OPS",
     credentials: "Internal; PTBiz Dev Tester",
@@ -258,16 +222,6 @@ const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
 
 function normalizeText(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
-}
-
-function getMemberDepartment(member: TeamMember): string {
-  const section = normalizeText(member.teamSection);
-  if (section.includes("coach")) return "Coaches";
-  if (section.includes("partner")) return "Partners";
-  if (section.includes("advisor")) return "Advisors";
-  if (section.includes("acquisition")) return "Acquisitions";
-  if (section.includes("client success")) return "Client Success";
-  return "Internal";
 }
 
 function getMemberSortPriority(member: TeamMember) {
@@ -335,9 +289,7 @@ function getMemberProfile(member: TeamMember) {
 }
 
 function sanitizeProfile(profile: MemberProfile) {
-  const clinic = profile.clinic
-    .replace(/^No PT clinic ownership(?: listed)?\s*$/i, "")
-    .trim();
+  const clinic = profile.clinic.replace(/^No PT clinic ownership(?: listed)?\s*$/i, "").trim();
   const experience = profile.experience
     .replace(/\bNo PT clinic ownership\b;?\s*/i, "")
     .replace(/\s{2,}/g, " ")
@@ -407,51 +359,27 @@ function getBadgeTokens(profile?: { badge: string } | null) {
     .filter(Boolean);
 }
 
-// Individual credential badge themes
 function getCredentialStyle(cred: string): string {
   const c = cred.trim().toUpperCase();
-  if (['DPT'].includes(c)) return 'credential-dpt';
-  if (['PT', 'MSPT'].includes(c)) return 'credential-pt';
-  if (['OCS', 'SCS'].includes(c)) return 'credential-ocs';
-  if (['CSCS'].includes(c)) return 'credential-cscs';
-  if (['PES'].includes(c)) return 'credential-pes';
-  if (['RN'].includes(c)) return 'credential-rn';
-  if (['BIZ', 'OWNER', 'OPS'].includes(c)) return 'credential-ops';
-  return 'credential-default';
+  if (["DPT"].includes(c)) return "credential-dpt";
+  if (["PT", "MSPT"].includes(c)) return "credential-pt";
+  if (["OCS", "SCS"].includes(c)) return "credential-ocs";
+  if (["CSCS"].includes(c)) return "credential-cscs";
+  if (["PES"].includes(c)) return "credential-pes";
+  if (["RN"].includes(c)) return "credential-rn";
+  if (["BIZ", "OWNER", "OPS"].includes(c)) return "credential-ops";
+  return "credential-default";
 }
 
-// Get unique first letters for alphabet index
-function getAlphabetIndex(members: TeamMember[]): string[] {
-  const letters = new Set<string>();
-  members.forEach(member => {
-    const firstChar = member.name.charAt(0).toUpperCase();
-    if (firstChar.match(/[A-Z]/)) {
-      letters.add(firstChar);
-    }
-  });
-  return Array.from(letters).sort();
-}
-
-// Get recent users from localStorage
-function getRecentUsers(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem("ptbiz_recent_users");
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-// Save recent user
 function saveRecentUser(userId: string) {
   if (typeof window === "undefined") return;
   try {
-    const recent = getRecentUsers();
-    const updated = [userId, ...recent.filter(id => id !== userId)].slice(0, 5);
+    const stored = localStorage.getItem("ptbiz_recent_users");
+    const recent: string[] = stored ? JSON.parse(stored) : [];
+    const updated = [userId, ...recent.filter((id) => id !== userId)].slice(0, 5);
     localStorage.setItem("ptbiz_recent_users", JSON.stringify(updated));
   } catch {
-    // Ignore errors
+    // ignore localStorage errors
   }
 }
 
@@ -474,13 +402,9 @@ function ProfileSkeleton() {
 function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
   return (
     <div className="login-error-state">
-      <div className="error-icon">
-        <AlertCircle size={48} />
-      </div>
       <h3>Unable to load team members</h3>
       <p>{error?.message || "Something went wrong while loading the team directory."}</p>
       <button onClick={onRetry} className="error-retry-btn">
-        <RotateCcw size={16} />
         Try Again
       </button>
     </div>
@@ -503,40 +427,6 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState<typeof DEPARTMENTS[number]>("All");
-
-  // Active letter for alphabet index
-  const [activeLetter, setActiveLetter] = useState<string | null>(null);
-
-  // Search input ref for keyboard shortcuts
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Keyboard shortcuts: / to focus search, Esc to clear
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        if (e.key === 'Escape') {
-          // Clear search when Esc is pressed in search input
-          if (e.target === searchInputRef.current) {
-            setSearchTerm("");
-            (e.target as HTMLInputElement).blur();
-          }
-        }
-        return;
-      }
-
-      // / to focus search
-      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   const teamQuery = useQuery({
     queryKey: ["auth", "team"],
@@ -550,49 +440,14 @@ export default function LoginPage() {
   );
 
   const orderedTeamMembers = useMemo(
-    () => [...visibleMembers].sort((a, b) => {
-      const priorityDiff = getMemberSortPriority(a) - getMemberSortPriority(b);
-      if (priorityDiff !== 0) return priorityDiff;
-      return a.name.localeCompare(b.name);
-    }),
+    () =>
+      [...visibleMembers].sort((a, b) => {
+        const priorityDiff = getMemberSortPriority(a) - getMemberSortPriority(b);
+        if (priorityDiff !== 0) return priorityDiff;
+        return a.name.localeCompare(b.name);
+      }),
     [visibleMembers],
   );
-
-  // Alphabet index
-  const alphabetIndex = useMemo(() => getAlphabetIndex(orderedTeamMembers), [orderedTeamMembers]);
-  
-  // Department counts
-  const departmentCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: visibleMembers.length };
-    visibleMembers.forEach(m => {
-      const dept = getMemberDepartment(m);
-      counts[dept] = (counts[dept] || 0) + 1;
-    });
-    return counts;
-  }, [visibleMembers]);
-
-  // Filtered members based on search and department
-  const filteredMembers = useMemo(() => {
-    let members = visibleMembers;
-    
-    if (selectedDepartment !== "All") {
-      members = members.filter(m => getMemberDepartment(m) === selectedDepartment);
-    }
-    
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      members = members.filter(m => 
-        m.name.toLowerCase().includes(term) ||
-        (m.title || "").toLowerCase().includes(term)
-      );
-    }
-    
-    return members.sort((a, b) => {
-      const priorityDiff = getMemberSortPriority(a) - getMemberSortPriority(b);
-      if (priorityDiff !== 0) return priorityDiff;
-      return a.name.localeCompare(b.name);
-    });
-  }, [visibleMembers, selectedDepartment, searchTerm]);
 
   useEffect(() => {
     if (user) {
@@ -605,21 +460,12 @@ export default function LoginPage() {
     [selectedUserId, visibleMembers],
   );
   const selectedUserProfile = selectedUser ? getMemberProfile(selectedUser) : null;
-  const selectedUserBadgeTokens = useMemo(() => getBadgeTokens(selectedUserProfile), [selectedUserProfile]);
+  const selectedUserBadgeTokens = useMemo(
+    () => getBadgeTokens(selectedUserProfile),
+    [selectedUserProfile],
+  );
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
-
-  // Handle alphabet letter click
-  const handleLetterClick = (letter: string) => {
-    setActiveLetter(letter);
-    // Find first member with this letter and scroll to it
-    const element = document.getElementById(`member-${letter.toLowerCase()}`);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-    // Reset after delay
-    setTimeout(() => setActiveLetter(null), 1000);
-  };
 
   const resetInputs = () => {
     setPassword("");
@@ -689,10 +535,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Dev mode bypass - accept dev123 password
     if (DEV_MODE && password === DEV_PASSWORD) {
-      // For dev mode, we'll simulate a successful login by setting the user ID in localStorage
-      // and redirecting to dashboard. The actual auth will be handled by the session context.
       localStorage.setItem(REMEMBERED_USER_KEY, selectedUser.id);
       saveRecentUser(selectedUser.id);
       setShowSuccess(true);
@@ -715,12 +558,9 @@ export default function LoginPage() {
 
     localStorage.setItem(REMEMBERED_USER_KEY, selectedUser.id);
     saveRecentUser(selectedUser.id);
-    
-    // Show success animation
     setShowSuccess(true);
     setSubmitting(false);
-    
-    // Redirect after animation
+
     setTimeout(() => {
       router.replace("/dashboard");
     }, 1500);
@@ -743,14 +583,6 @@ export default function LoginPage() {
     return (
       <div className="login-shell">
         <div className="login-card">
-          <header className="login-header">
-            <div className="login-logo-hero">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" />
-            </div>
-            <h1>Welcome Back</h1>
-            <p>Loading team directory...</p>
-          </header>
           <section className="member-picker">
             <div className="profile-grid">
               {[...Array(6)].map((_, i) => (
@@ -767,10 +599,7 @@ export default function LoginPage() {
     return (
       <div className="login-shell">
         <div className="login-card">
-          <ErrorState 
-            error={teamQuery.error as Error} 
-            onRetry={() => teamQuery.refetch()} 
-          />
+          <ErrorState error={teamQuery.error as Error} onRetry={() => teamQuery.refetch()} />
         </div>
       </div>
     );
@@ -778,153 +607,72 @@ export default function LoginPage() {
 
   return (
     <div className="login-shell">
-      {/* Alphabet Index - Quick Scan Aid */}
-      {alphabetIndex.length > 0 && !selectedUser && (
-        <div className="alphabet-index" role="navigation" aria-label="Alphabetical index">
-          {alphabetIndex.map(letter => (
-            <button
-              key={letter}
-              className={`alphabet-letter ${activeLetter === letter ? 'active' : ''}`}
-              onClick={() => handleLetterClick(letter)}
-              aria-label={`Jump to ${letter}`}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
-      )}
-
       <motion.div
         className="login-card"
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.25 }}
       >
-        <header className="login-header" style={{ padding: "24px 24px 16px" }}>
-          <div className="login-logo-hero" style={{ marginBottom: "16px" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="login-logo-image" src={LOGIN_LOGO_URL} alt="PTBizCoach" style={{ maxHeight: "48px" }} />
-          </div>
-          
-          <h1 style={{ fontSize: "22px", margin: "0 0 4px 0" }}>Welcome Back</h1>
-          <p style={{ fontSize: "13px", margin: 0, opacity: 0.7 }}>Select your profile to sign in.</p>
-        </header>
-
         {!selectedUser && (
           <section className="member-picker">
-            {/* Search Bar */}
-            <div className="search-container">
-              <div className="search-icon">
-                <Search size={18} />
-              </div>
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search by name or title... (Press / to focus)"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-                aria-label="Search team members"
-              />
-              {searchTerm && (
-                <button 
-                  className="search-clear"
-                  onClick={() => setSearchTerm("")}
-                  aria-label="Clear search"
-                >
-                  <X size={16} />
-                </button>
-              )}
-              <kbd className="search-shortcut">/</kbd>
-            </div>
-
-            {/* Department Tabs */}
-            <div className="department-tabs">
-              {DEPARTMENTS.map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => setSelectedDepartment(dept)}
-                  className={`department-tab ${selectedDepartment === dept ? 'active' : ''}`}
-                  aria-pressed={selectedDepartment === dept}
-                >
-                  {DEPARTMENT_ICONS[dept]}
-                  <span>{dept}</span>
-                  <span className="department-count">{departmentCounts[dept] || 0}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Profile Grid */}
             <div className="profile-grid">
-              {filteredMembers && filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => {
-                  const profile = getMemberProfile(member);
-                  const badgeTokens = getBadgeTokens(profile);
-                  const isJack = normalizeText(member.name) === JACK_NAME;
-                  const imageUrl = isJack ? JACK_LOGIN_IMAGE_URL : member.imageUrl;
+              {orderedTeamMembers.map((member) => {
+                const profile = getMemberProfile(member);
+                const badgeTokens = getBadgeTokens(profile);
+                const isJack = normalizeText(member.name) === JACK_NAME;
+                const imageUrl = isJack ? JACK_LOGIN_IMAGE_URL : member.imageUrl;
 
-                  return (
-                    <motion.button
-                      key={member.id}
-                      className="profile-card"
-                      onClick={() => handleUserSelect(member.id)}
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="profile-card-avatar">
-                        {imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={imageUrl}
-                            alt={member.name}
-                            className={`profile-avatar-img ${isJack ? 'jack-headshot' : ''}`}
-                            loading="lazy"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="profile-avatar-fallback">
-                            {getInitials(member.name)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="profile-card-info">
-                        <div className="profile-name">{member.name}</div>
-                        <div className="profile-title">{member.title || "Team Member"}</div>
-                        
-                        {/* Individual themed credential badges */}
-                        {badgeTokens.length > 0 && (
-                          <div className="profile-credential-badges">
-                            {badgeTokens.map((cred, index) => (
-                              <span 
-                                key={`${member.id}-${cred}-${index}`} 
-                                className={`profile-credential-badge ${getCredentialStyle(cred)}`}
-                                title={cred}
-                              >
-                                {cred}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <div className="profile-department">{getMemberDepartment(member)}</div>
-                      </div>
-                      <div className="profile-card-action">Select</div>
-                    </motion.button>
-                  );
-                })
-              ) : (
-                <div className="no-results">
-                  <p>No profiles found matching your search.</p>
-                </div>
-              )}
+                return (
+                  <motion.button
+                    key={member.id}
+                    className="profile-card"
+                    onClick={() => handleUserSelect(member.id)}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="profile-card-avatar">
+                      {imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imageUrl}
+                          alt={member.name}
+                          className={`profile-avatar-img ${isJack ? "jack-headshot" : ""}`}
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="profile-avatar-fallback">{getInitials(member.name)}</div>
+                      )}
+                    </div>
+                    <div className="profile-card-info">
+                      <div className="profile-name">{member.name}</div>
+                      <div className="profile-title">{member.title || "Team Member"}</div>
+
+                      {badgeTokens.length > 0 && (
+                        <div className="profile-credential-badges">
+                          {badgeTokens.map((cred, index) => (
+                            <span
+                              key={`${member.id}-${cred}-${index}`}
+                              className={`profile-credential-badge ${getCredentialStyle(cred)}`}
+                              title={cred}
+                            >
+                              {cred}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="profile-card-action">Select</div>
+                  </motion.button>
+                );
+              })}
             </div>
           </section>
         )}
 
-        {/* Password Entry Flow */}
         {selectedUser && !showSuccess && (
           <section className="selected-user-section">
             <button className="change-user-btn" onClick={handleBackToSelection}>
@@ -1047,28 +795,22 @@ export default function LoginPage() {
                   <span>Encrypted & secure team access</span>
                 </div>
 
-                <div className="auth-links">
-                  <a href="#" className="auth-link">Forgot password?</a>
-                  <a href="#" className="auth-link">Need help?</a>
-                </div>
-
-                {/* Reset login data for development */}
                 {DEV_MODE && (
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #666' }}>
+                  <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed #666" }}>
                     <button
                       type="button"
                       onClick={() => {
                         localStorage.removeItem(REMEMBERED_USER_KEY);
-                        localStorage.removeItem('ptbiz_recent_users');
+                        localStorage.removeItem("ptbiz_recent_users");
                         window.location.reload();
                       }}
                       style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#ff6b6b',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
+                        background: "none",
+                        border: "none",
+                        color: "#ff6b6b",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        textDecoration: "underline",
                       }}
                     >
                       🗑️ Reset Login Data (Dev Only)
@@ -1085,23 +827,28 @@ export default function LoginPage() {
           </section>
         )}
 
-        {/* Success Animation */}
         {showSuccess && selectedUser && (
           <motion.div
             className="login-success"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.35 }}
           >
             <div className="success-checkmark">
               <CheckCircle2 size={32} />
             </div>
-            <p>Welcome back, {selectedUser.name.split(' ')[0]}!</p>
+            <p>Welcome back, {selectedUser.name.split(" ")[0]}!</p>
           </motion.div>
         )}
 
         {message && !showSuccess && (
-          <div className={message.toLowerCase().includes('incorrect') || message.toLowerCase().includes('invalid') ? "auth-error" : "login-message"}>
+          <div
+            className={
+              message.toLowerCase().includes("incorrect") || message.toLowerCase().includes("invalid")
+                ? "auth-error"
+                : "login-message"
+            }
+          >
             <UserRound size={14} />
             <span>{message}</span>
           </div>

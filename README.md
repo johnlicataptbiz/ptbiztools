@@ -10,55 +10,67 @@ PT Biz Tools (PTBizCoach.com) is a SaaS platform for physical therapy business o
 - `ptbiztools-next/`: Next.js 16 frontend (Vercel)
 - `ptbiztools-backend/`: Node/Express/Prisma backend API (Railway)
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Onboarding Quick Start (Local Development)
 
-### Prerequisites
+### 1) Prerequisites
 - Node.js 22.x (use `.nvmrc`)
-- Docker (for backend DB optional)
-- Railway CLI (`npm i -g @railway/cli`) and Vercel CLI (`npm i -g vercel`)
-- PostgreSQL (local or Railway)
-- Zoom Server-to-Server OAuth App (see Setup)
+- npm 10+
+- PostgreSQL (local or Railway-hosted)
+- Optional CLIs:
+  - Railway CLI: `npm i -g @railway/cli`
+  - Vercel CLI: `npm i -g vercel`
+- Zoom Server-to-Server OAuth App credentials (for recording import flows)
 
-### Backend Setup
+### 2) First-time install (both apps)
+From repo root:
 ```bash
-cd ptbiztools-backend
-npm ci
-cp .env.example .env  # Add DB_URL, Zoom creds
-npx prisma generate
-npx prisma db push  # or migrate
-npm run dev  # http://localhost:3001
+cd ptbiztools-backend && npm ci
+cd ../ptbiztools-next && npm ci
 ```
 
-**Backend Env Vars** (`.env` or Railway):
-```
-DATABASE_URL=\"postgresql://...\"  # Prisma Postgres
+### 3) Configure environment variables
+
+Backend (`ptbiztools-backend/.env`):
+```bash
+DATABASE_URL="postgresql://..."   # Prisma Postgres
 ZOOM_ACCOUNT_ID=your_account_id
-ZOOM_CLIENT_ID=your_client_id  
+ZOOM_CLIENT_ID=your_client_id
 ZOOM_CLIENT_SECRET=your_client_secret
 JWT_SECRET=your_jwt_secret
-AWS_S3_BUCKET=...  # Optional for large files
+AWS_S3_BUCKET=...                 # Optional for large files
 ```
 
-**Zoom CLI Tools**:
+Frontend (`ptbiztools-next/.env.local`):
 ```bash
-npm run zoom:jobs:list
-npm run zoom:ingest:run
-npm run zoom:backfill  # Import all recordings
+PTBIZ_BACKEND_URL=http://localhost:3001/api
+NEXT_PUBLIC_ENABLE_STACK_LAB=true # Optional dev surface
 ```
 
-### Frontend Setup
+### 4) Initialize database (backend)
+```bash
+cd ptbiztools-backend
+npx prisma generate
+npx prisma db push   # or run migrations as needed
+```
+
+### 5) Start local development
+
+Terminal 1 (backend):
+```bash
+cd ptbiztools-backend
+npm run dev          # http://localhost:3001
+```
+
+Terminal 2 (frontend):
 ```bash
 cd ptbiztools-next
-npm ci
-cp .env.example .env.local
-npm run dev  # http://localhost:3000
+npm run dev          # http://localhost:3000
 ```
 
-**Frontend Env Vars** (`.env.local`):
-```
-PTBIZ_BACKEND_URL=http://localhost:3001/api  # Local backend
-NEXT_PUBLIC_ENABLE_STACK_LAB=true  # Dev tools
-```
+### 6) Validate local run
+- Open `http://localhost:3000`
+- Confirm frontend can reach backend via `PTBIZ_BACKEND_URL`
+- If using Zoom tooling, confirm credentials are set and app is activated
 
 ## 📋 Project Structure
 
@@ -78,38 +90,41 @@ ptbiztools/                 # Root monorepo
 └── README.md               # This file
 ```
 
-## ✨ Features & Usage
+## ✨ Usage Guide (Core Workflows)
 
-### 1. **Sales Call Graders** (Discovery/Closer Calls)
-- Upload audio/video via Zoom or direct
-- AI analysis/scoring with phases, red flags, rubric
-- PDF/DOCX export
-- History tracking
-- *Usage*: `/discovery` or Danny Closer tab → Upload → Grade
+### Sales Call Graders (Discovery / Closer)
+- Upload call recordings (direct or Zoom-ingested)
+- Run AI scoring and rubric analysis
+- Review red flags, transcript quality, and recommendations
+- Export results (PDF/DOCX where supported)
 
-### 2. **Danny Financial Tools**
-- **P&L Audit**: Analyze financials, benchmarks
-- **Compensation Calculator**: Employee pay modeling
-- *Usage*: Dashboard → Danny Tools → Upload P&L/Excel
+Usage path:
+- Frontend route: `/discovery` and Danny tool surfaces
+- Typical flow: Upload → Grade → Review → Export
 
-### 3. **Zoom Integration**
-- Server-to-Server OAuth: Auto-import all org recordings
-- Webhook for real-time ingest
-- Transcript extraction + quality scoring
-- *CLI*: `npm run zoom:backfill` in backend
+### Danny Financial Tools
+- P&L analysis and benchmarking
+- Compensation modeling and planning
 
-### 4. **AI Agents** (Stack Lab)
-- Workflow AI + OpenAI integration
-- Streaming responses, local-first PGLite storage
-- *Dev*: `NEXT_PUBLIC_ENABLE_STACK_LAB=true`
+Usage path:
+- Dashboard → Danny Tools → Upload docs/spreadsheets → Analyze
 
-### 5. **Other**
-- Local-first sync (ElectricSQL/PGLite)
-- Changelog viewer
-- Tour/onboarding overlays
-- Analytics/action logging
+### Zoom Integration Operations
+Run from `ptbiztools-backend/`:
+```bash
+npm run zoom:jobs:list
+npm run zoom:ingest:run
+npm run zoom:backfill
+```
 
-**Live Demo**: https://www.ptbizcoach.com (login via profile picker)
+### AI Agent / Stack Lab (Dev)
+Enable with:
+```bash
+NEXT_PUBLIC_ENABLE_STACK_LAB=true
+```
+Then use stack-lab and workflow surfaces in the frontend.
+
+**Live Demo**: https://www.ptbizcoach.com
 
 ## 🛠 Development Scripts
 
@@ -165,11 +180,15 @@ See [ptbiztools-next/docs/architecture.md](ptbiztools-next/docs/architecture.md)
 - **Frontend Proxy**: Ensure PTBIZ_BACKEND_URL points to running backend
 - **Tests**: `npm run test` (backend only for now)
 
-## 📚 Additional Docs
+## 📚 Onboarding Docs Index
+- [Frontend Onboarding (Next.js app)](ptbiztools-next/README.md)
+- [Architecture](ptbiztools-next/docs/architecture.md)
+- [Repository State](ptbiztools-next/docs/repo-state.md)
+- [Agent Development](ptbiztools-next/docs/agent-development.md)
+- [Migration Status](ptbiztools-next/docs/migration-status.md)
+- [Zoom Server-to-Server Setup](SERVER_TO_SERVER_SETUP.md)
+- [Deployment / execution notes](TODO.md)
 - [Danny Integration Plan](ptbiztools-next/PLAN_DANNY_INTEGRATION.md)
-- [Zoom Setup](SERVER_TO_SERVER_SETUP.md)
-- [Deployment TODO](TODO.md)
-- [Repo State](ptbiztools-next/docs/repo-state.md)
 
 ## 🤝 Contributing
 1. Fork/clone
