@@ -1,6 +1,6 @@
 "use client";
 
-import DannyFinancialAudit from "@/components/danny/DannyFinancialAudit";
+import DannyFinancialAudit from "@/components/danny/DannyFinancialAudit.jsx";
 import { TourAnchors } from "@/lib/tour/anchors";
 
 export default function PlCalculatorPage() {
