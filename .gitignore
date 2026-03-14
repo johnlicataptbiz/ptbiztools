@@ -18,3 +18,4 @@ dist/
 # Ignore embedded repos and editor settings
 comfyui-mcp-server/
 "<parameter name="path">/Users/jl/Library*"
+*.code-workspace
