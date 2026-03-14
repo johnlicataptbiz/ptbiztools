@@ -18,7 +18,6 @@ import {
   Users,
 } from "lucide-react";
 import { ClinicIcon, type ClinicSvgName } from "@/components/clinic/ClinicIcon";
-import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
 import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
@@ -471,20 +470,26 @@ export default function DashboardPage() {
   return (
     <div className="home">
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
-<motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header clinic-pattern-overlay clinic-pattern-growth" style={{ position: 'relative' }}>
-  <ClinicBackground pattern="growth" opacity={0.06} />
-  <div className="dashboard-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: 'relative', zIndex: 1 }}>
-    <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
-    <button 
-      className="changelog-trigger-btn"
-      onClick={() => setChangelogOpen(true)}
-      title="View changelog"
-      style={{ marginLeft: "auto" }}
-    >
-      <History size={18} />
-    </button>
-  </div>
-</motion.section>
+        <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
+          {/* Subtle analytics pattern background */}
+          <div className="dashboard-hero-bg" aria-hidden="true" />
+          {/* Wave divider at bottom */}
+          <div className="dashboard-hero-wave" aria-hidden="true" />
+          <div className="dashboard-header-content">
+            <div>
+              <h1>{greeting}</h1>
+              <p>Your analytics command center</p>
+            </div>
+            <button
+              className="changelog-trigger-btn"
+              onClick={() => setChangelogOpen(true)}
+              title="View changelog"
+            >
+              <History size={16} />
+              Changelog
+            </button>
+          </div>
+        </motion.section>
 
         <motion.section variants={itemVariants} className="stats-grid">
           <article className="stat-card">

@@ -1,0 +1,25 @@
+{
+  "source_image": "/mnt/data/ChatGPT Image Mar 14, 2026, 03_03_22 PM.png",
+  "files": [
+    "growth_graph_pattern.png",
+    "coaching_node_network.png",
+    "wave_background_band.png",
+    "hero_background.png",
+    "training_banner_variant.png",
+    "linked_node_backdrop.png",
+    "motivational_strip.png",
+    "small_checkmark_node_1.png",
+    "five_tier_banner.png",
+    "motivational_table.png",
+    "growth_channel_node_bar.png",
+    "graph_divider.png",
+    "node_bar.png",
+    "arrow_strip.png",
+    "clipboard_icon.png",
+    "stacked_tiles_icon.png",
+    "mini_node_connector.png",
+    "target_arrow_icon.png",
+    "growth_bubbles_icon.png"
+  ],
+  "note": "Assets were manually cropped from the provided composite sheet and white background was made transparent. Some names were inferred from labels in the image."
+}

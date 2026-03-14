@@ -9,6 +9,26 @@
   background: linear-gradient(180deg, var(--brand-dark) 0%, color-mix(in oklab, var(--brand-dark) 74%, #000 26%) 100%);
   box-shadow: 2px 0 14px rgba(0, 0, 0, 0.2);
   color: rgba(255, 255, 255, 0.8);
+  position: relative;
+}
+
+/* Subtle pattern texture overlay on sidebar */
+.app-shell-sidebar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/clinic-icons/node_network_pattern.svg');
+  background-size: 140px;
+  background-repeat: repeat;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure sidebar children are above the pattern */
+.app-shell-sidebar > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app-shell-logo-link {
@@ -109,16 +129,53 @@
 .app-shell-nav-link-active {
   background: color-mix(in oklab, var(--brand-accent) 30%, transparent);
   color: color-mix(in oklab, var(--brand-accent-light) 65%, #ffffff 35%);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.03);
 }
 
 .app-shell-nav-link-active::before {
   height: 24px;
 }
 
+.app-shell-nav-link-active::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-accent-light) 80%, #ffffff 20%);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--brand-accent-light) 50%, transparent);
+}
+
+/* Divider wave between nav and user card */
+.app-shell-user-slot::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin: 0 8px 16px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
 .app-shell-user-card {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle pattern on user card */
+.app-shell-user-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/clinic-icons/analytics_strip.svg');
+  background-size: 80px;
+  background-repeat: repeat;
+  opacity: 0.03;
+  pointer-events: none;
 }
 
 .app-shell-user-slot {
@@ -146,6 +203,7 @@
 
 .app-shell-header {
   background: color-mix(in oklab, var(--background) 84%, white 16%);
+  -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
   box-shadow: 0 8px 20px rgba(24, 24, 27, 0.07);
 }

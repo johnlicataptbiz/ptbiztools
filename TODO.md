@@ -1,8 +1,7 @@
-# Login Redesign TODO
+# Dashboard & Sub-Pages Upgrade
 
-- [x] Analyze login redesign requirements and constraints
-- [x] Inspect relevant files (`src/app/login/page.tsx`, `src/styles/login.css`)
-- [x] Draft and confirm implementation plan with user
-- [ ] Replace `src/app/login/page.tsx` with simplified single-card login flow
-- [ ] Replace `src/styles/login.css` with streamlined styles and subtle PT Biz pattern background
-- [ ] Update TODO progress and finalize without running tests
+- [x] Step 1: Register new extracted assets in `clinic-svgs.ts`
+- [x] Step 2: Update `dashboard.css` — hero bg/wave, stat card patterns, tool card layout, chart bars, activity feed
+- [x] Step 3: Update `dashboard/page.tsx` — hero with bg layer + wave divider + subtitle, tool card badge/content layout
+- [x] Step 4: Update `app-shell.css` — sidebar pattern texture, active nav dot indicator, user card pattern, divider
+- [x] Step 5: Browser test — Fast Refresh compiles clean, no console errors, login page renders correctly

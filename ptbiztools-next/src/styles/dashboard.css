@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Dashboard — Analytics-focused Premium Redesign
+   Uses clinic assets, gradient accents, and data-driven visual hierarchy
+   ========================================================================== */
+
 .home {
   min-height: 100%;
 }
@@ -6,32 +11,51 @@
   padding-bottom: 40px;
 }
 
+/* ── Hero Header ────────────────────────────────────────────────────────── */
+
 .dashboard-header {
   margin-bottom: 36px;
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, var(--color-border) 86%, #ffffff);
-  padding: 28px 30px;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 .dashboard-v2-hero {
+  position: relative;
   background:
     radial-gradient(130% 120% at 5% 0%, var(--hero-radial-a), transparent 50%),
     radial-gradient(120% 120% at 100% 100%, var(--hero-radial-b), transparent 40%),
     linear-gradient(180deg, var(--hero-linear-start), var(--hero-linear-end));
+  overflow: hidden;
 }
 
-.dashboard-header h1 {
-  font-size: clamp(1.6rem, 2.1vw, 2.1rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-  margin: 0 0 8px;
+/* Hero background image layer */
+.dashboard-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/clinic-icons/coaching_node_network.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.dashboard-header p {
-  font-size: 15px;
-  color: var(--color-text-muted);
-  margin: 0;
+/* Wave divider at bottom of hero */
+.dashboard-hero-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background-image: url('/clinic-icons/wave_background_band.png');
+  background-size: cover;
+  background-position: center bottom;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .dashboard-header-content {
@@ -39,6 +63,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  padding: 28px 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-header h1 {
+  font-size: clamp(1.6rem, 2.1vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.dashboard-header p {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
 .changelog-trigger-btn {
@@ -72,12 +113,15 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+    padding: 22px;
   }
 
   .changelog-trigger-btn {
     align-self: flex-start;
   }
 }
+
+/* ── Stat Cards ─────────────────────────────────────────────────────────── */
 
 .stats-grid {
   display: grid;
@@ -95,12 +139,33 @@
   gap: 16px;
   box-shadow: 0 12px 30px rgba(24, 24, 27, 0.06);
   border: 1px solid var(--color-border);
-  transition: var(--transition-fast);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle pattern overlay on stat cards */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/clinic-icons/kpi_chart_texture.svg');
+  background-size: 80px;
+  background-repeat: repeat;
+  opacity: 0.025;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 34px rgba(24, 24, 27, 0.11);
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 40px rgba(24, 24, 27, 0.1),
+    0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.stat-card:hover::before {
+  opacity: 0.05;
 }
 
 .stat-icon {
@@ -111,11 +176,14 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .stat-content {
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
@@ -123,6 +191,7 @@
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
@@ -130,6 +199,8 @@
   color: var(--color-text-muted);
   margin-top: 4px;
 }
+
+/* ── Chart Section ──────────────────────────────────────────────────────── */
 
 .chart-section {
   margin-bottom: 38px;
@@ -141,6 +212,23 @@
   box-shadow: 0 12px 32px rgba(24, 24, 27, 0.07);
   border: 1px solid var(--color-border);
   padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle analytics pattern on chart cards */
+.chart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background-image: url('/clinic-icons/analytics_arrow_pattern.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.02;
+  pointer-events: none;
 }
 
 .chart-header {
@@ -150,6 +238,8 @@
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .chart-title {
@@ -202,9 +292,13 @@
   border-radius: 50%;
 }
 
+/* ── Activity Chart Bars ────────────────────────────────────────────────── */
+
 .overview-rows {
   display: grid;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .overview-row {
@@ -212,12 +306,20 @@
   grid-template-columns: 52px minmax(0, 1fr) 30px;
   align-items: center;
   gap: 12px;
+  padding: 4px 0;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.overview-row:hover {
+  background: color-mix(in oklab, var(--accent) 4%, transparent);
 }
 
 .overview-date {
   font-size: 12px;
   color: var(--color-text-secondary);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .overview-bars {
@@ -230,19 +332,23 @@
   height: 8px;
   border-radius: 999px;
   min-width: 2px;
-  transition: width 180ms ease;
+  transition: width 400ms cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
 }
 
 .overview-bar-analyses {
   background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 60%, #fff));
+  box-shadow: 0 1px 4px color-mix(in oklab, var(--accent) 25%, transparent);
 }
 
 .overview-bar-pdfs {
   background: linear-gradient(90deg, var(--success), color-mix(in oklab, var(--success) 65%, #fff));
+  box-shadow: 0 1px 4px color-mix(in oklab, var(--success) 20%, transparent);
 }
 
 .overview-bar-logins {
   background: linear-gradient(90deg, var(--warning), color-mix(in oklab, var(--warning) 65%, #fff));
+  box-shadow: 0 1px 4px color-mix(in oklab, var(--warning) 20%, transparent);
 }
 
 .overview-total {
@@ -250,13 +356,18 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
+
+/* ── Two-Column Admin Grid ──────────────────────────────────────────────── */
 
 .dashboard-v2-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
+
+/* ── Tool Cards ─────────────────────────────────────────────────────────── */
 
 .tools-section {
   margin-bottom: 36px;
@@ -278,21 +389,20 @@
 .tool-card {
   background: var(--color-card);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 0;
   box-shadow: var(--shadow-card);
-  transition: var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
   border: 1px solid var(--color-border);
   text-align: left;
   isolation: isolate;
   text-decoration: none;
-  aspect-ratio: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
 }
 
+/* Accent top bar on tool cards */
 .tool-card::before {
   content: "";
   position: absolute;
@@ -302,27 +412,119 @@
   height: 3px;
   background: linear-gradient(90deg, var(--color-accent) 0%, transparent 100%);
   opacity: 0;
-  transition: var(--transition-fast);
+  transition: opacity 0.3s ease;
 }
 
 .tool-card-live:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(35, 52, 74, 0.14), 0 0 0 1px rgba(91, 127, 166, 0.18);
-  border-color: rgba(91, 127, 166, 0.3);
+  box-shadow:
+    0 18px 40px rgba(35, 52, 74, 0.14),
+    0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--color-border));
 }
 
 .tool-card-live:hover::before {
   opacity: 1;
 }
 
+/* Tool card badge area */
 .tool-icon {
   width: 100%;
-  height: 100%;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  background:
+    radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--accent) 6%, transparent), transparent 70%),
+    color-mix(in oklab, var(--color-card) 96%, var(--accent) 4%);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
 }
+
+/* Subtle pattern in badge area */
+.tool-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/clinic-icons/node_network_pattern.svg');
+  background-size: 100px;
+  background-repeat: repeat;
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+.tool-badge {
+  max-width: 120px;
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.2));
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.tool-card-live:hover .tool-badge {
+  transform: scale(1.05);
+}
+
+.tool-icon-fallback {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+  position: relative;
+  z-index: 1;
+}
+
+/* Tool card content area */
+.tool-content {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.tool-content h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tool-content p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.tool-ready-chip {
+  margin-top: 10px;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Zoom Ingestion ─────────────────────────────────────────────────────── */
 
 .zoom-ingest-grid {
   display: grid;
@@ -339,6 +541,11 @@
   justify-content: space-between;
   align-items: center;
   background: var(--color-bg-secondary);
+  transition: border-color 0.2s ease;
+}
+
+.zoom-pill:hover {
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--color-border));
 }
 
 .zoom-pill span {
@@ -349,6 +556,7 @@
 .zoom-pill strong {
   font-size: 16px;
   color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .zoom-controls {
@@ -367,6 +575,13 @@
   font-weight: 600;
   padding: 8px 10px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.zoom-action-btn:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--color-border));
+  background: color-mix(in oklab, var(--accent) 6%, var(--color-card));
 }
 
 .zoom-action-btn:disabled {
@@ -410,6 +625,8 @@
   color: var(--color-text-muted);
 }
 
+/* ── Zoom Reports ───────────────────────────────────────────────────────── */
+
 .zoom-report-card {
   border: 1px solid var(--color-border);
   background: var(--color-card);
@@ -431,10 +648,15 @@
   align-items: center;
   padding: 12px;
   border-bottom: 1px dashed var(--color-border);
+  transition: background 0.15s ease;
 }
 
 .zoom-report-row:last-child {
   border-bottom: none;
+}
+
+.zoom-report-row:hover {
+  background: color-mix(in oklab, var(--accent) 3%, transparent);
 }
 
 .zoom-report-meta {
@@ -449,6 +671,7 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .zoom-report-actions {
@@ -456,6 +679,8 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ── Zoom Report Modal ──────────────────────────────────────────────────── */
 
 .zoom-report-modal {
   position: fixed;
@@ -470,6 +695,8 @@
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .zoom-report-modal-card {
@@ -480,7 +707,7 @@
   padding: 24px;
   max-width: 640px;
   width: min(90vw, 640px);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
 
@@ -512,50 +739,7 @@
   font-size: 13px;
 }
 
-.tool-badge {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.3));
-}
-
-.tool-icon-fallback {
-  width: 34px;
-  height: 34px;
-  align-items: center;
-  justify-content: center;
-}
-
-.tool-content h3 {
-  margin: 0 0 8px;
-  color: var(--color-text);
-  font-size: 18px;
-  font-weight: 650;
-}
-
-.tool-content p {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.tool-ready-chip {
-  margin-top: 14px;
-  width: fit-content;
-  border-radius: 999px;
-  border: 1px solid rgba(22, 163, 74, 0.3);
-  background: rgba(22, 163, 74, 0.08);
-  color: #15803d;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 4px 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
+/* ── Top Users / Action Types Lists ─────────────────────────────────────── */
 
 .top-users-list {
   display: grid;
@@ -571,6 +755,12 @@
   border-radius: 10px;
   padding: 10px 12px;
   background: var(--color-bg-secondary);
+  transition: all 0.15s ease;
+}
+
+.top-user-row:hover {
+  border-color: color-mix(in oklab, var(--accent) 25%, var(--color-border));
+  background: color-mix(in oklab, var(--accent) 3%, var(--color-bg-secondary));
 }
 
 .top-user-left {
@@ -595,6 +785,7 @@
   font-size: 12px;
   color: var(--color-text-secondary);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .top-action-total {
@@ -603,6 +794,8 @@
   color: var(--color-text-muted);
   font-weight: 600;
 }
+
+/* ── Activity Feed ──────────────────────────────────────────────────────── */
 
 .activity-section {
   margin-bottom: 22px;
@@ -629,16 +822,20 @@
   gap: 14px;
   padding: 17px 20px;
   border-bottom: 1px solid var(--color-border);
-  transition: var(--transition-fast);
+  transition: all 0.15s ease;
 }
 
 .activity-item:last-child {
   border-bottom: none;
 }
 
+.activity-item:nth-child(even) {
+  background: color-mix(in oklab, var(--color-bg-secondary) 40%, transparent);
+}
+
 .activity-item:hover {
-  background: var(--color-bg-secondary);
-  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--accent) 4%, var(--color-card));
+  transform: translateX(2px);
 }
 
 .activity-user-avatar {
@@ -653,7 +850,7 @@
   height: 36px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 1.5px solid var(--color-border);
+  border: 2px solid color-mix(in oklab, var(--accent) 20%, var(--color-border));
   display: block;
 }
 
@@ -691,6 +888,7 @@
   font-size: 12px;
   color: var(--color-text-muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .activity-loading,
@@ -713,6 +911,8 @@
   opacity: 0.5;
 }
 
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
 @media (max-width: 1200px) {
   .stats-grid,
   .tools-grid {
@@ -725,7 +925,7 @@
 }
 
 @media (max-width: 900px) {
-  .dashboard-header {
+  .dashboard-header-content {
     padding: 22px;
   }
 
@@ -736,6 +936,10 @@
 
   .chart-card {
     padding: 20px;
+  }
+
+  .tool-icon {
+    height: 120px;
   }
 }
 
@@ -766,5 +970,14 @@
   .chart-window-label {
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .tool-icon {
+    height: 100px;
+  }
+
+  .tool-badge {
+    max-width: 80px;
+    max-height: 80px;
   }
 }

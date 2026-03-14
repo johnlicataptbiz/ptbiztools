@@ -1,20 +1,23 @@
 "use client";
 
-import "@/styles/login-credential-badges.css";
+import "@/styles/login.css";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronDown,
   Eye,
   EyeOff,
   LockKeyhole,
+  Search,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CorexButton, CorexInput } from "@/components/corex/CorexComponents";
+import { getTeamMemberMeta } from "@/constants/team-credentials";
 import { useSession } from "@/lib/auth/session-context";
 import { getTeamMembers, setupPassword, type TeamMember } from "@/lib/ptbiz-api";
 
@@ -26,199 +29,31 @@ const JACK_LOGIN_IMAGE_URL = "https://ca.slack-edge.com/TJ3QQ76KV-U09E8E2JU7N-a1
 const DEV_MODE = process.env.NODE_ENV === "development";
 const DEV_PASSWORD = "dev123";
 
-type MemberProfile = {
-  badge: string;
-  credentials: string;
-  clinic: string;
-  experience: string;
-  clinicLogoUrl?: string;
+/* ── Tier ordering for section groups ───────────────────────────────────── */
+
+const TIER_ORDER: Record<string, number> = {
+  Coaches: 0,
+  Partners: 1,
+  Advisors: 2,
+  "Client Success": 3,
+  Acquisitions: 4,
 };
 
-const MEMBER_PROFILES_BY_NAME: Record<string, MemberProfile> = {
-  "ashley speights": {
-    badge: "PT, DPT, PES",
-    credentials: "Coach; PT, DPT, PES",
-    clinic: "Founder & Owner - The PHYT Collective (Washington, DC)",
-    experience: "Athlete-focused cash practice with strong community education",
-    clinicLogoUrl: "https://logos.hunter.io/phytcollective.com",
-  },
-  "brooke miller": {
-    badge: "PT, DPT, OCS",
-    credentials: "Coach; PT, DPT, OCS",
-    clinic: "Owner - PeakRx Therapy / PeakRx PT & Wellness (Dallas/Lewisville, TX)",
-    experience: "Pelvic health + orthopedic performance specialist clinic owner",
-    clinicLogoUrl: "https://logos.hunter.io/peakrxtherapy.com",
-  },
-  "chris robl": {
-    badge: "DPT",
-    credentials: "Coach; DPT",
-    clinic: "Founder/Owner - Physio Room (Colorado; hybrid model)",
-    experience: "10+ years clinical practice; built multi-location hybrid business",
-    clinicLogoUrl: "https://logos.hunter.io/physioroomco.com",
-  },
-  "colleen davis": {
-    badge: "DPT",
-    credentials: "Coach; DPT",
-    clinic: "Founder & Owner - GOAT Physical Therapy and Wellness (Gales Ferry, CT)",
-    experience: "Scaled to a 3,500 sq ft clinic with four therapists",
-    clinicLogoUrl: "https://logos.hunter.io/goatpt.com",
-  },
-  "courtney morse": {
-    badge: "DPT",
-    credentials: "Head Coach; DPT",
-    clinic: "Owner/Founder - Natural Wellness Physiotherapy (Wichita, KS)",
-    experience: "Built team-run cash clinic and now focuses on systems + leadership",
-    clinicLogoUrl: "https://logos.hunter.io/teamnaturalwellness.com",
-  },
-  "daniel laughlin": {
-    badge: "PT, DPT",
-    credentials: "Coach; PT, DPT",
-    clinic: "Owner - Laughlin Performance & Physical Therapy (Overland Park, KS; hybrid model)",
-    experience: "Converted from insurance model to high-performing hybrid practice",
-    clinicLogoUrl: "https://logos.hunter.io/lpptkc.com",
-  },
-  "dj haskins": {
-    badge: "PT, DPT",
-    credentials: "Coach; PT, DPT",
-    clinic: "Founder - Bliss Pelvic Health (Tampa Bay/Wesley Chapel, FL)",
-    experience: "Pelvic health practice helping women return to confident movement",
-    clinicLogoUrl: "https://logos.hunter.io/blisspelvichealth.com",
-  },
-  "elizabeth rudd": {
-    badge: "PT, DPT, OCS, CSCS",
-    credentials: "Coach; PT, DPT, OCS, CSCS",
-    clinic: "Founder/Owner - Well Equipt Physical Therapy (Atlanta, GA; founded 2018)",
-    experience: "Sports performance, rehab, and pain-management specialist",
-    clinicLogoUrl: "https://logos.hunter.io/wellequiptpt.com",
-  },
-  "jaxie meth": {
-    badge: "PT, DPT",
-    credentials: "Coach; PT, DPT",
-    clinic: "Founder/Owner - The METHOD Performance and Physical Therapy (Boston, MA area)",
-    experience: "Pelvic floor specialist for fitness athletes",
-    clinicLogoUrl: "https://logos.hunter.io/themethodpt.com",
-  },
-  "michael sclafani": {
-    badge: "DPT, SCS, CSCS",
-    credentials: "Coach; DPT, SCS, CSCS",
-    clinic: "Founder/Owner - Tideline Sports Performance & Rehabilitation (Sarasota/Bradenton, FL area)",
-    experience: "Sports residency trained; published IJSPT author; DPT faculty contributor",
-    clinicLogoUrl: "https://logos.hunter.io/tidelinesportsperformance.com",
-  },
-  "tyler humphries": {
-    badge: "DPT",
-    credentials: "Coach; DPT",
-    clinic: "Founder/Owner - Bulletproof Physical Therapy (Houston, TX)",
-    experience: "Performance-based rehab model for active adults and athletes",
-    clinicLogoUrl: "https://logos.hunter.io/bulletproofpt.com",
-  },
-  "ziad dahdul": {
-    badge: "DPT, OCS",
-    credentials: "Coach; DPT, OCS",
-    clinic: "Founder/Owner - Ignite Phyzio & Sports Performance (Orange County/La Habra, CA)",
-    experience: "11+ years with athletes; USC DPT; functional performance focus",
-    clinicLogoUrl: "https://logos.hunter.io/ignitephyzio.com",
-  },
-  "yves gege": {
-    badge: "MSPT",
-    credentials: "Partner; Head of Customer Success & Coaching; MSPT",
-    clinic: "Founder - Made 2 Move Physical Therapy (Charleston, SC area)",
-    experience: "Grew to multiple locations/providers; sold in 2020; remains mentor",
-    clinicLogoUrl: "https://logos.hunter.io/made2movept.com",
-  },
-  "danny matta": {
-    badge: "DPT, OCS, CSCS",
-    credentials: "Partner; CEO; DPT, OCS, CSCS",
-    clinic: "Co-founder/Co-owner (with Ashley Matta) - Athletes' Potential (Decatur/Atlanta, GA)",
-    experience: "Former U.S. Army Physical Therapist; co-founded PT Biz and scaled Athletes' Potential before selling in 2023",
-  },
-  "jerred moon": {
-    badge: "BIZ",
-    credentials: "Partner; CFO",
-    clinic: "",
-    experience: "PT Biz CFO + acquisitions leader; USAF veteran; 8-figure digital operator; author of Killing Comfort",
-  },
-  "amy gege": {
-    badge: "OPS",
-    credentials: "Client Success; Events & Operations",
-    clinic: "",
-    experience: "20+ years event operations; coordinates PT Biz live experiences",
-  },
-  "ashley matta": {
-    badge: "OWNER",
-    credentials: "Client Success; First Lady of PT Biz",
-    clinic: "Co-owner (with Danny Matta) - Athletes' Potential",
-    experience: "Built and operated cash practice for 8+ years; sold in 2023",
-    clinicLogoUrl: "https://logos.hunter.io/athletespotential.com",
-  },
-  "bekah fay": {
-    badge: "DPT",
-    credentials: "Client Success; Acquisitions; DPT",
-    clinic: "Opened cash-based PT practice inside CrossFit affiliate she owns (South Florida)",
-    experience: "CrossFit affiliate owner who launched and runs cash PT practice",
-  },
-  "brandon erwin": {
-    badge: "OPS",
-    credentials: "Client Success",
-    clinic: "",
-    experience: "Podcast production plus digital marketing and sales support",
-  },
-  "nicole miller": {
-    badge: "DPT",
-    credentials: "Client Success; Acquisitions; DPT",
-    clinic: "",
-    experience: "Outpatient neuro background; movement, education, and operations focus",
-  },
-  "jack licata": {
-    badge: "BIZ",
-    credentials: "Client Success; Acquisitions Support; PT Biz Coach Tools Creator",
-    clinic: "",
-    experience: "Supports advisor sales process and helps execute web, AI, and workflow fulfillment",
-  },
-  "john licata": {
-    badge: "BIZ",
-    credentials: "Advisor; Senior Advisor",
-    clinic: "Senior Advisor - PT Biz",
-    experience: "30+ years in consumer goods leadership, sales strategy, and executive consulting",
-  },
-  "toni counts": {
-    badge: "PT, DPT",
-    credentials: "Advisor; Business Advisor; PT, DPT",
-    clinic: "Founder/Owner - Off The Block Performance Physical Therapy (Central/Easley, SC area)",
-    experience: "Multiple locations with husband Cole",
-    clinicLogoUrl: "https://logos.hunter.io/offtheblockpt.com",
-  },
-  "e'an verdugo": {
-    badge: "OPS",
-    credentials: "Acquisitions; Creative Director",
-    clinic: "",
-    experience: "Filmmaker and storyteller leading PT Biz creative direction",
-  },
-  "justin pfluger": {
-    badge: "OPS",
-    credentials: "Acquisitions",
-    clinic: "",
-    experience: "Ecommerce operator and paid advertising specialist",
-  },
-  "kaitlin wilcox": {
-    badge: "RN",
-    credentials: "Acquisitions; RN",
-    clinic: "",
-    experience: "Registered Nurse and former cardiac rehab exercise physiologist",
-  },
-  "trampis beatty": {
-    badge: "OPS",
-    credentials: "Acquisitions; Web Builds",
-    clinic: "",
-    experience: "Leads website builds and acquisition support",
-  },
-  "pd": {
-    badge: "OPS",
-    credentials: "Internal; PTBiz Dev Tester",
-    clinic: "",
-    experience: "Development and testing operations",
-  },
+const TIER_LABELS: Record<string, string> = {
+  Coaches: "Coaches",
+  Partners: "Partners",
+  Advisors: "Advisors",
+  "Client Success": "Client Success",
+  Acquisitions: "Acquisitions & Ops",
 };
+
+function getTierKey(member: TeamMember): string {
+  const section = (member.teamSection || "").trim();
+  if (section in TIER_ORDER) return section;
+  return "Client Success"; // fallback
+}
+
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
 
 function normalizeText(value: string | null | undefined) {
   return (value || "").trim().toLowerCase();
@@ -242,66 +77,6 @@ function isBoardMember(member: TeamMember) {
   return section.includes("board") || title.includes("board");
 }
 
-function getMemberProfile(member: TeamMember) {
-  const explicit = MEMBER_PROFILES_BY_NAME[normalizeText(member.name)];
-  if (explicit) {
-    return sanitizeProfile(explicit);
-  }
-
-  const section = normalizeText(member.teamSection);
-  const isCoach = section.includes("coach");
-  const isPartner = section.includes("partner");
-  const isAdvisor = section.includes("advisor");
-
-  if (isCoach) {
-    return sanitizeProfile({
-      badge: "PT",
-      credentials: "Coach profile",
-      clinic: "PT clinic founder/owner",
-      experience: "Cash-based or hybrid practice builder",
-    });
-  }
-
-  if (isPartner) {
-    return sanitizeProfile({
-      badge: "LEAD",
-      credentials: "Partner leadership profile",
-      clinic: member.title || "PT Biz Partner",
-      experience: "Executive and operations leadership",
-    });
-  }
-
-  if (isAdvisor) {
-    return sanitizeProfile({
-      badge: "ADVR",
-      credentials: "Advisor profile",
-      clinic: member.title || "PT Biz Advisor",
-      experience: "Advisory and business strategy",
-    });
-  }
-
-  return sanitizeProfile({
-    badge: "OPS",
-    credentials: "Team profile",
-    clinic: "No PT clinic ownership listed",
-    experience: member.title || "Internal operations and client success",
-  });
-}
-
-function sanitizeProfile(profile: MemberProfile) {
-  const clinic = profile.clinic.replace(/^No PT clinic ownership(?: listed)?\s*$/i, "").trim();
-  const experience = profile.experience
-    .replace(/\bNo PT clinic ownership\b;?\s*/i, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-
-  return {
-    ...profile,
-    clinic,
-    experience,
-  };
-}
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -310,6 +85,43 @@ function getInitials(name: string) {
     .slice(0, 2)
     .toUpperCase();
 }
+
+function resolveImageUrl(member: { name: string; imageUrl?: string | null }) {
+  const isJack = normalizeText(member.name) === JACK_NAME;
+  return isJack ? JACK_LOGIN_IMAGE_URL : member.imageUrl;
+}
+
+/** Split "Danny Matta" → { first: "Danny", last: "Matta" } */
+function splitName(fullName: string): { first: string; last: string } {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 1) return { first: parts[0] || "", last: "" };
+  return { first: parts[0], last: parts.slice(1).join(" ") };
+}
+
+/* ── Formatted name component ───────────────────────────────────────────── */
+
+function FormattedName({
+  name,
+  credentials,
+  size = "normal",
+}: {
+  name: string;
+  credentials?: string;
+  size?: "normal" | "small" | "large";
+}) {
+  const { first, last } = splitName(name);
+  const sizeClass = size === "small" ? "name-sm" : size === "large" ? "name-lg" : "name-md";
+
+  return (
+    <span className={`formatted-name ${sizeClass}`}>
+      <span className="formatted-name-first">{first.toUpperCase()}</span>
+      {last && <> <span className="formatted-name-last">{last.toUpperCase()}</span></>}
+      {credentials && <span className="formatted-name-credentials">, {credentials}</span>}
+    </span>
+  );
+}
+
+/* ── Avatar components ──────────────────────────────────────────────────── */
 
 function TeamAvatar({
   name,
@@ -323,9 +135,7 @@ function TeamAvatar({
   fallbackClassName: string;
 }) {
   const [didError, setDidError] = useState(false);
-  const isJack = normalizeText(name) === JACK_NAME;
-  const resolvedImageUrl = isJack ? JACK_LOGIN_IMAGE_URL : imageUrl;
-  const imageClassName = `${className}${isJack ? " jack-headshot-tight" : ""}`;
+  const resolvedImageUrl = resolveImageUrl({ name, imageUrl });
 
   if (resolvedImageUrl && !didError) {
     return (
@@ -334,7 +144,7 @@ function TeamAvatar({
         <img
           src={resolvedImageUrl}
           alt={name}
-          className={imageClassName}
+          className={className}
           loading="lazy"
           onError={() => setDidError(true)}
         />
@@ -351,26 +161,6 @@ function TeamAvatar({
   );
 }
 
-function getBadgeTokens(profile?: { badge: string } | null) {
-  if (!profile?.badge) return [];
-  return profile.badge
-    .split(",")
-    .map((token) => token.trim().toUpperCase())
-    .filter(Boolean);
-}
-
-function getCredentialStyle(cred: string): string {
-  const c = cred.trim().toUpperCase();
-  if (["DPT"].includes(c)) return "credential-dpt";
-  if (["PT", "MSPT"].includes(c)) return "credential-pt";
-  if (["OCS", "SCS"].includes(c)) return "credential-ocs";
-  if (["CSCS"].includes(c)) return "credential-cscs";
-  if (["PES"].includes(c)) return "credential-pes";
-  if (["RN"].includes(c)) return "credential-rn";
-  if (["BIZ", "OWNER", "OPS"].includes(c)) return "credential-ops";
-  return "credential-default";
-}
-
 function saveRecentUser(userId: string) {
   if (typeof window === "undefined") return;
   try {
@@ -383,21 +173,285 @@ function saveRecentUser(userId: string) {
   }
 }
 
-function ProfileSkeleton() {
+/* ── Grouped members type ───────────────────────────────────────────────── */
+
+interface TierGroup {
+  tier: string;
+  label: string;
+  members: TeamMember[];
+}
+
+function groupMembersByTier(members: TeamMember[]): TierGroup[] {
+  const groups: Record<string, TeamMember[]> = {};
+
+  for (const member of members) {
+    const tier = getTierKey(member);
+    if (!groups[tier]) groups[tier] = [];
+    groups[tier].push(member);
+  }
+
+  return Object.entries(groups)
+    .sort(([a], [b]) => (TIER_ORDER[a] ?? 99) - (TIER_ORDER[b] ?? 99))
+    .map(([tier, tierMembers]) => ({
+      tier,
+      label: TIER_LABELS[tier] || tier,
+      members: tierMembers.sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+}
+
+/* ── Dropdown User Picker ───────────────────────────────────────────────── */
+
+function UserPickerDropdown({
+  members,
+  selectedUserId,
+  onSelect,
+}: {
+  members: TeamMember[];
+  selectedUserId: string | null;
+  onSelect: (userId: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const selectedMember = useMemo(
+    () => members.find((m) => m.id === selectedUserId) || null,
+    [members, selectedUserId],
+  );
+
+  const filteredMembers = useMemo(() => {
+    if (!search.trim()) return members;
+    const q = search.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        (m.title || "").toLowerCase().includes(q) ||
+        (m.teamSection || "").toLowerCase().includes(q) ||
+        (getTeamMemberMeta(m.name).clinicName || "").toLowerCase().includes(q) ||
+        (getTeamMemberMeta(m.name).credentials || "").toLowerCase().includes(q),
+    );
+  }, [members, search]);
+
+  const groupedFiltered = useMemo(() => groupMembersByTier(filteredMembers), [filteredMembers]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [isOpen]);
+
+  // Auto-focus search when opened
+  useEffect(() => {
+    if (isOpen && searchRef.current) {
+      setTimeout(() => searchRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
+
+  const handleToggle = useCallback(() => {
+    setIsOpen((prev) => !prev);
+    if (isOpen) setSearch("");
+  }, [isOpen]);
+
+  const handleSelect = useCallback(
+    (userId: string) => {
+      onSelect(userId);
+      setIsOpen(false);
+      setSearch("");
+    },
+    [onSelect],
+  );
+
+  const selectedMeta = selectedMember ? getTeamMemberMeta(selectedMember.name) : null;
+
   return (
-    <div className="profile-card skeleton">
-      <div className="skeleton-avatar" />
-      <div className="skeleton-info">
-        <div className="skeleton-line skeleton-name" />
-        <div className="skeleton-line skeleton-title" />
-        <div className="skeleton-badges">
-          <div className="skeleton-badge" />
-          <div className="skeleton-badge" />
-        </div>
-      </div>
+    <div className="user-picker" ref={dropdownRef}>
+      <span className="user-picker-label">Select your profile</span>
+
+      <button
+        type="button"
+        className={`user-picker-trigger ${isOpen ? "is-open" : ""}`}
+        onClick={handleToggle}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        {selectedMember ? (
+          <>
+            <PickerAvatar member={selectedMember} />
+            <div className="user-picker-trigger-text">
+              <FormattedName
+                name={selectedMember.name}
+                credentials={selectedMeta?.credentials}
+                size="normal"
+              />
+              {selectedMeta?.clinicName && (
+                <div className="user-picker-trigger-clinic">{selectedMeta.clinicName}</div>
+              )}
+              {!selectedMeta?.clinicName && (
+                <div className="user-picker-trigger-title">
+                  {selectedMember.title || "Team Member"}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="user-picker-trigger-placeholder">
+              <UserRound size={16} />
+            </div>
+            <span className="user-picker-trigger-placeholder-text">
+              Choose your name...
+            </span>
+          </>
+        )}
+        <ChevronDown size={18} className="user-picker-trigger-chevron" />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="user-picker-dropdown"
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            role="listbox"
+          >
+            <div className="user-picker-search-wrapper" style={{ position: "relative" }}>
+              <Search size={15} className="user-picker-search-icon" />
+              <input
+                ref={searchRef}
+                type="text"
+                className="user-picker-search"
+                placeholder="Search by name, clinic, or role..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+
+            <div className="user-picker-list" ref={listRef}>
+              {groupedFiltered.length === 0 ? (
+                <div className="user-picker-empty">No team members found</div>
+              ) : (
+                groupedFiltered.map((group) => (
+                  <div key={group.tier} className="user-picker-tier-group">
+                    <div className="user-picker-tier-header">
+                      <span className="user-picker-tier-label">{group.label}</span>
+                      <span className="user-picker-tier-count">{group.members.length}</span>
+                    </div>
+                    {group.members.map((member) => {
+                      const meta = getTeamMemberMeta(member.name);
+                      return (
+                        <button
+                          key={member.id}
+                          type="button"
+                          className={`user-picker-item ${member.id === selectedUserId ? "is-selected" : ""}`}
+                          onClick={() => handleSelect(member.id)}
+                          role="option"
+                          aria-selected={member.id === selectedUserId}
+                        >
+                          <PickerItemAvatar member={member} />
+                          <div className="user-picker-item-info">
+                            <FormattedName
+                              name={member.name}
+                              credentials={meta.credentials}
+                              size="small"
+                            />
+                            {meta.clinicName ? (
+                              <div className="user-picker-item-clinic">{meta.clinicName}</div>
+                            ) : (
+                              <div className="user-picker-item-title">
+                                {member.title || "Team Member"}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+/* ── Small avatar helpers for the picker ────────────────────────────────── */
+
+function PickerAvatar({ member }: { member: TeamMember }) {
+  const [didError, setDidError] = useState(false);
+  const url = resolveImageUrl(member);
+
+  if (url && !didError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={member.name}
+        className="user-picker-trigger-avatar"
+        loading="lazy"
+        onError={() => setDidError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="user-picker-trigger-avatar-fallback">
+      {getInitials(member.name)}
+    </div>
+  );
+}
+
+function PickerItemAvatar({ member }: { member: TeamMember }) {
+  const [didError, setDidError] = useState(false);
+  const url = resolveImageUrl(member);
+
+  if (url && !didError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={member.name}
+        className="user-picker-item-avatar"
+        loading="lazy"
+        onError={() => setDidError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="user-picker-item-avatar-fallback">
+      {getInitials(member.name)}
+    </div>
+  );
+}
+
+/* ── Error state ────────────────────────────────────────────────────────── */
 
 function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
   return (
@@ -410,6 +464,8 @@ function ErrorState({ error, onRetry }: { error: Error | null; onRetry: () => vo
     </div>
   );
 }
+
+/* ── Main Login Page ────────────────────────────────────────────────────── */
 
 export default function LoginPage() {
   const router = useRouter();
@@ -458,11 +514,6 @@ export default function LoginPage() {
   const selectedUser = useMemo(
     () => visibleMembers.find((member) => member.id === selectedUserId) || null,
     [selectedUserId, visibleMembers],
-  );
-  const selectedUserProfile = selectedUser ? getMemberProfile(selectedUser) : null;
-  const selectedUserBadgeTokens = useMemo(
-    () => getBadgeTokens(selectedUserProfile),
-    [selectedUserProfile],
   );
 
   const needsFirstTimeSetup = selectedUser ? !selectedUser.hasPassword : false;
@@ -566,293 +617,270 @@ export default function LoginPage() {
     }, 1500);
   };
 
+  /* ── Loading: session check ───────────────────────────────────────────── */
+
   if (sessionLoading) {
     return (
       <div className="login-shell">
-        <div className="login-card">
-          <div className="login-loading">
-            <div className="login-spinner" />
-            <p>Checking session...</p>
+        <div className="login-hero-spacer" />
+        <motion.div className="login-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="login-card-inner">
+            <div className="login-loading">
+              <div className="login-spinner" />
+              <p>Checking session...</p>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
+
+  /* ── Loading: team members ────────────────────────────────────────────── */
 
   if (teamQuery.isLoading) {
     return (
       <div className="login-shell">
-        <div className="login-card">
-          <section className="member-picker">
-            <div className="profile-grid">
-              {[...Array(6)].map((_, i) => (
-                <ProfileSkeleton key={i} />
-              ))}
-            </div>
-          </section>
-        </div>
+        <div className="login-hero-spacer" />
+        <motion.div className="login-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="login-card-inner">
+            <div className="skeleton-trigger" />
+          </div>
+        </motion.div>
       </div>
     );
   }
+
+  /* ── Error: team load failed ──────────────────────────────────────────── */
 
   if (teamQuery.error) {
     return (
       <div className="login-shell">
-        <div className="login-card">
-          <ErrorState error={teamQuery.error as Error} onRetry={() => teamQuery.refetch()} />
-        </div>
+        <div className="login-hero-spacer" />
+        <motion.div className="login-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="login-card-inner">
+            <ErrorState error={teamQuery.error as Error} onRetry={() => teamQuery.refetch()} />
+          </div>
+        </motion.div>
       </div>
     );
   }
 
+  /* ── Derive selected user meta ────────────────────────────────────────── */
+
+  const selectedMeta = selectedUser ? getTeamMemberMeta(selectedUser.name) : null;
+
+  /* ── Main render ──────────────────────────────────────────────────────── */
+
   return (
     <div className="login-shell">
+      {/* Spacer pushes the modal below the background logo */}
+      <div className="login-hero-spacer" />
+
+      {/* Login modal card */}
       <motion.div
         className="login-card"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
       >
-        {!selectedUser && (
-          <section className="member-picker">
-            <div className="profile-grid">
-              {orderedTeamMembers.map((member) => {
-                const profile = getMemberProfile(member);
-                const badgeTokens = getBadgeTokens(profile);
-                const isJack = normalizeText(member.name) === JACK_NAME;
-                const imageUrl = isJack ? JACK_LOGIN_IMAGE_URL : member.imageUrl;
+        {/* Decorative wave banner across top of modal */}
+        <div className="login-card-wave" aria-hidden="true" />
 
-                return (
-                  <motion.button
-                    key={member.id}
-                    className="profile-card"
-                    onClick={() => handleUserSelect(member.id)}
-                    whileHover={{ y: -3 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <div className="profile-card-avatar">
-                      {imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={imageUrl}
-                          alt={member.name}
-                          className={`profile-avatar-img ${isJack ? "jack-headshot" : ""}`}
-                          loading="lazy"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="profile-avatar-fallback">{getInitials(member.name)}</div>
-                      )}
-                    </div>
-                    <div className="profile-card-info">
-                      <div className="profile-name">{member.name}</div>
-                      <div className="profile-title">{member.title || "Team Member"}</div>
-
-                      {badgeTokens.length > 0 && (
-                        <div className="profile-credential-badges">
-                          {badgeTokens.map((cred, index) => (
-                            <span
-                              key={`${member.id}-${cred}-${index}`}
-                              className={`profile-credential-badge ${getCredentialStyle(cred)}`}
-                              title={cred}
-                            >
-                              {cred}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="profile-card-action">Select</div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {selectedUser && !showSuccess && (
-          <section className="selected-user-section">
-            <button className="change-user-btn" onClick={handleBackToSelection}>
-              <ArrowLeft size={14} />
-              Choose a different person
-            </button>
-
-            <div className="selected-user-card">
-              <TeamAvatar
-                name={selectedUser.name}
-                imageUrl={selectedUser.imageUrl}
-                className="selected-user-photo"
-                fallbackClassName="selected-user-photo-fallback"
+        <div className="login-card-inner">
+          {/* ── Step 1: User picker (no user selected yet) ──────────────── */}
+          {!selectedUser && !showSuccess && (
+            <section className="member-picker">
+              <UserPickerDropdown
+                members={orderedTeamMembers}
+                selectedUserId={selectedUserId}
+                onSelect={handleUserSelect}
               />
-              <div>
-                <h2>{selectedUser.name}</h2>
-                <p>{selectedUser.title}</p>
-                <span>{selectedUser.teamSection}</span>
-                {selectedUserBadgeTokens.length > 0 && (
-                  <div className="selected-user-badge-list">
-                    {selectedUserBadgeTokens.map((badgeToken) => (
-                      <small key={`${selectedUser.id}-${badgeToken}`} className="selected-user-badge-chip">
-                        {badgeToken}
-                      </small>
-                    ))}
-                  </div>
-                )}
+            </section>
+          )}
+
+          {/* ── Step 2: Auth form (user selected) ───────────────────────── */}
+          {selectedUser && !showSuccess && (
+            <section className="selected-user-section">
+              <button className="change-user-btn" onClick={handleBackToSelection}>
+                <ArrowLeft size={14} />
+                Choose a different person
+              </button>
+
+              <div className="selected-user-card">
+                <TeamAvatar
+                  name={selectedUser.name}
+                  imageUrl={selectedUser.imageUrl}
+                  className="selected-user-photo"
+                  fallbackClassName="selected-user-photo-fallback"
+                />
+                <div className="selected-user-card-info">
+                  <h2>
+                    <FormattedName
+                      name={selectedUser.name}
+                      credentials={selectedMeta?.credentials}
+                      size="large"
+                    />
+                  </h2>
+                  {selectedMeta?.clinicName && (
+                    <p className="selected-user-clinic">{selectedMeta.clinicName}</p>
+                  )}
+                  <span className="selected-user-tier">{selectedUser.teamSection}</span>
+                </div>
               </div>
-            </div>
 
-            {needsFirstTimeSetup ? (
-              <form className="auth-form" onSubmit={handleSetupPassword}>
-                <h3>First-time setup</h3>
-                <p>Create your password once, then you&apos;ll use your normal sign-in form daily.</p>
+              {needsFirstTimeSetup ? (
+                <form className="auth-form" onSubmit={handleSetupPassword}>
+                  <h3>First-time setup</h3>
+                  <p>Create your password once, then you&apos;ll use your normal sign-in form daily.</p>
 
-                <label className="checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={identityConfirmed}
-                    onChange={(event) => setIdentityConfirmed(event.target.checked)}
-                  />
-                  <span>I confirm I am {selectedUser?.name}</span>
-                </label>
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={identityConfirmed}
+                      onChange={(event) => setIdentityConfirmed(event.target.checked)}
+                    />
+                    <span>I confirm I am {selectedUser?.name}</span>
+                  </label>
 
-                <div className="password-input-wrapper">
-                  <CorexInput
-                    label="New password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={submitting}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                <div className="password-input-wrapper">
-                  <CorexInput
-                    label="Confirm password"
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    disabled={submitting}
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <div className="auth-trust">
-                  <ShieldCheck size={12} />
-                  <span>Encrypted & secure team access</span>
-                </div>
-
-                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
-                  <CheckCircle2 size={16} />
-                  Set Password
-                </CorexButton>
-              </form>
-            ) : (
-              <form className="auth-form" onSubmit={handleLogin}>
-                <h3>Sign in</h3>
-                <p>Use your saved profile and enter your password.</p>
-
-                <div className="password-input-wrapper">
-                  <CorexInput
-                    label="Password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={submitting}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                <label className="checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(event) => setRememberMe(event.target.checked)}
-                  />
-                  <span>Stay signed in on this device</span>
-                </label>
-
-                <div className="auth-trust">
-                  <ShieldCheck size={12} />
-                  <span>Encrypted & secure team access</span>
-                </div>
-
-                {DEV_MODE && (
-                  <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed #666" }}>
+                  <div className="password-input-wrapper">
+                    <CorexInput
+                      label="New password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={submitting}
+                      placeholder="••••••••"
+                    />
                     <button
                       type="button"
-                      onClick={() => {
-                        localStorage.removeItem(REMEMBERED_USER_KEY);
-                        localStorage.removeItem("ptbiz_recent_users");
-                        window.location.reload();
-                      }}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ff6b6b",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }}
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      🗑️ Reset Login Data (Dev Only)
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                )}
 
-                <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
-                  <LockKeyhole size={16} />
-                  Sign In
-                </CorexButton>
-              </form>
-            )}
-          </section>
-        )}
+                  <div className="password-input-wrapper">
+                    <CorexInput
+                      label="Confirm password"
+                      type={showPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      disabled={submitting}
+                      placeholder="••••••••"
+                    />
+                  </div>
 
-        {showSuccess && selectedUser && (
-          <motion.div
-            className="login-success"
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.35 }}
-          >
-            <div className="success-checkmark">
-              <CheckCircle2 size={32} />
+                  <div className="auth-trust">
+                    <ShieldCheck size={12} />
+                    <span>Encrypted &amp; secure team access</span>
+                  </div>
+
+                  <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
+                    <CheckCircle2 size={16} />
+                    Set Password
+                  </CorexButton>
+                </form>
+              ) : (
+                <form className="auth-form" onSubmit={handleLogin}>
+                  <h3>Sign in</h3>
+                  <p>Use your saved profile and enter your password.</p>
+
+                  <div className="password-input-wrapper">
+                    <CorexInput
+                      label="Password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={submitting}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                    />
+                    <span>Stay signed in on this device</span>
+                  </label>
+
+                  <div className="auth-trust">
+                    <ShieldCheck size={12} />
+                    <span>Encrypted &amp; secure team access</span>
+                  </div>
+
+                  {DEV_MODE && (
+                    <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed #666" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          localStorage.removeItem(REMEMBERED_USER_KEY);
+                          localStorage.removeItem("ptbiz_recent_users");
+                          window.location.reload();
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#ff6b6b",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        🗑️ Reset Login Data (Dev Only)
+                      </button>
+                    </div>
+                  )}
+
+                  <CorexButton type="submit" className="login-primary-btn" loading={submitting}>
+                    <LockKeyhole size={16} />
+                    Sign In
+                  </CorexButton>
+                </form>
+              )}
+            </section>
+          )}
+
+          {/* ── Success state ───────────────────────────────────────────── */}
+          {showSuccess && selectedUser && (
+            <motion.div
+              className="login-success"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+            >
+              <div className="success-checkmark">
+                <CheckCircle2 size={32} />
+              </div>
+              <p>Welcome back, {selectedUser.name.split(" ")[0]}!</p>
+            </motion.div>
+          )}
+
+          {/* ── Message / error banner ──────────────────────────────────── */}
+          {message && !showSuccess && (
+            <div
+              className={
+                message.toLowerCase().includes("incorrect") || message.toLowerCase().includes("invalid")
+                  ? "auth-error"
+                  : "login-message"
+              }
+            >
+              <UserRound size={14} />
+              <span>{message}</span>
             </div>
-            <p>Welcome back, {selectedUser.name.split(" ")[0]}!</p>
-          </motion.div>
-        )}
-
-        {message && !showSuccess && (
-          <div
-            className={
-              message.toLowerCase().includes("incorrect") || message.toLowerCase().includes("invalid")
-                ? "auth-error"
-                : "login-message"
-            }
-          >
-            <UserRound size={14} />
-            <span>{message}</span>
-          </div>
-        )}
+          )}
+        </div>
       </motion.div>
     </div>
   );
