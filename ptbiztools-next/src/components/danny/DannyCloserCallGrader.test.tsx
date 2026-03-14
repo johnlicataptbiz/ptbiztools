@@ -32,7 +32,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockLocalStorage.getItem.mockReturnValue(null);
   vi.mocked(api.gradeDannySalesCallV2).mockResolvedValue({ data: mockGradeResponse });
-  vi.mocked(api.logAction).mockResolvedValue({});
+  vi.mocked(api.logAction).mockResolvedValue(undefined);
   vi.mocked(api.saveCoachingAnalysis).mockResolvedValue({ analysisId: 'mock-id' });
   vi.mocked(api.savePdfExport).mockResolvedValue({});
   vi.mocked(api.extractTranscriptFromFile).mockResolvedValue({ text: 'mock transcript', wordCount: 200, sourceType: 'pdf' });
@@ -43,22 +43,33 @@ afterEach(() => {
 });
 
 const mockGradeResponse = {
-  version: 'v2',
+  version: 'v2' as const,
+  programProfile: 'Rainmaker' as const,
   deterministic: { weightedPhaseScore: 72, penaltyPoints: 5, unknownPenalty: 0, overallScore: 67 },
   phaseScores: {
-    connection: { score: 85, summary: 'Good rapport' },
-    discovery: { score: 60, summary: 'More depth needed' },
+    connection: { score: 85, summary: 'Good rapport', evidence: [] },
+    discovery: { score: 60, summary: 'More depth needed', evidence: [] },
+    gap_creation: { score: 70, summary: 'Gap identified', evidence: [] },
+    temp_check: { score: 75, summary: 'Temp checked', evidence: [] },
+    solution: { score: 80, summary: 'Solution presented', evidence: [] },
+    close: { score: 65, summary: 'Close attempted', evidence: [] },
+    followup: { score: 70, summary: 'Follow-up planned', evidence: [] },
   },
   criticalBehaviors: {
-    free_consulting: { status: 'fail', note: 'Gave advice' },
-    emotional_depth: { status: 'pass', note: 'Good probing' },
+    free_consulting: { status: 'fail' as const, note: 'Gave advice', evidence: [] },
+    discount_discipline: { status: 'pass' as const, note: 'No discounts', evidence: [] },
+    emotional_depth: { status: 'pass' as const, note: 'Good probing', evidence: [] },
+    time_management: { status: 'pass' as const, note: 'On time', evidence: [] },
+    personal_story: { status: 'unknown' as const, note: 'Not observed', evidence: [] },
   },
   highlights: {
     topStrength: 'Strong connection',
     topImprovement: 'Deeper discovery',
     prospectSummary: 'Ready but price sensitive',
   },
-  confidence: { score: 92, evidenceCoverage: 0.95 },
+  confidence: { score: 92, evidenceCoverage: 0.95, quoteVerificationRate: 0.9, transcriptQuality: 0.85 },
+  qualityGate: { accepted: true, reasons: [] },
+  metadata: { closer: 'Test Coach', model: 'gpt-4' },
 };
 
 describe('DannyCloserCallGrader', () => {
@@ -133,7 +144,6 @@ describe('DannyCloserCallGrader Utils', () => {
     expect(helpers.normalizeBehaviorStatus({ pass: true })).toBe('pass');
     expect(helpers.normalizeBehaviorStatus({ pass: false })).toBe('fail');
     expect(helpers.normalizeBehaviorStatus({})).toBe('unknown');
-  });
   });
 });
 
