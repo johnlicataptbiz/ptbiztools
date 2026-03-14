@@ -605,6 +605,10 @@ export default function DashboardPage() {
                       <Icon size={28} style={{ color: tool.color }} />
                     </span>
                   </div>
+                  <div className="tool-content">
+                    <h3 className="tool-title">{tool.title}</h3>
+                    <p className="tool-description">{tool.description}</p>
+                  </div>
                 </Link>
               );
             })}

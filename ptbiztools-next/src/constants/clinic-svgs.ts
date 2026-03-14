@@ -13,6 +13,11 @@ export const CLINIC_SVGS = {
   analyticsStrip: '/clinic-icons/analytics_strip.svg',
   analyticsArrow: '/clinic-icons/analytics_arrow_pattern.svg',
   nodeNetwork: '/clinic-icons/node_network_pattern.svg',
+  // Grader Badges
+  discallGrader: '/assets/graders/discallgrader.png',
+  salesGrader: '/assets/graders/salesgrader.png',
+  plGrader: '/assets/graders/plgrader.png',
+  compGrader: '/assets/graders/compgrader.png',
 } as const;
 
 export type ClinicSvgName = keyof typeof CLINIC_SVGS;

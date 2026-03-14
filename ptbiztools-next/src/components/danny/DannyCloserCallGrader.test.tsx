@@ -101,7 +101,6 @@ describe('DannyCloserCallGrader', () => {
       expect(document.querySelector('.clinic-pattern-kpi')).toBeInTheDocument();
     });
   });
-});
 
   test('word count gate disables/enables grade button', async () => {
     render(<SalesCallGrader />);
@@ -115,7 +114,9 @@ describe('DannyCloserCallGrader', () => {
     fireEvent.change(textarea, { target: { value: 'word '.repeat(150) } });
     await waitFor(() => expect(screen.getByText('Grade This Call')).not.toBeDisabled());
   });
+});
 
+describe('DannyCloserCallGrader Utils', () => {
   test('utils: canSubmitByWordCount', () => {
     expect(helpers.canSubmitByWordCount(100, 120)).toBe(false);
     expect(helpers.canSubmitByWordCount(130, 120)).toBe(true);
@@ -132,6 +133,7 @@ describe('DannyCloserCallGrader', () => {
     expect(helpers.normalizeBehaviorStatus({ pass: true })).toBe('pass');
     expect(helpers.normalizeBehaviorStatus({ pass: false })).toBe('fail');
     expect(helpers.normalizeBehaviorStatus({})).toBe('unknown');
+  });
   });
 });
 
