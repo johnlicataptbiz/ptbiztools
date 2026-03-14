@@ -18,6 +18,24 @@ export const CLINIC_SVGS = {
   salesGrader: '/assets/graders/salesgrader.png',
   plGrader: '/assets/graders/plgrader.png',
   compGrader: '/assets/graders/compgrader.png',
+  // PTBiz Brand Backgrounds
+  ptbizPatternDarkBlue: '/assets/ptbiz-pattern-dark-blue.png',
+  ptbizPatternAlt: '/assets/ptbiz-pattern-alt.png',
+  ptbizBg1: '/assets/ptbiz-bg-1.webp',
+  ptbizBg2: '/assets/ptbiz-bg-2.webp',
+  ptbizBg3: '/assets/ptbiz-bg-3.webp',
+  // Clinic Icon PNGs (for carousel / hero use)
+  banner3: '/clinic-icons/banner3.png',
+  performancePng: '/clinic-icons/clinic_performance_banner.png',
+  growthPng: '/clinic-icons/growth_arrow_banner.png',
+  kpiTexturePng: '/clinic-icons/kpi_chart_texture.png',
+  kpiBarbellPng: '/clinic-icons/barbell_kpi_strip.png',
+  networkPng: '/clinic-icons/network_arrow_banner.png',
+  coachingGridPng: '/clinic-icons/coaching_blueprint_grid.png',
+  progressBarPng: '/clinic-icons/progress_bar_banner.png',
+  analyticsStripPng: '/clinic-icons/analytics_strip.png',
+  analyticsArrowPng: '/clinic-icons/analytics_arrow_pattern.png',
+  nodeNetworkPng: '/clinic-icons/node_network_pattern.png',
 } as const;
 
 export type ClinicSvgName = keyof typeof CLINIC_SVGS;

@@ -6,24 +6,24 @@
   padding: clamp(16px, 2.4vw, 28px);
   position: relative;
   overflow-x: hidden;
-  background:
-    radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, #9a9a9a 8%, transparent), transparent 60%),
-    radial-gradient(900px 500px at 100% 110%, color-mix(in oklab, #8b8b8b 7%, transparent), transparent 55%),
-    repeating-linear-gradient(
-      135deg,
-      color-mix(in oklab, #8f8f8f 7%, transparent) 0px,
-      color-mix(in oklab, #8f8f8f 7%, transparent) 1px,
-      transparent 1px,
-      transparent 18px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      color-mix(in oklab, #7f7f7f 5%, transparent) 0px,
-      color-mix(in oklab, #7f7f7f 5%, transparent) 1px,
-      transparent 1px,
-      transparent 24px
-    ),
-    linear-gradient(165deg, var(--background) 0%, color-mix(in oklab, var(--surface) 94%, transparent) 100%);
+  background-image: url('/assets/ptbiz-pattern-dark-blue.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.login-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .login-card {
