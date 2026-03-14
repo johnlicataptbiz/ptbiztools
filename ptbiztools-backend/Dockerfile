@@ -8,9 +8,6 @@ RUN apk add --no-cache openssl
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Copy cache-busting files early to invalidate layer when they change
-COPY .force_rebuild BUILD_TIMESTAMP ./
-
 RUN npm ci
 
 # Copy source and build
