@@ -13,8 +13,9 @@ import { prisma } from './services/prisma.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const VERSION = '1.0.1';
+const VERSION = '1.0.2';
 const BUILD_TIMESTAMP = new Date().toISOString();
+const DB_HOST = (process.env.DATABASE_URL || '').match(/@([^:/]+)/)?.[1] || 'missing';
 
 const configuredOrigins = [
   process.env.FRONTEND_URL,
@@ -76,10 +77,12 @@ app._router.stack.forEach((r: any) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: VERSION, build: BUILD_TIMESTAMP });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: VERSION, build: BUILD_TIMESTAMP, dbHost: DB_HOST });
 });
 
 async function main() {
+  console.log(`DEPLOY MARKER 2026-03-14-1810`);
+  console.log(`[server] RUNTIME DATABASE HOST: ${DB_HOST}`);
   console.log(`[server] Starting PT Biz Tools API v${VERSION} (built: ${BUILD_TIMESTAMP})`);
   console.log(`[server] Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`[server] Port: ${PORT}`);
