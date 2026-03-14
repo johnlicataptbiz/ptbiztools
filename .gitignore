@@ -14,3 +14,7 @@ dist/
 
 .firecrawl/
 .env*.local
+
+# Ignore embedded repos and editor settings
+comfyui-mcp-server/
+"<parameter name="path">/Users/jl/Library*"
