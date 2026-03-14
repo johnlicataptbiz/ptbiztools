@@ -80,6 +80,26 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: VERSION, build: BUILD_TIMESTAMP, dbHost: DB_HOST });
 });
 
+app.get('/ready', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      status: 'ready',
+      dbHost: DB_HOST,
+      version: VERSION,
+      build: BUILD_TIMESTAMP,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'not_ready',
+      dbHost: DB_HOST,
+      version: VERSION,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
 async function main() {
   console.log(`DEPLOY MARKER 2026-03-14-1810`);
   console.log(`[server] RUNTIME DATABASE HOST: ${DB_HOST}`);

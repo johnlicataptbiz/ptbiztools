@@ -10,6 +10,7 @@ README.md
 !SERVER_TO_SERVER_SETUP.md
 !ZOOM_OAUTH_FIX_SUMMARY.md
 !ZOOM_WEBHOOK_EVENTS.md
+*.mp4
 .vscode
 .idea
 coverage
@@ -19,3 +20,4 @@ logs
 tmp
 temp
 .cache
+dist
