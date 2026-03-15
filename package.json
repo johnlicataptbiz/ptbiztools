@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@blackbox_ai/ai-logs-watcher": "^0.1.9"
+  }
+}
