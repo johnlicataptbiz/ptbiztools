@@ -1279,9 +1279,32 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background:
+    linear-gradient(
+      140deg,
+      color-mix(in oklab, var(--color-card) 88%, var(--accent) 12%),
+      color-mix(in oklab, var(--color-card) 92%, var(--color-bg-secondary) 8%)
+    );
+  border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--color-border));
   border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-bar::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 140px;
+  height: 28px;
+  background-image: url('/assets/node_bar.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right center;
+  opacity: 0.16;
+  pointer-events: none;
 }
 
 .score-bar-label {

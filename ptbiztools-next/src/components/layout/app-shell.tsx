@@ -118,6 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={`app-shell-sidebar fixed inset-y-0 left-0 z-40 w-[296px] p-5 transition-transform lg:static lg:translate-x-0 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
@@ -139,7 +140,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="mt-8 space-y-1.5" data-tour={TourAnchors.shell.nav}>
+        {/* Bottom decorative element */}
+        <div className="app-shell-sidebar-decoration" aria-hidden="true" />
+
+        <nav className="mt-8 space-y-1.5 app-shell-nav-block" data-tour={TourAnchors.shell.nav}>
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;

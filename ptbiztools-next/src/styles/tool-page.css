@@ -9,8 +9,9 @@
   align-items: center;
   text-align: center;
   border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
+  border-bottom: 3px solid color-mix(in oklab, var(--accent) 35%, var(--border));
   border-radius: 18px;
-  padding: 20px 22px;
+  padding: 20px 22px 28px;
   background:
     radial-gradient(130% 150% at 5% -10%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 52%),
     linear-gradient(
@@ -19,15 +20,57 @@
       color-mix(in oklab, var(--surface) 84%, var(--background) 16%)
     );
   box-shadow: 0 14px 34px color-mix(in oklab, var(--foreground) 10%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Right-side growth pattern texture + left-side node network accent */
+.tool-page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    url('/assets/coaching_node_network.png'),
+    url('/assets/growth_graph_pattern.png');
+  background-size:
+    280px auto,
+    320px auto;
+  background-repeat: no-repeat, no-repeat;
+  background-position:
+    left -30px center,
+    right -24px center;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* Wave decoration at bottom of hero */
+.tool-page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background-image: url('/assets/wave_background_band.png');
+  background-size: cover;
+  background-position: center bottom;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .tool-page-badge {
   width: 180px;
   height: 180px;
   object-fit: contain;
-  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.35));
   display: block;
   margin: 0 auto 14px;
+  position: relative;
+  z-index: 1;
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--accent) 20%, transparent),
+    0 0 0 8px color-mix(in oklab, var(--accent) 8%, transparent);
 }
 
 .tool-page-kicker {
@@ -37,6 +80,8 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  position: relative;
+  z-index: 1;
 }
 
 .tool-page-title {
@@ -46,6 +91,8 @@
   letter-spacing: -0.03em;
   color: var(--color-text);
   font-weight: 700;
+  position: relative;
+  z-index: 1;
 }
 
 .tool-page-subtitle {
@@ -53,6 +100,8 @@
   color: var(--color-text-secondary);
   font-size: clamp(16px, 1.4vw, 19px);
   line-height: 1.45;
+  position: relative;
+  z-index: 1;
 }
 
 /* Grade Modal Styles */

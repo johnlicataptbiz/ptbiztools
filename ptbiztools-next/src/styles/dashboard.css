@@ -35,10 +35,10 @@
 .dashboard-hero-bg {
   position: absolute;
   inset: 0;
-  background-image: url('/clinic-icons/coaching_node_network.png');
+  background-image: url('/clinic-icons/hero_background.png');
   background-size: cover;
-  background-position: center;
-  opacity: 0.04;
+  background-position: center top;
+  opacity: 0.10;
   pointer-events: none;
   z-index: 0;
 }
@@ -49,10 +49,27 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 28px;
+  height: 36px;
   background-image: url('/clinic-icons/wave_background_band.png');
   background-size: cover;
   background-position: center bottom;
+  opacity: 0.30;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right-side decorative five-tier banner */
+.dashboard-hero-decoration {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  height: 140%;
+  background-image: url('/clinic-icons/five_tier_banner.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right center;
   opacity: 0.12;
   pointer-events: none;
   z-index: 1;
@@ -157,6 +174,20 @@
   transition: opacity 0.25s ease;
 }
 
+/* Left accent bar */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--stat-accent, var(--accent));
+  opacity: 0.7;
+  transition: opacity 0.25s ease, top 0.25s ease, bottom 0.25s ease;
+}
+
 .stat-card:hover {
   transform: translateY(-3px);
   box-shadow:
@@ -166,6 +197,12 @@
 
 .stat-card:hover::before {
   opacity: 0.05;
+}
+
+.stat-card:hover::after {
+  top: 10px;
+  bottom: 10px;
+  opacity: 1;
 }
 
 .stat-icon {
@@ -373,11 +410,29 @@
   margin-bottom: 36px;
 }
 
+.tools-section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
 .tools-section h2 {
   font-size: 18px;
   font-weight: 650;
   color: var(--color-text);
-  margin: 0 0 18px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.tools-section-divider {
+  flex: 1;
+  height: 24px;
+  background-image: url('/assets/graph_divider.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  opacity: 0.2;
 }
 
 .tools-grid {
@@ -430,14 +485,14 @@
 /* Tool card badge area */
 .tool-icon {
   width: 100%;
-  height: 160px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background:
-    radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--accent) 6%, transparent), transparent 70%),
-    color-mix(in oklab, var(--color-card) 96%, var(--accent) 4%);
+    radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 65%),
+    color-mix(in oklab, var(--color-card) 94%, var(--accent) 6%);
   border-bottom: 1px solid var(--color-border);
   position: relative;
   overflow: hidden;
@@ -448,11 +503,23 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/clinic-icons/node_network_pattern.svg');
-  background-size: 100px;
-  background-repeat: repeat;
-  opacity: 0.02;
+  background-image:
+    url('/assets/coaching_node_network.png'),
+    url('/assets/growth_graph_pattern.png');
+  background-size:
+    180px auto,
+    160px;
+  background-repeat: no-repeat, repeat;
+  background-position:
+    left -20px center,
+    center;
+  opacity: 0.06;
   pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tool-card-live:hover .tool-icon::after {
+  opacity: 0.07;
 }
 
 .tool-badge {
@@ -806,6 +873,20 @@
   font-weight: 650;
   color: var(--color-text);
   margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-section h2::after {
+  content: '';
+  flex: 1;
+  height: 18px;
+  background-image: url('/assets/arrow_strip.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  opacity: 0.2;
 }
 
 .activity-list {

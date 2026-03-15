@@ -473,6 +473,8 @@ export default function DashboardPage() {
         <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
           {/* Subtle analytics pattern background */}
           <div className="dashboard-hero-bg" aria-hidden="true" />
+          {/* Right-side decorative five-tier banner */}
+          <div className="dashboard-hero-decoration" aria-hidden="true" />
           {/* Wave divider at bottom */}
           <div className="dashboard-hero-wave" aria-hidden="true" />
           <div className="dashboard-header-content">
@@ -492,7 +494,7 @@ export default function DashboardPage() {
         </motion.section>
 
         <motion.section variants={itemVariants} className="stats-grid">
-          <article className="stat-card">
+          <article className="stat-card" style={{ "--stat-accent": "var(--accent)" } as React.CSSProperties}>
             <div className="stat-icon" style={{ background: "rgba(233, 69, 96, 0.15)" }}>
               <Medal size={22} style={{ color: "var(--accent)" }} />
             </div>
@@ -504,7 +506,7 @@ export default function DashboardPage() {
             </div>
           </article>
 
-          <article className="stat-card">
+          <article className="stat-card" style={{ "--stat-accent": "var(--success)" } as React.CSSProperties}>
             <div className="stat-icon" style={{ background: "rgba(45, 138, 78, 0.15)" }}>
               <FileText size={22} style={{ color: "var(--success)" }} />
             </div>
@@ -516,7 +518,7 @@ export default function DashboardPage() {
             </div>
           </article>
 
-          <article className="stat-card">
+          <article className="stat-card" style={{ "--stat-accent": "var(--info)" } as React.CSSProperties}>
             <div className="stat-icon" style={{ background: "rgba(15, 52, 96, 0.25)" }}>
               {isAdmin ? <LogIn size={22} style={{ color: "var(--info)" }} /> : <ClipboardList size={22} style={{ color: "var(--info)" }} />}
             </div>
@@ -528,7 +530,7 @@ export default function DashboardPage() {
             </div>
           </article>
 
-          <article className="stat-card">
+          <article className="stat-card" style={{ "--stat-accent": "var(--warning)" } as React.CSSProperties}>
             <div className="stat-icon" style={{ background: "rgba(196, 127, 23, 0.15)" }}>
               <Users size={22} style={{ color: "var(--warning)" }} />
             </div>
@@ -586,7 +588,10 @@ export default function DashboardPage() {
         </motion.section>
 
         <motion.section variants={itemVariants} className="tools-section" data-tour={TourAnchors.dashboard.tools}>
-
+          <div className="tools-section-header">
+            <h2>Your Tools</h2>
+            <div className="tools-section-divider" aria-hidden="true" />
+          </div>
           <div className="tools-grid">
             {toolCards.map((tool) => {
               const Icon = tool.icon;

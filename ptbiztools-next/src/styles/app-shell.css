@@ -20,9 +20,27 @@
   background-image: url('/clinic-icons/node_network_pattern.svg');
   background-size: 140px;
   background-repeat: repeat;
-  opacity: 0.025;
+  opacity: 0.06;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Bottom decorative linked-node backdrop */
+.app-shell-sidebar-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background-image: url('/clinic-icons/linked_node_backdrop.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
 }
 
 /* Ensure sidebar children are above the pattern */
@@ -129,7 +147,9 @@
 .app-shell-nav-link-active {
   background: color-mix(in oklab, var(--brand-accent) 30%, transparent);
   color: color-mix(in oklab, var(--brand-accent-light) 65%, #ffffff 35%);
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 0 20px rgba(255, 255, 255, 0.03),
+    0 0 12px color-mix(in oklab, var(--brand-accent) 15%, transparent);
 }
 
 .app-shell-nav-link-active::before {
@@ -153,9 +173,19 @@
 .app-shell-user-slot::before {
   content: '';
   display: block;
-  height: 1px;
+  height: 18px;
   margin: 0 8px 16px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent),
+    url('/assets/wave_background_band.png');
+  background-size:
+    100% 1px,
+    cover;
+  background-position:
+    center center,
+    center;
+  background-repeat: no-repeat, no-repeat;
+  opacity: 0.65;
 }
 
 .app-shell-user-card {
