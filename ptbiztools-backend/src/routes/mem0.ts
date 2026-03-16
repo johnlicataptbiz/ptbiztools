@@ -27,10 +27,16 @@ async function executeMem0Command(
   userId?: string
 ): Promise<any> {
   return new Promise((resolve, reject) => {
+    const apiKey = process.env.MEM0_API_KEY;
+    if (!apiKey) {
+      reject(new Error('MEM0_API_KEY is not configured on the backend.'));
+      return;
+    }
+
     const mem0Process = spawn('mem0-mcp-server', [], {
       env: {
         ...process.env,
-        MEM0_API_KEY: 'm0-d9UBw839tmNCpej40X3wurtLJR2zRS4wHVad1FnK',
+        MEM0_API_KEY: apiKey,
         MEM0_DEFAULT_USER_ID: userId || 'mem0-mcp'
       }
     });
@@ -46,10 +52,13 @@ async function executeMem0Command(
     };
 
     let responseData = '';
+    let resolved = false;
     let timeout: NodeJS.Timeout;
 
     // Set timeout
     timeout = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
       mem0Process.kill();
       reject(new Error('Mem0 server timeout'));
     }, 30000); // 30 second timeout
@@ -57,10 +66,12 @@ async function executeMem0Command(
     mem0Process.stdin.write(JSON.stringify(request) + '\n');
 
     mem0Process.stdout.on('data', (data) => {
+      if (resolved) return;
       responseData += data.toString();
       
       try {
         const response: MCPResponse = JSON.parse(responseData);
+        resolved = true;
         clearTimeout(timeout);
         
         if (response.error) {
@@ -76,14 +87,26 @@ async function executeMem0Command(
     });
 
     mem0Process.stderr.on('data', (data) => {
+      if (resolved) return;
+      resolved = true;
       clearTimeout(timeout);
       console.error('Mem0 stderr:', data.toString());
       reject(new Error(`Mem0 error: ${data.toString()}`));
     });
 
-    mem0Process.on('close', (code) => {
+    mem0Process.on('error', (error) => {
+      if (resolved) return;
+      resolved = true;
       clearTimeout(timeout);
-      if (code !== 0 && !responseData) {
+      console.error('Mem0 process error:', error);
+      reject(new Error(`Mem0 process error: ${error.message}`));
+    });
+
+    mem0Process.on('close', (code) => {
+      if (resolved) return;
+      clearTimeout(timeout);
+      if (code !== 0) {
+        resolved = true;
         reject(new Error(`Mem0 process exited with code ${code}`));
       }
     });

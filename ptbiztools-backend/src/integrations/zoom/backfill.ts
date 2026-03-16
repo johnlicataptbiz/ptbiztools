@@ -250,9 +250,11 @@ export async function backfillZoomRecordings(options: ZoomBackfillOptions): Prom
         result.jobsQueued += 1
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown backfill error'
+      console.error('[zoom/backfill] Error processing connection:', connection.id, message)
       result.errors.push({
         connectionId: connection.id,
-        message: error instanceof Error ? error.message : 'Unknown backfill error',
+        message,
       })
     }
   }
