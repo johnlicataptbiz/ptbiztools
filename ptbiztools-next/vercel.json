@@ -1,1 +1,12 @@
-{}
+{
+  "buildCommand": "node scripts/generate-changelog.mjs && next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "devCommand": "npm run dev",
+  "nodeVersion": "22.x",
+  "regions": ["iad1"],
+  "env": {
+    "PTBIZ_BACKEND_URL": "@ptbiz_backend_url"
+  }
+}
