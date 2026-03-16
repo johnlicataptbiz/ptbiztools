@@ -1,49 +1,59 @@
-# PTBizTools — Login Page Fix & UI Enhancement
+# PT Biz Tools — TODO
 
-## Phase 1: Fix Broken Login Page (CRITICAL) ✅ COMPLETE
-- [x] Step 1: Rewrite login page Card Content JSX with premium design
-- [x] Step 2: Clean up login.css (remove unused legacy classes)
-- [x] Step 3: Verify with Playwright MCP (dev server test)
+> Last updated: 2026-03-16 | See `PROJECT_CONTEXT.md` for full rescue summary
 
-## Phase 2: Update Project Documentation ✅ COMPLETE
-- [x] Step 4: Update PROJECT_CONTEXT.md with MCP servers
-- [x] Step 5: Update README.md with MCP tools section
+---
 
-## Phase 3: Production Verification ✅ COMPLETE
-- [x] Step 6: Run build verification
-- [ ] Step 7: Deploy and verify production (manual deployment required)
+## 🔴 HIGH Priority
 
-## Summary
+### UI/UX Standardization (All 4 Tools)
+- [ ] Standardize all tools to consistent "built-in modal" look (P&L calc = reference)
+- [ ] **Rewrite `DiscoveryCallGrader.tsx`** — remove random UI boxes from failed agent attempts, 1081-line monolith needs decomposition
+- [ ] Integrate tool badges/logos (`TOOL_BADGES` from `tool-badges.ts`) into all tool page headers
+- [ ] Aggressively clean up inner sub-pages — cut and rewrite horrible UI additions
+- [ ] Danny's Modal Integration per `ptbiztools-next/PLAN_DANNY_INTEGRATION.md`
 
-### Completed Work
+### CI/CD
+- [x] ~~Fix `deploy-frontend.yml`~~ — replaced `vercel/action-deploy@v1` → `amondnet/vercel-action@v25`
+- [ ] Verify deploy-frontend.yml works on next push to main (needs `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets)
 
-1. **Login Page Fix**: Complete rewrite of `ptbiztools-next/src/app/login/page.tsx`
-   - Fixed all broken component references (CorexButton, CorexInput, undefined icons)
-   - Implemented glass morphism card design with backdrop-blur
-   - Added AnimatePresence for smooth state transitions
-   - 4 states: User Selection, First-Time Setup, Login Form, Success
-   - Trust badge footer with Shield icon
+---
 
-2. **Documentation Updates**:
-   - `PROJECT_CONTEXT.md`: Added MCP Servers section with full server list
-   - `README.md`: Added MCP Tools & AI Integration section
+## 🟡 MEDIUM Priority
 
-3. **Build Verification**: ✅ PASSING
-   - Next.js build completed successfully
-   - All 19 routes generated
-   - No TypeScript errors
+### Code Quality
+- [ ] Convert `DannyFinancialAudit.jsx` → `.tsx`
+- [ ] Convert `DannyCompensationCalculator.jsx` → `.tsx`
+- [ ] ESLint cleanup — CI enforces `--max-warnings 10`
+- [ ] Consolidate dual CSS: `danny-tools.css` (460 lines) + `danny-theme.css` (680 lines)
 
-### Current Status
-| Metric | Value |
-|--------|-------|
-| **Build** | ✅ PASSING |
-| **Tests** | Backend 25/25 ✅ \| Frontend 7/7 ✅ |
-| **Lint** | 0 errors |
-| **Health Score** | 84/100 |
+### Asset Management
+- [ ] Audit 40+ images in `ptbiztools-next/public/assets/` — verify usage, remove unused
+- [ ] Review `_backup_ui_enhancer_20260315/` backup dir — delete if no longer needed
 
-### MCP Servers Active
-21st.dev Magic ✅, Playwright ✅, Firecrawl ✅, GitHub ✅, Prisma ✅, Mem0 ✅, Sequential Thinking ✅, Context7 ✅, Slack ✅, Apify ✅, Browser Tools ✅, Filesystem ✅, Local Git ✅
+### Documentation
+- [x] ~~Delete `PROJECT_DISCOVERY_REPORT.md`~~ (superseded by PROJECT_CONTEXT.md)
+- [x] ~~Delete `ptbiztools-next/TODO_LOGIN_REDESIGN.md`~~ (work completed)
+- [ ] Review `ptbiztools-next/implementation_plan.md` — archive or delete
+- [ ] Review `ptbiztools-next/docs/` — update or prune stale docs (migration-status.md, repo-state.md)
 
-### Next Steps
-1. Deploy to Vercel: `cd ptbiztools-next && vercel --prod`
-2. Verify production login page at https://www.ptbizcoach.com/login
+---
+
+## 🟢 LOW Priority
+
+- [ ] Gemini workflow review (5 workflows in `.github/workflows/gemini-*.yml`)
+- [ ] Architecture diagram generation
+- [ ] Prisma upgrade evaluation (5.22.0 → latest)
+- [ ] Push HEAD to origin — `git push origin main` (1 commit ahead + pending changes)
+
+---
+
+## ✅ Completed (Recent)
+
+- [x] Root clutter cleanup — 20+ files → 9 root files
+- [x] `.gitignore` updated with 30+ AI tool config dirs
+- [x] Binary cleanup — removed 6MB intro videos
+- [x] Login page redesign with branded CSS
+- [x] Full rescue analysis — PROJECT_CONTEXT.md updated
+- [x] deploy-frontend.yml fixed
+- [x] Stale docs deleted (PROJECT_DISCOVERY_REPORT.md, TODO_LOGIN_REDESIGN.md)

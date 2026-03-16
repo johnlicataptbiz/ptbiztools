@@ -1,225 +1,288 @@
 # Project Context — Rescue Summary
 
-Generated: 2026-03-15 (updated post-rescue phase 2)
-Head commit: `9ec1372` (main, synced with origin/main)
+Generated: 2026-03-16T03:00:00Z
+Branch: `main` | HEAD: `26eb684`
+Origin: `c216c29` (1 commit ahead)
 
 ---
 
 ## Executive Summary
 
-Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + Next.js frontend). Two rescue phases executed:
-
-**Phase 1** (`61c6aca`): Pre-rescue cleanup — updated `.gitignore` with 30+ AI tool config dirs, added `docs/` folder, reverted accidental Prisma 5→7 upgrade.
-
-**Phase 2** (`9ec1372`): Root clutter organization — moved 7 integration docs → `docs/integration/`, 5 Python test scripts → `scripts/mcp-tests/`, 1 screenshot → `docs/screenshots/`, deleted stale branches (2 local worktree branches + 2 remote branches), reviewed Gemini CI workflows (kept).
-
-**Final state:** Backend 25/25 tests ✅ | Frontend 7/7 tests ✅ | Working tree clean | `main` synced with `origin/main`
+PT Biz Tools is a monorepo with two sub-projects: a Next.js 16 frontend (Vercel) and an Express/Prisma backend (Railway). The codebase is functionally healthy — both projects build, type-check, and pass all tests. Root-level clutter has been cleaned (down to 9 files from 20+). The primary outstanding work is an aggressive UI/UX standardization across 4 tool pages, fixing the broken deploy-frontend.yml GitHub Action, and cleaning up stale documentation.
 
 ---
 
 ## Projects Discovered
 
-| Project | Type | Path | Stack | Deploy Target |
-|---------|------|------|-------|---------------|
-| ptbiztools-backend | Express API | `/ptbiztools-backend` | Node.js 22, TypeScript, Prisma 5.22.0, Express, PostgreSQL | Railway (Docker) |
-| ptbiztools-next | Next.js Frontend | `/ptbiztools-next` | Next.js 16.1.6, React 19, TypeScript, Tailwind v4, Vitest 4.1.0 | Vercel |
+| Project | Stack | Deployment | Status |
+|---------|-------|------------|--------|
+| `ptbiztools-next/` | Next.js 16.1.6, React 19, Tailwind v4, TypeScript | Vercel → ptbizcoach.com | ✅ Build clean, 7/7 tests pass |
+| `ptbiztools-backend/` | Express, TypeScript, Prisma 5.22.0, PostgreSQL | Railway (Docker) | ✅ tsc clean, 25/25 tests pass |
 
-### Production URLs
-- **Frontend:** https://www.ptbizcoach.com (Vercel)
-- **Backend:** https://ptbiztools-backend-production.up.railway.app (Railway)
+### Frontend Routes (9 pages)
+
+| Route | Component | Type | Lines |
+|-------|-----------|------|-------|
+| `/pl-calculator` | `DannyFinancialAudit.jsx` | (tools) group | 68KB — **Reference "good" UI** |
+| `/compensation-calculator` | `DannyCompensationCalculator.jsx` | (tools) group | 31KB |
+| `/discovery-call-grader` | `DiscoveryCallGrader.tsx` | (app) group | 42KB, 1081 lines — **Needs full rewrite** |
+| `/sales-discovery-grader` | `DannyCloserCallGrader.tsx` | (app) group | 72KB, 1462 lines — Role-gated |
+| `/dashboard` | Dashboard components | (app) group | Composite |
+| `/analyses` | AnalysisHistory | (app) group | History view |
+| `/login` | Login page | standalone | Recently redesigned |
+| `/stack-lab` | Stack Lab | standalone | Experimental |
+| `/` | Root redirect | standalone | → /login or /dashboard |
+
+### CSS Design System
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/styles/danny-tools.css` | 460 | Global `.danny-*` class system |
+| `src/components/danny/danny-theme.css` | 680 | Danny component theme overrides |
 
 ---
 
 ## Git State
 
-| Property | Value |
-|----------|-------|
-| Repository | github.com/johnlicataptbiz/ptbiztools.git |
-| Current Branch | `main` |
-| HEAD | `9ec1372` |
-| Upstream | `origin/main` (synced) |
-| Local Branches | `main` only |
-| Remote Branches | `origin/main` only |
-| Working Tree | Clean |
+| Metric | Value |
+|--------|-------|
+| Branch | `main` (tracking `origin/main`) |
+| HEAD | `26eb684` — `chore: remove intro video binaries (6MB cleanup)` |
+| Ahead/Behind | 1 ahead, 0 behind |
+| Uncommitted | `PROJECT_CONTEXT.md` (this file, modified) |
+| Stale branches | None (previously cleaned) |
+| Worktrees | 1 (main only) |
+| Total files | 490 (excl node_modules/.git/.next/.venv/.blackbox) |
+| Root files | 9 (clean) |
 
 ### Recent Commits
+
 ```
+26eb684 chore: remove intro video binaries (6MB cleanup)
+c216c29 docs: update PROJECT_CONTEXT.md with rescue phase 2 summary
 9ec1372 chore: organize root clutter — move docs, scripts, screenshots [rescue phase 2]
 61c6aca chore: update gitignore with AI tool dirs, add docs folder [pre-rescue cleanup]
 1ebbcaf fix: complete login page redesign with branded CSS + update docs
-bfc50e2 Add GitHub Actions workflow for frontend deployment
-a1f12a7 docs(context): update PROJECT_CONTEXT.md with final rescue state (all 7 phases)
 ```
+
+### Untracked Directories (not gitignored, need attention)
+
+| Directory | Contents | Recommendation |
+|-----------|----------|----------------|
+| `.blackbox/tmp/` | 1 shell log file | Add `.blackbox/` to .gitignore (already partially ignored) |
+| `.venv/` | Python virtual env | Add `.venv/` to .gitignore ✅ (already in .gitignore) |
+| `ptbiztools-next/.swc/` | SWC build cache (has own .gitignore) | Already self-ignoring ✅ |
+| `ptbiztools-next/src/app/.well-known/` | Gemini workflow integration (has own .gitignore) | Tracked intentionally ✅ |
 
 ---
 
-## Folder Organization (Post-Rescue)
+## Folder Organization
 
-### Root Directory (Clean)
-```
-ptbiztools/
-├── .github/workflows/     # CI/CD (ci.yml, deploy-frontend.yml, 5× gemini-*.yml)
-├── docs/                  # All documentation
-│   ├── SETUP.md
-│   ├── TODO_ONBOARDING.md
-│   ├── integration/       # 7 integration guides (MEM0, Playwright, Zoom, etc.)
-│   └── screenshots/       # demo-screenshot.png
-├── firecrawl/             # Firecrawl skill configs
-├── ptbiztools-backend/    # Express API (Railway)
-├── ptbiztools-next/       # Next.js frontend (Vercel)
-├── scripts/
-│   └── mcp-tests/         # 5 Python MCP test scripts
-├── skills/                # AI skills (gitignored)
-├── AGENTS.md              # Agent instructions
-├── PROJECT_CONTEXT.md     # This file
-├── PROJECT_DISCOVERY_REPORT.md
-├── README.md
-├── TODO.md
-├── package.json           # Root workspace manifest
-└── package-lock.json
-```
+**Status: CLEAN** — Root clutter reduced from 20+ files to 9 in previous rescue phases.
 
-### Gitignored Local Files (not committed)
-- `prod-login-current.png` → `docs/screenshots/` (local only)
-- `skills-lock.json`, `skills/` — AI skill artifacts
-- `ptbiztools-backend/prisma.config.ts` — Prisma 7 config (not yet adopted)
-- `ptbiztools.code-workspace` — VS Code workspace file
-- `videos/` — Local video captures
+| Root File | Purpose | Status |
+|-----------|---------|--------|
+| `.gitignore` | Git ignore rules | ✅ Comprehensive |
+| `.nvmrc` | Node version (22) | ✅ |
+| `package.json` | Root workspace | ✅ |
+| `package-lock.json` | Lock file | ✅ |
+| `AGENTS.md` | AI agent instructions | ✅ Current |
+| `README.md` | Project readme | ✅ Current (610 lines) |
+| `PROJECT_CONTEXT.md` | This file | ⚠️ Being updated now |
+| `TODO.md` | Task tracking | ⚠️ Stale (49 lines, needs rewrite) |
+| `PROJECT_DISCOVERY_REPORT.md` | Discovery report | ⚠️ Stale (203 lines, superseded) |
 
----
+### Stale Documentation Inventory
 
-## Rescue Actions Completed (This Session)
-
-| # | Action | Status |
-|---|--------|--------|
-| 1 | Delete 2 orphaned local worktree branches (`worktree-1773626185602`, `worktree-1773632312733`) | ✅ Done |
-| 2 | Prune 2 stale remote branches (`blackboxai/deploy-104`, `codex/restore-backend`) | ✅ Done |
-| 3 | Move 7 integration MDs → `docs/integration/` | ✅ Done |
-| 4 | Move 5 Python test scripts → `scripts/mcp-tests/` | ✅ Done |
-| 5 | Move 2 screenshots → `docs/screenshots/` | ✅ Done |
-| 6 | Delete `firebase-debug.log` | ✅ Done |
-| 7 | Verify `*.code-workspace` in `.gitignore` | ✅ Already present |
-| 8 | Review 5 Gemini workflow files — keep/delete | ✅ Kept (legitimate CI/CD) |
-| 9 | Commit + push to `origin/main` | ✅ Done (`9ec1372`) |
+| File | Lines | Status | Action |
+|------|-------|--------|--------|
+| `PROJECT_DISCOVERY_REPORT.md` | 203 | Fully stale, superseded by this file | **Delete** |
+| `TODO.md` | 49 | Stale priorities | **Rewrite** with current priorities |
+| `ptbiztools-next/implementation_plan.md` | ? | Old implementation plan | **Review → archive or delete** |
+| `ptbiztools-next/TODO_LOGIN_REDESIGN.md` | ? | Login redesign done | **Delete** (work completed) |
+| `ptbiztools-next/PLAN_DANNY_INTEGRATION.md` | ? | Danny modal integration plan | **Keep** (active work) |
+| `ptbiztools-next/docs/migration-status.md` | ? | Migration tracking | **Review** |
+| `ptbiztools-next/docs/repo-state.md` | ? | Repo state snapshot | **Review → update or delete** |
 
 ---
 
 ## Code Architecture
 
-### Backend (`ptbiztools-backend`)
-- **Entry:** `src/index.ts` (Express server)
-- **Routes:** auth, zoom, zoomConnect, transcript, analytics, actionLog, dannyTools, plImport, mem0
-- **Scoring Engine:** callGraderEngine, callGraderSchema, callGraderProfiles, redaction, transcriptQuality
-- **PL Import:** parsers, mapping, service, constants, types, utils
-- **Database:** Prisma 5.22.0 ORM with PostgreSQL, 3 migrations
-- **Tests:** Node built-in test runner via `tsx --test src/**/*.test.ts` (25/25 passing)
+### Component Structure
 
-### Frontend (`ptbiztools-next`)
-- **App Router:** Next.js 16 with route groups `(app)/` and `(tools)/`
-- **Pages:** dashboard, login, discovery-call-grader, sales-discovery-grader, compensation-calculator, pl-calculator, stack-lab
-- **Components:** agent/, analyses/, changelog/, danny/, discovery/, layout/, Mem0Example
-- **Styles:** Tailwind v4 + custom CSS
-- **Tests:** Vitest 4.1.0 (7/7 passing)
+```
+src/components/
+├── danny/                    # Danny tool components (P&L, Comp, Sales Grader)
+│   ├── DannyFinancialAudit.jsx      (68KB — P&L calc, reference UI)
+│   ├── DannyCompensationCalculator.jsx (31KB — comp calc)
+│   ├── DannyCloserCallGrader.tsx    (72KB — sales discovery grader)
+│   ├── FileUploadZone.tsx           (shared upload component)
+│   ├── GradingProgress.tsx          (shared progress indicator)
+│   ├── HistoryView.tsx              (shared history view)
+│   ├── Modal.tsx                    (shared modal wrapper)
+│   ├── PassFail.tsx                 (shared pass/fail display)
+│   ├── ScoreBar.tsx                 (shared score bar)
+│   ├── danny-theme.css              (680 lines, theme CSS)
+│   ├── graderV2Helpers.ts           (grader utilities)
+│   ├── theme.ts                     (theme constants)
+│   └── types.ts                     (shared types)
+├── discovery/                # Discovery call grader (NEEDS REWRITE)
+│   └── DiscoveryCallGrader.tsx      (42KB, 1081 lines — monolithic)
+├── grader/                   # Grader shared components
+│   ├── GradeModal.tsx               (9KB)
+│   ├── GradePreview.tsx             (1.4KB)
+│   ├── GraderInputModal.tsx         (14KB)
+│   ├── useGrader.ts                 (12KB — shared hook)
+│   ├── types.ts                     (2.3KB)
+│   └── index.ts                     (barrel export)
+├── dashboard/                # Dashboard components
+├── layout/                   # AppShell, sidebar nav
+├── login/                    # Login page components
+├── clinic/                   # Clinic icons/backgrounds
+├── agent/                    # Agent surface panel
+├── analyses/                 # Analysis history
+├── changelog/                # Changelog modal
+├── corex/                    # CoreX components
+├── local-first/              # Local-first panel
+├── tour/                     # Tour overlay
+└── providers.tsx             # React providers
+```
+
+### Key Architectural Findings
+
+1. **Mixed JSX/TSX**: P&L calc and Comp calc are `.jsx`, graders are `.tsx` — inconsistent
+2. **Monolithic components**: DiscoveryCallGrader (1081 lines) and DannyCloserCallGrader (1462 lines) are too large
+3. **Dual CSS systems**: `danny-tools.css` (460 lines) + `danny-theme.css` (680 lines) — potential overlap
+4. **Tool badges**: `src/constants/tool-badges.ts` maps tools to `CLINIC_SVGS` — needs integration into all tool pages
+5. **No shared tool layout**: Each tool page renders its component directly without a common wrapper
+
+### Technical Debt: LOW
+
+- No significant code duplication detected across tools
+- Auth logic is clean
+- Backend tests comprehensive (25/25)
+- Frontend tests present (7/7)
+- TypeScript compilation clean in both projects
 
 ---
 
 ## Deployment Review
 
-### Backend (Railway)
-| Config | Status |
-|--------|--------|
-| Dockerfile | ✅ Valid (node:22-alpine, prisma generate, npm run build) |
-| railway.json | ✅ Valid (DOCKERFILE builder, 1 replica, ON_FAILURE restart) |
-| .dockerignore | ✅ Present |
-| .railwayignore | ✅ Present |
+### Production Deployments
 
-### Frontend (Vercel)
-| Config | Status |
-|--------|--------|
-| next.config.ts | ✅ Present |
-| vercel.json | ✅ Present |
-| Build command | ✅ `node scripts/generate-changelog.mjs && next build` |
+| Service | Platform | URL | Status |
+|---------|----------|-----|--------|
+| Frontend | Vercel | https://www.ptbizcoach.com | ✅ Live (307 redirect = OK) |
+| Backend | Railway (Docker) | Railway internal URL | ✅ Live (404 on root = expected) |
 
-### CI/CD Workflows (`.github/workflows/`)
-| Workflow | Purpose | Status |
-|----------|---------|--------|
-| `ci.yml` | Backend tsc+tests, Frontend tsc+lint+tests | ✅ Active |
-| `deploy-frontend.yml` | Frontend deployment to Vercel | ✅ Active |
-| `gemini-dispatch.yml` | Gemini PR review dispatch | ✅ Active |
-| `gemini-invoke.yml` | Gemini invocation (reusable) | ✅ Active |
-| `gemini-review.yml` | Gemini code review (reusable) | ✅ Active |
-| `gemini-scheduled-triage.yml` | Hourly issue triage | ✅ Active |
-| `gemini-triage.yml` | Gemini triage (reusable) | ✅ Active |
+### CI/CD Pipelines (7 workflows)
 
----
+| Workflow | File | Status |
+|----------|------|--------|
+| CI | `ci.yml` | ✅ Working — runs tsc, lint, tests for both projects |
+| Deploy Frontend | `deploy-frontend.yml` | ❌ **BROKEN** — uses `vercel/action-deploy@v1` (doesn't exist) |
+| Gemini Dispatch | `gemini-dispatch.yml` | ✅ Active |
+| Gemini Invoke | `gemini-invoke.yml` | ✅ Active |
+| Gemini Review | `gemini-review.yml` | ✅ Active |
+| Gemini Scheduled Triage | `gemini-scheduled-triage.yml` | ✅ Active |
+| Gemini Triage | `gemini-triage.yml` | ✅ Active |
 
-## Test Status
+### Deploy Frontend Fix Required
 
-| Project | Runner | Total | Passed | Failed | Status |
-|---------|--------|-------|--------|--------|--------|
-| ptbiztools-backend | Node test runner (`tsx --test`) | 25 | 25 | 0 | ✅ |
-| ptbiztools-next | Vitest 4.1.0 | 7 | 7 | 0 | ✅ |
+**Problem:** `vercel/action-deploy@v1` repository does not exist.
+**Fix:** Replace with `amondnet/vercel-action@v25` or use Vercel CLI directly.
+
+### Deployment Configs
+
+| File | Status |
+|------|--------|
+| `ptbiztools-next/vercel.json` | `{}` — empty, relies on Vercel auto-detection ✅ |
+| `ptbiztools-backend/railway.json` | Dockerfile builder, 1 replica, restart on failure ✅ |
+| `ptbiztools-backend/Dockerfile` | Present ✅ |
+| `.vercel/project.json` | Vercel project link ✅ |
 
 ---
 
-## MCP Servers
+## Completed Actions (This Rescue)
 
-| Server | Purpose |
-|--------|---------|
-| 21st.dev Magic | UI component generation |
-| Playwright | Browser automation/testing |
-| Firecrawl | Web scraping |
-| GitHub | Repository management |
-| Prisma | Database management |
-| Mem0 | AI memory/persistence |
-| Sequential Thinking | Structured problem-solving |
-| Context7 | Documentation queries |
-| Slack | Team notifications |
-| Apify | Web scraping actors |
-| Browser Tools | Browser debugging/audits |
-| Filesystem | File operations |
-| Local Git | Git operations |
+- [x] Pre-flight safety check — git status verified
+- [x] Project discovery — 2 projects identified, stacks cataloged
+- [x] Git deep analysis — branch clean, 1 ahead, no stale branches
+- [x] Folder organization — root at 9 files (clean), stale docs identified
+- [x] Code architecture review — component inventory, debt assessment
+- [x] Deployment review — configs verified, broken workflow identified
+- [x] Build verification — frontend ✅, backend tsc ✅
+- [x] Binary cleanup — removed 6MB of intro videos (commit `26eb684`)
+
+---
+
+## Pending Actions (Requires Approval)
+
+### HIGH Priority — UI/UX Standardization
+
+- [ ] **Standardize all 4 tools to consistent "built-in modal" look** (P&L calc = reference)
+- [ ] **Rewrite DiscoveryCallGrader.tsx** — remove random UI boxes from failed agent attempts
+- [ ] **Integrate tool badges/logos** into all tool page headers
+- [ ] **Clean up inner sub-pages** — aggressively cut and rewrite horrible UI additions
+- [ ] **Danny's Modal Integration** per `PLAN_DANNY_INTEGRATION.md`
+
+### HIGH Priority — CI/CD
+
+- [ ] **Fix deploy-frontend.yml** — replace `vercel/action-deploy@v1` with working action
+
+### MEDIUM Priority — Cleanup
+
+- [ ] **Rewrite TODO.md** with current priorities
+- [ ] **Delete PROJECT_DISCOVERY_REPORT.md** (superseded)
+- [ ] **Delete ptbiztools-next/TODO_LOGIN_REDESIGN.md** (work completed)
+- [ ] **Review/archive ptbiztools-next/implementation_plan.md**
+- [ ] **Lint cleanup** — ESLint max-warnings threshold
+- [ ] **Asset audit** — 40+ images in `public/assets/`, verify usage
+- [ ] **Convert .jsx → .tsx** for DannyFinancialAudit and DannyCompensationCalculator
+
+### LOW Priority
+
+- [ ] Gemini workflow review (5 workflows)
+- [ ] Architecture diagram generation
+- [ ] Prisma upgrade evaluation (5.22.0 → latest)
+- [ ] Consolidate dual CSS systems (danny-tools.css + danny-theme.css)
 
 ---
 
 ## Health Score
 
-| Category | Weight | Score |
-|----------|--------|-------|
-| Git cleanliness | 25% | 24/25 (clean tree, single branch, synced) |
-| Folder organization | 20% | 18/20 (root cleaned, docs organized) |
-| Code quality | 25% | 23/25 (all tests pass, low debt) |
-| Deployment readiness | 20% | 18/20 (CI/CD present, configs valid) |
-| Documentation | 10% | 8/10 (README, context, integration docs) |
+| Category | Weight | Score | Notes |
+|----------|--------|-------|-------|
+| Git cleanliness | 25% | 95/100 | Clean branch, 1 commit ahead, no stale branches |
+| Folder organization | 20% | 90/100 | Root clean (9 files), some stale docs remain |
+| Code quality | 25% | 70/100 | All tests pass, but monolithic components + mixed jsx/tsx |
+| Deployment readiness | 20% | 65/100 | deploy-frontend.yml broken, configs otherwise clean |
+| Documentation | 10% | 60/100 | README good, but TODO/DISCOVERY stale, frontend docs need audit |
 
-**Overall: 91/100**
-
----
-
-## Remaining Recommendations
-
-### Medium Priority
-- [ ] Clean up remaining lint warnings (unused vars/imports)
-- [ ] Rename ChatGPT/Generated Image asset files to semantic names
-- [ ] Deduplicate assets between `public/assets/` and `public/clinic-icons/`
-- [ ] Add architecture diagram to docs
-
-### Low Priority
-- [ ] Review `gemini-scheduled-triage.yml` hourly cron frequency (may be noisy)
-- [ ] Add `ZOOM_ACCOUNT_ID` to backend `.env.example`
-- [ ] Add `PTBIZ_BACKEND_URL` to frontend `.env.example`
+**Overall: 78/100**
 
 ---
 
 ## Rollback Instructions
 
 ```bash
-# Revert rescue phase 2 (file moves):
-git revert 9ec1372
+# If any rescue changes need to be reverted:
+git log --oneline -10  # find the commit to revert to
+git revert <commit-hash>  # revert specific commits
 
-# Revert rescue phase 1 (gitignore + docs):
-git revert 61c6aca
+# Or hard reset (destructive):
+git reset --hard c216c29  # reset to origin/main
+```
 
-# Or reset to pre-rescue state:
-git reset --hard 1ebbcaf
-git push origin main --force
+---
+
+## Next Steps (Recommended Order)
+
+1. **Fix deploy-frontend.yml** — quick win, unblocks CI/CD
+2. **Push HEAD to origin** — `git push origin main` (1 commit ahead)
+3. **Delete stale docs** — PROJECT_DISCOVERY_REPORT.md, TODO_LOGIN_REDESIGN.md
+4. **Rewrite TODO.md** — reflect current priorities from this document
+5. **Begin UI standardization** — start with DiscoveryCallGrader rewrite (biggest impact)
+6. **Danny Modal Integration** — per PLAN_DANNY_INTEGRATION.md
+7. **Asset audit** — verify 40+ images are actually used
+8. **Convert jsx → tsx** — DannyFinancialAudit, DannyCompensationCalculator
