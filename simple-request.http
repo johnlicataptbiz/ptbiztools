@@ -1,0 +1,4 @@
+@baseUrl = https://www.ptbizcoach.com
+
+GET {{baseUrl}}/
+Content-Type: application/json

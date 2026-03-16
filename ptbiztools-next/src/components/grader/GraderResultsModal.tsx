@@ -237,15 +237,81 @@ export function GraderResultsModal({
 
               {result.redFlags.length > 0 && (
                 <div style={{ background: card, border: "1px solid rgba(239,68,68,0.25)", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-                  <h4 style={{ fontSize: "11px", color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "10px", display: "flex",<thinking>
-GraderResultsModal.tsx created successfully but has ESLint/TS errors (inline styles with quotes, JSX parsing issues). Need to fix these before proceeding.
+                  <h4 style={{ fontSize: "11px", color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <AlertCircle size={14} /> Red Flags ({result.redFlags.length})
+                  </h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {result.redFlags.map((flag, idx) => (
+                      <div key={idx} style={{ fontSize: "13px", color: textPrimary, padding: "8px 12px", background: "rgba(239,68,68,0.06)", borderRadius: "4px", borderLeft: "3px solid rgba(239,68,68,0.4)" }}>
+                        {flag}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-The errors are:
-1. Inline style quotes need escaping for JSX: `"` → `"`
-2. JSX parsing errors likely from unescaped quotes in style objects
-3. Missing imports or type issues
+              {(result.strengths.length > 1 || result.improvements.length > 1) && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+                  {result.strengths.length > 0 && (
+                    <div style={{ background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "16px" }}>
+                      <div style={{ fontSize: "11px", color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "10px" }}>Strengths</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {result.strengths.map((s, i) => (
+                          <div key={i} style={{ fontSize: "12px", color: textSecondary, paddingLeft: "10px", borderLeft: "2px solid rgba(34,197,94,0.3)" }}>{s}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.improvements.length > 0 && (
+                    <div style={{ background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "16px" }}>
+                      <div style={{ fontSize: "11px", color: "#eab308", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "10px" }}>Areas for Improvement</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {result.improvements.map((imp, i) => (
+                          <div key={i} style={{ fontSize: "12px", color: textSecondary, paddingLeft: "10px", borderLeft: "2px solid rgba(234,179,8,0.3)" }}>{imp}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-Let me fix the GraderResultsModal.tsx first, then proceed with the other 2 files.
-</thinking>
+              {result.summary && (
+                <div style={{ background: card, border: `1px solid ${border}`, borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
+                  <div style={{ fontSize: "11px", color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: "8px" }}>Summary</div>
+                  <div style={{ fontSize: "13px", color: textSecondary, lineHeight: 1.6 }}>{result.summary}</div>
+                </div>
+              )}
+            </div>
 
-<edit_file>
+            <div className="grade-modal-footer sales-modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", padding: "16px 24px", borderTop: `1px solid ${border}` }}>
+              <button
+                onClick={onViewHistory}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "8px 16px", background: "transparent",
+                  border: `1px solid ${border}`, borderRadius: "6px",
+                  color: textSecondary, fontSize: "13px", fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <History size={14} /> History
+              </button>
+              <button
+                onClick={onGeneratePDF}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "8px 16px", background: "#58A6FF",
+                  border: "none", borderRadius: "6px",
+                  color: "#fff", fontSize: "13px", fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <Download size={14} /> Export PDF
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
