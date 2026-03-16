@@ -1,6 +1,3 @@
-{
-  "buildCommand": "node scripts/generate-changelog.mjs && next build",
-  "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm ci",
   "devCommand": "npm run dev",
