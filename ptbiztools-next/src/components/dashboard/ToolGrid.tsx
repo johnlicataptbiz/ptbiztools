@@ -5,15 +5,12 @@ import { motion } from "framer-motion";
 import type { ComponentType, CSSProperties } from "react";
 import {
   Activity,
-  BarChart3,
   Calculator,
   ClipboardList,
   Medal,
   PhoneCall,
-  ScrollText,
   Users,
 } from "lucide-react";
-import { ClinicIcon, type ClinicSvgName } from "@/components/clinic/ClinicIcon";
 import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 import { itemVariants } from "./animations";

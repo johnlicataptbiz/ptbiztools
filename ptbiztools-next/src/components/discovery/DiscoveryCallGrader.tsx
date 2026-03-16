@@ -13,7 +13,6 @@ import {
   CheckCircle,
   AlertCircle,
   XCircle,
-  Download,
   RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";

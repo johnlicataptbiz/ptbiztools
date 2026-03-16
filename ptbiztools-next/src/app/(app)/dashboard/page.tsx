@@ -17,8 +17,7 @@ import {
   ScrollText,
   Users,
 } from "lucide-react";
-import { ClinicIcon, type ClinicSvgName } from "@/components/clinic/ClinicIcon";
-import { CLINIC_SVGS } from "@/constants/clinic-svgs";
+import { ClinicIcon } from "@/components/clinic/ClinicIcon";
 import { useSession } from "@/lib/auth/session-context";
 import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";

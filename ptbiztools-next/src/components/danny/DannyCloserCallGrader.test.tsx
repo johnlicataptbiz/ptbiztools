@@ -87,9 +87,7 @@ describe('DannyCloserCallGrader', () => {
   });
 
   test('renders clinic icons and backgrounds in modal', async () => {
-    const { container } = render(<SalesCallGrader />);
-    
-    // Trigger modal open (simulate history + click)
+    // Set localStorage BEFORE first render so history loads on mount
     mockLocalStorage.getItem.mockReturnValue(JSON.stringify([{
       id: 1,
       date: new Date().toISOString(),
@@ -100,11 +98,10 @@ describe('DannyCloserCallGrader', () => {
       result: mockGradeResponse,
     }]));
     
-    // Re-render with history
-    const { rerender } = render(<SalesCallGrader />, { container });
+    render(<SalesCallGrader />);
     
     // Open results modal
-    const lastResultBtn = screen.getByRole('button', { name: /Last Result/i });
+    const lastResultBtn = await screen.findByRole('button', { name: /Last Result/i });
     fireEvent.click(lastResultBtn);
     
     await waitFor(() => {
@@ -115,7 +112,7 @@ describe('DannyCloserCallGrader', () => {
 
   test('word count gate disables/enables grade button', async () => {
     render(<SalesCallGrader />);
-    const textarea = screen.getByRole('textbox');
+    const textarea = screen.getByPlaceholderText(/paste/i);
     
     // Below threshold
     fireEvent.change(textarea, { target: { value: 'short text' } });

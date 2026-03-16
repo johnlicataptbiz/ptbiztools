@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useMem0 } from '@/hooks/useMem0';
+import { useMem0, Mem0Memory } from '@/hooks/useMem0';
 
 export default function Mem0Example() {
   const { addMemory, searchMemories, isLoading, error } = useMem0();
   const [memoryText, setMemoryText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [memories, setMemories] = useState<any[]>([]);
+  const [memories, setMemories] = useState<Mem0Memory[]>([]);
 
   const handleAddMemory = async () => {
     if (!memoryText.trim()) return;
@@ -16,7 +16,7 @@ export default function Mem0Example() {
       await addMemory(memoryText, ['user_preference', 'demo']);
       setMemoryText('');
       alert('Memory added successfully!');
-    } catch (err) {
+    } catch {
       alert('Failed to add memory');
     }
   };
@@ -25,10 +25,10 @@ export default function Mem0Example() {
     if (!searchQuery.trim()) return;
     
     try {
-      const response = await searchMemories(searchQuery, 5);
-      const results = JSON.parse(response.result.result);
+      const response = await searchMemories(searchQuery, 5) as { result?: { result?: string } };
+      const results = JSON.parse(response.result?.result || '{}');
       setMemories(results.results || []);
-    } catch (err) {
+    } catch {
       alert('Failed to search memories');
     }
   };

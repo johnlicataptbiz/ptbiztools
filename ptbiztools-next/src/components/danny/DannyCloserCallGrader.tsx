@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
 
@@ -15,7 +14,6 @@ import {
 } from "@/lib/ptbiz-api";
 import { ClinicIcon } from "@/components/clinic/ClinicIcon";
 import { ClinicBackground } from "@/components/clinic/ClinicBackgrounds";
-import { CLINIC_SVGS } from "@/constants/clinic-svgs";
 import { generateSalesCallPdf } from "@/utils/salesCallPdf";
 import {
   canSubmitByWordCount,
@@ -141,8 +139,6 @@ interface UploadedFile {
 function SalesModal({
   isOpen,
   onClose,
-  title,
-  subtitle,
   badgeSrc,
   badgeAlt,
   children,
@@ -150,8 +146,8 @@ function SalesModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
   badgeSrc: string;
   badgeAlt: string;
   children: React.ReactNode;

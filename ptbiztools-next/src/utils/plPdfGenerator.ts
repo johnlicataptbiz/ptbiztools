@@ -13,8 +13,6 @@ const COLORS = {
   blue: '#2E86F5',
 };
 
-const LOGO_CACHE = new Map<string, string | null>();
-
 function sanitizeFilenamePart(value: string) {
   const normalized = value
     .trim()
@@ -22,37 +20,6 @@ function sanitizeFilenamePart(value: string) {
     .replace(/[^a-zA-Z0-9_-]/g, '')
     .slice(0, 48);
   return normalized || 'Report';
-}
-
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(reader.error || new Error('Failed to read image blob'));
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function loadImageDataUrl(url: string): Promise<string | null> {
-  if (LOGO_CACHE.has(url)) return LOGO_CACHE.get(url) || null;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Image request failed (${response.status})`);
-    const blob = await response.blob();
-    const dataUrl = await blobToDataUrl(blob);
-    LOGO_CACHE.set(url, dataUrl);
-    return dataUrl;
-  } catch (error) {
-    console.warn('Unable to load PDF logo, falling back to text mark:', error);
-    LOGO_CACHE.set(url, null);
-    return null;
-  }
-}
-
-function safeText(text: unknown, fallback = ''): string {
-  if (text === null || text === undefined || Number.isNaN(text)) return fallback;
-  return String(text);
 }
 
 function safeNum(value: unknown, fallback = 0): number {
@@ -133,8 +100,7 @@ export async function generatePLPDF(
   plan: PLPlan | null,
   cashFlow: CashFlowItem[],
   clinicType: string,
-  payerMix: string,
-  bizPhase: string
+  payerMix: string
 ): Promise<void> {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();

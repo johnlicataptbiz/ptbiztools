@@ -3,20 +3,20 @@ import { useState, useCallback } from 'react';
 export interface Mem0Memory {
   memory_id: string;
   text: string;
-  metadata?: any;
+  metadata?: unknown;
   created_at: string;
   tags?: string[];
 }
 
 export interface UseMem0Return {
-  addMemory: (text: string, tags?: string[], metadata?: any) => Promise<any>;
-  searchMemories: (query: string, limit?: number) => Promise<any>;
-  getMemories: (filters?: any, page?: number, pageSize?: number) => Promise<any>;
-  getMemory: (memoryId: string) => Promise<any>;
-  updateMemory: (memoryId: string, text: string) => Promise<any>;
-  deleteMemory: (memoryId: string) => Promise<any>;
-  deleteAllMemories: (userId?: string, agentId?: string, appId?: string, runId?: string) => Promise<any>;
-  listEntities: () => Promise<any>;
+  addMemory: (text: string, tags?: string[], metadata?: unknown) => Promise<unknown>;
+  searchMemories: (query: string, limit?: number) => Promise<unknown>;
+  getMemories: (filters?: unknown, page?: number, pageSize?: number) => Promise<unknown>;
+  getMemory: (memoryId: string) => Promise<unknown>;
+  updateMemory: (memoryId: string, text: string) => Promise<unknown>;
+  deleteMemory: (memoryId: string) => Promise<unknown>;
+  deleteAllMemories: (userId?: string, agentId?: string, appId?: string, runId?: string) => Promise<unknown>;
+  listEntities: () => Promise<unknown>;
   isLoading: boolean;
   error: string | null;
 }
@@ -25,6 +25,7 @@ export function useMem0(): UseMem0Return {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addMemory = useCallback(async (text: string, tags: string[] = [], metadata?: any) => {
     setIsLoading(true);
     setError(null);
@@ -46,7 +47,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const searchMemories = useCallback(async (query: string, limit = 5) => {
+    const searchMemories = useCallback(async (query: string, limit = 5) => {
     setIsLoading(true);
     setError(null);
     
@@ -67,6 +68,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getMemories = useCallback(async (filters?: any, page = 1, pageSize = 10) => {
     setIsLoading(true);
     setError(null);
@@ -96,7 +98,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const getMemory = useCallback(async (memoryId: string) => {
+    const getMemory = useCallback(async (memoryId: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -116,7 +118,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const updateMemory = useCallback(async (memoryId: string, text: string) => {
+    const updateMemory = useCallback(async (memoryId: string, text: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -137,7 +139,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const deleteMemory = useCallback(async (memoryId: string) => {
+    const deleteMemory = useCallback(async (memoryId: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -157,7 +159,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const deleteAllMemories = useCallback(async (userId?: string, agentId?: string, appId?: string, runId?: string) => {
+    const deleteAllMemories = useCallback(async (userId?: string, agentId?: string, appId?: string, runId?: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -178,7 +180,7 @@ export function useMem0(): UseMem0Return {
     }
   }, []);
 
-  const listEntities = useCallback(async () => {
+    const listEntities = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     

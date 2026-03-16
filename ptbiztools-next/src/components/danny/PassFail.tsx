@@ -6,9 +6,6 @@ interface PassFailProps extends DannyComponentProps {
 }
 
 const PassFail: React.FC<PassFailProps> = ({ status, className = '' }) => {
-  const isPass = status === 'pass';
-  const isUnknown = status === 'unknown';
-  
   const config = {
     pass: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e', label: '✓ PASS' },
     fail: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: '✗ FAIL' },

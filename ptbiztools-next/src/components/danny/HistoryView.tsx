@@ -1,7 +1,6 @@
 import React from 'react';
 import type { HistoryEntry, DannyComponentProps } from './types';
 import { ScoreBar } from './ScoreBar';
-import { PassFail } from './PassFail';
 
 interface HistoryViewProps extends DannyComponentProps {
   history: HistoryEntry[];
