@@ -1,22 +1,19 @@
 # Project Context — Rescue Summary
 
-Generated: 2026-03-15 (updated post-rescue — all 7 phases complete)
-Head commit: 97fb127 (main) | 7 commits ahead of origin/main
+Generated: 2026-03-15 (updated post-rescue phase 2)
+Head commit: `9ec1372` (main, synced with origin/main)
 
+---
 
 ## Executive Summary
 
-Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + Next.js frontend). All 7 phases executed:
+Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + Next.js frontend). Two rescue phases executed:
 
-1. **Tests fixed** — 2 failing frontend tests resolved (localStorage timing, textarea selector); all 7/7 pass
-2. **Webhook route** — Replaced TODO stub with proper error differentiation (400/500)
-3. **Lint cleanup** — Reduced ESLint warnings from 31 → 5 (all remaining are architectural: `no-img-element` ×4, `no-page-custom-font` ×1); 0 errors
-4. **CI/CD pipeline** — `.github/workflows/ci.yml` added (backend tsc+tests, frontend tsc+lint+tests)
-5. **Env sync** — `ZOOM_ACCOUNT_ID` added to `ptbiztools-backend/.env.example`
-6. **Stale branch pruned** — `blackboxai/deploy-104-untracked` deleted
-7. **Context updated** — This file
+**Phase 1** (`61c6aca`): Pre-rescue cleanup — updated `.gitignore` with 30+ AI tool config dirs, added `docs/` folder, reverted accidental Prisma 5→7 upgrade.
 
-**Final state:** Backend 25/25 tests ✅ | Frontend 7/7 tests ✅ | 0 lint errors | tsc clean | working tree clean
+**Phase 2** (`9ec1372`): Root clutter organization — moved 7 integration docs → `docs/integration/`, 5 Python test scripts → `scripts/mcp-tests/`, 1 screenshot → `docs/screenshots/`, deleted stale branches (2 local worktree branches + 2 remote branches), reviewed Gemini CI workflows (kept).
+
+**Final state:** Backend 25/25 tests ✅ | Frontend 7/7 tests ✅ | Working tree clean | `main` synced with `origin/main`
 
 ---
 
@@ -24,13 +21,12 @@ Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + N
 
 | Project | Type | Path | Stack | Deploy Target |
 |---------|------|------|-------|---------------|
-| ptbiztools-backend | Express API | `/ptbiztools-backend` | Node.js, TypeScript, Prisma, Express | Railway (Docker) |
-| ptbiztools-next | Next.js Frontend | `/ptbiztools-next` | Next.js 16.1.6, React 19, TypeScript, Tailwind v4 | Vercel |
+| ptbiztools-backend | Express API | `/ptbiztools-backend` | Node.js 22, TypeScript, Prisma 5.22.0, Express, PostgreSQL | Railway (Docker) |
+| ptbiztools-next | Next.js Frontend | `/ptbiztools-next` | Next.js 16.1.6, React 19, TypeScript, Tailwind v4, Vitest 4.1.0 | Vercel |
 
-### Root-Level Artifacts
-- 19 root-level files (README, TODO, integration guides, test scripts, demo screenshot)
-- `.blackbox/` skills directory (project-rescue-orchestrator, discovery, git-analysis, folder-organizer, code-refactor, deployment-review, post-rescue-validation, UI enhancer, dependency enhancer)
-- Root `package.json` + `package-lock.json` (workspace manifest)
+### Production URLs
+- **Frontend:** https://www.ptbizcoach.com (Vercel)
+- **Backend:** https://ptbiztools-backend-production.up.railway.app (Railway)
 
 ---
 
@@ -39,42 +35,72 @@ Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + N
 | Property | Value |
 |----------|-------|
 | Repository | github.com/johnlicataptbiz/ptbiztools.git |
-| Current Branch | main |
-| HEAD | 371e51c |
-| Upstream | origin/main (ahead 4 commits) |
-| Local Branches | main, blackboxai/deploy-104-untracked |
-| Remote Branches | origin/main, origin/blackboxai/deploy-104-untracked |
-| Worktrees | 1 (main only — rescue worktree cleaned up) |
+| Current Branch | `main` |
+| HEAD | `9ec1372` |
+| Upstream | `origin/main` (synced) |
+| Local Branches | `main` only |
+| Remote Branches | `origin/main` only |
+| Working Tree | Clean |
 
-### Uncommitted Changes (at validation time)
-- **Modified (staged):** Mem0Example.tsx, useMem0.ts
-- **Modified (unstaged):** login.css
-- **Untracked:** .blackbox/skills/project-ui-enhancer/
-
-### Stale Branches
-- `blackboxai/deploy-104-untracked` — old deploy branch, candidate for pruning
+### Recent Commits
+```
+9ec1372 chore: organize root clutter — move docs, scripts, screenshots [rescue phase 2]
+61c6aca chore: update gitignore with AI tool dirs, add docs folder [pre-rescue cleanup]
+1ebbcaf fix: complete login page redesign with branded CSS + update docs
+bfc50e2 Add GitHub Actions workflow for frontend deployment
+a1f12a7 docs(context): update PROJECT_CONTEXT.md with final rescue state (all 7 phases)
+```
 
 ---
 
-## Folder Organization
+## Folder Organization (Post-Rescue)
 
-### Root Clutter Assessment
-- 19 root-level files (moderate clutter)
-- Integration guides (MEM0_*, PLAYWRIGHT_*, SERVER_TO_SERVER_*, ZOOM_*) could move to `docs/`
-- Test scripts (test_mem0_*, test_playwright_*) could move to `scripts/mcp-tests/`
-- `demo-screenshot.png` could move to `docs/screenshots/`
+### Root Directory (Clean)
+```
+ptbiztools/
+├── .github/workflows/     # CI/CD (ci.yml, deploy-frontend.yml, 5× gemini-*.yml)
+├── docs/                  # All documentation
+│   ├── SETUP.md
+│   ├── TODO_ONBOARDING.md
+│   ├── integration/       # 7 integration guides (MEM0, Playwright, Zoom, etc.)
+│   └── screenshots/       # demo-screenshot.png
+├── firecrawl/             # Firecrawl skill configs
+├── ptbiztools-backend/    # Express API (Railway)
+├── ptbiztools-next/       # Next.js frontend (Vercel)
+├── scripts/
+│   └── mcp-tests/         # 5 Python MCP test scripts
+├── skills/                # AI skills (gitignored)
+├── AGENTS.md              # Agent instructions
+├── PROJECT_CONTEXT.md     # This file
+├── PROJECT_DISCOVERY_REPORT.md
+├── README.md
+├── TODO.md
+├── package.json           # Root workspace manifest
+└── package-lock.json
+```
 
-### Asset Organization (Frontend)
-- `public/assets/` — 50+ image assets (many with ChatGPT/Generated Image filenames)
-- `public/clinic-icons/` — 50+ clinic-related icons and patterns
-- Several duplicate images exist across both directories
-- `public/assets/manifest.json` and `public/clinic-icons/manifest.json` present
+### Gitignored Local Files (not committed)
+- `prod-login-current.png` → `docs/screenshots/` (local only)
+- `skills-lock.json`, `skills/` — AI skill artifacts
+- `ptbiztools-backend/prisma.config.ts` — Prisma 7 config (not yet adopted)
+- `ptbiztools.code-workspace` — VS Code workspace file
+- `videos/` — Local video captures
 
-### Recommendations (Pending Approval)
-- [ ] Move root markdown summaries → `docs/integration/`
-- [ ] Move root test scripts → `scripts/mcp-tests/`
-- [ ] Rename ChatGPT/Generated Image files to semantic names
-- [ ] Deduplicate assets between `public/assets/` and `public/clinic-icons/`
+---
+
+## Rescue Actions Completed (This Session)
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | Delete 2 orphaned local worktree branches (`worktree-1773626185602`, `worktree-1773632312733`) | ✅ Done |
+| 2 | Prune 2 stale remote branches (`blackboxai/deploy-104`, `codex/restore-backend`) | ✅ Done |
+| 3 | Move 7 integration MDs → `docs/integration/` | ✅ Done |
+| 4 | Move 5 Python test scripts → `scripts/mcp-tests/` | ✅ Done |
+| 5 | Move 2 screenshots → `docs/screenshots/` | ✅ Done |
+| 6 | Delete `firebase-debug.log` | ✅ Done |
+| 7 | Verify `*.code-workspace` in `.gitignore` | ✅ Already present |
+| 8 | Review 5 Gemini workflow files — keep/delete | ✅ Kept (legitimate CI/CD) |
+| 9 | Commit + push to `origin/main` | ✅ Done (`9ec1372`) |
 
 ---
 
@@ -85,23 +111,15 @@ Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + N
 - **Routes:** auth, zoom, zoomConnect, transcript, analytics, actionLog, dannyTools, plImport, mem0
 - **Scoring Engine:** callGraderEngine, callGraderSchema, callGraderProfiles, redaction, transcriptQuality
 - **PL Import:** parsers, mapping, service, constants, types, utils
-- **Database:** Prisma ORM with PostgreSQL, 3 migrations
-- **CLI:** zoom.ts for CLI operations
-- **Scripts:** check-users.ts, cleanup-dev-logins.ts
+- **Database:** Prisma 5.22.0 ORM with PostgreSQL, 3 migrations
+- **Tests:** Node built-in test runner via `tsx --test src/**/*.test.ts` (25/25 passing)
 
 ### Frontend (`ptbiztools-next`)
 - **App Router:** Next.js 16 with route groups `(app)/` and `(tools)/`
 - **Pages:** dashboard, login, discovery-call-grader, sales-discovery-grader, compensation-calculator, pl-calculator, stack-lab
 - **Components:** agent/, analyses/, changelog/, danny/, discovery/, layout/, Mem0Example
-- **Hooks:** useMem0.ts (Mem0 integration)
-- **Styles:** Tailwind v4 + custom CSS (app-shell, dashboard, discovery-call-grader, login, tool-page)
-- **Workflows:** AI workflow integration via @workflow/ai
-
-### Technical Debt (Low)
-- 2 pre-existing test failures in `DannyCloserCallGrader.test.tsx` (multiple textbox elements found by `getByRole`)
-- 25 lint warnings (unused vars/imports in plPdfGenerator.ts, DiscoveryCallGrader.tsx, SalesCallGrader.tsx, etc.)
-- Frontend missing `PTBIZ_BACKEND_URL` in `.env.local` vs `.env.example`
-- Backend has extra `ZOOM_ACCOUNT_ID` in `.env` not in `.env.example`
+- **Styles:** Tailwind v4 + custom CSS
+- **Tests:** Vitest 4.1.0 (7/7 passing)
 
 ---
 
@@ -119,237 +137,89 @@ Full rescue workflow completed on the PT Biz Tools monorepo (Express backend + N
 | Config | Status |
 |--------|--------|
 | next.config.ts | ✅ Present |
+| vercel.json | ✅ Present |
 | Build command | ✅ `node scripts/generate-changelog.mjs && next build` |
-| No vercel.json | ⚠ Using Vercel defaults (acceptable) |
 
-### CI/CD
-- ❌ **No GitHub Actions pipeline** — builds and tests are manual only
-- Recommendation: Add `.github/workflows/ci.yml` for automated testing
-
-### Environment Files
-| File | Status |
-|------|--------|
-| `.env` in `.gitignore` | ✅ Secured |
-| `.env.local` in `.gitignore` | ✅ Secured |
-| Backend `.env` vs `.env.example` | ⚠ Extra key: `ZOOM_ACCOUNT_ID` |
-| Frontend `.env.local` vs `.env.example` | ⚠ Missing key: `PTBIZ_BACKEND_URL` |
+### CI/CD Workflows (`.github/workflows/`)
+| Workflow | Purpose | Status |
+|----------|---------|--------|
+| `ci.yml` | Backend tsc+tests, Frontend tsc+lint+tests | ✅ Active |
+| `deploy-frontend.yml` | Frontend deployment to Vercel | ✅ Active |
+| `gemini-dispatch.yml` | Gemini PR review dispatch | ✅ Active |
+| `gemini-invoke.yml` | Gemini invocation (reusable) | ✅ Active |
+| `gemini-review.yml` | Gemini code review (reusable) | ✅ Active |
+| `gemini-scheduled-triage.yml` | Hourly issue triage | ✅ Active |
+| `gemini-triage.yml` | Gemini triage (reusable) | ✅ Active |
 
 ---
 
-## Rescue Actions Completed
+## Test Status
 
-### Fixes Applied
-- [x] **login.css:** Fixed unclosed `@media` block at line 886 (added closing brace) — was blocking frontend build
-- [x] **useMem0.ts:** Replaced `any` types with `unknown` in interfaces (`Mem0Memory.metadata`, `UseMem0Return` signatures); kept `any` with eslint-disable only where needed (`addMemory` metadata param, `getMemories` filters param)
-- [x] **useMem0.ts:** Removed 6 unnecessary `eslint-disable-next-line` directives on functions that don't use `any`
-- [x] **Mem0Example.tsx:** Changed `useState<any[]>` to `useState<Mem0Memory[]>`, added type assertion for `searchMemories` response
-
-### Rescue Worktree
-- [x] Created at `../ptbiztools-rescue` on branch `rescue/20260315`
-- [x] Cleaned up (worktree removed, branch can be deleted)
+| Project | Runner | Total | Passed | Failed | Status |
+|---------|--------|-------|--------|--------|--------|
+| ptbiztools-backend | Node test runner (`tsx --test`) | 25 | 25 | 0 | ✅ |
+| ptbiztools-next | Vitest 4.1.0 | 7 | 7 | 0 | ✅ |
 
 ---
 
-## Validation Results
+## MCP Servers
 
-Validated: 2026-03-15
-
-### Build Status
-| Project | Install | Build | Status |
-|---------|---------|-------|--------|
-| ptbiztools-backend | ✅ | ✅ | Healthy |
-| ptbiztools-next | ✅ | ✅ (Turbopack, 6.1s compile) | Healthy |
-
-### Test Status
-| Project | Total | Passed | Failed | Skipped | Status |
-|---------|-------|--------|--------|---------|--------|
-| ptbiztools-backend | 25 | 25 | 0 | 0 | ✅ All pass |
-| ptbiztools-next | 7 | 5 | 2 | 0 | ⚠ 2 pre-existing failures |
-
-**Pre-existing test failures (not caused by rescue):**
-- `DannyCloserCallGrader.test.tsx:83` — "renders all sections" — multiple textbox elements
-- `DannyCloserCallGrader.test.tsx:118` — "word count gate" — multiple textbox elements
-- Root cause: Component renders multiple textareas, test uses `getByRole('textbox')` which expects exactly one
-
-### Lint Status
-| Metric | Before Rescue | After Rescue |
-|--------|---------------|--------------|
-| Errors | 1 (CSS syntax) | **0** |
-| Warnings | 31 | **25** |
-| Fixable | 7 | 1 |
-
-### Import Integrity
-- ✅ No broken imports detected
-
-### Config Integrity
-| Config | Status |
-|--------|--------|
-| Dockerfile | ✅ All COPY targets valid |
-| railway.json | ✅ Builder and deploy config valid |
-| tsconfig.json (backend) | ✅ Valid |
-| tsconfig.json (frontend) | ✅ Valid |
-| next.config.ts | ✅ Valid |
-| prisma/schema.prisma | ✅ Valid |
-| package-lock.json (both) | ✅ Present |
-
-### Health Score
-
-| Category | Weight | Before | After | Score |
-|----------|--------|--------|-------|-------|
-| Git cleanliness | 25% | 15/25 | 18/25 | +3 |
-| Folder organization | 20% | 14/20 | 14/20 | — |
-| Code quality | 25% | 18/25 | 23/25 | +5 |
-| Deployment readiness | 20% | 16/20 | 16/20 | — |
-| Documentation | 10% | 7/10 | 7/10 | — |
-
-**Overall: 70/100 → 78/100**
+| Server | Purpose |
+|--------|---------|
+| 21st.dev Magic | UI component generation |
+| Playwright | Browser automation/testing |
+| Firecrawl | Web scraping |
+| GitHub | Repository management |
+| Prisma | Database management |
+| Mem0 | AI memory/persistence |
+| Sequential Thinking | Structured problem-solving |
+| Context7 | Documentation queries |
+| Slack | Team notifications |
+| Apify | Web scraping actors |
+| Browser Tools | Browser debugging/audits |
+| Filesystem | File operations |
+| Local Git | Git operations |
 
 ---
 
-## Pending Actions (Requires Approval)
+## Health Score
 
-### High Priority
-- [ ] Fix 2 failing frontend tests in `DannyCloserCallGrader.test.tsx` (use `getAllByRole` or add `aria-label`)
-- [ ] Add `PTBIZ_BACKEND_URL` to frontend `.env.local`
-- [ ] Add `ZOOM_ACCOUNT_ID` to backend `.env.example`
-- [ ] Push 4 local commits to origin (main is ahead by 4)
+| Category | Weight | Score |
+|----------|--------|-------|
+| Git cleanliness | 25% | 24/25 (clean tree, single branch, synced) |
+| Folder organization | 20% | 18/20 (root cleaned, docs organized) |
+| Code quality | 25% | 23/25 (all tests pass, low debt) |
+| Deployment readiness | 20% | 18/20 (CI/CD present, configs valid) |
+| Documentation | 10% | 8/10 (README, context, integration docs) |
+
+**Overall: 91/100**
+
+---
+
+## Remaining Recommendations
 
 ### Medium Priority
-- [ ] Add GitHub Actions CI/CD pipeline (`.github/workflows/ci.yml`)
-- [ ] Move root integration docs to `docs/integration/`
-- [ ] Move root test scripts to `scripts/mcp-tests/`
+- [ ] Clean up remaining lint warnings (unused vars/imports)
 - [ ] Rename ChatGPT/Generated Image asset files to semantic names
-- [ ] Prune stale branch `blackboxai/deploy-104-untracked`
-
-### Low Priority
-- [ ] Clean up 25 remaining lint warnings (unused vars/imports)
 - [ ] Deduplicate assets between `public/assets/` and `public/clinic-icons/`
-- [ ] Add `vercel.json` for explicit frontend deployment config
 - [ ] Add architecture diagram to docs
 
----
-
-## Next Steps
-
-1. **Push to origin:** `git push origin main` (4 commits ahead)
-2. **Fix failing tests:** Update `DannyCloserCallGrader.test.tsx` to handle multiple textareas
-3. **Add CI/CD:** Create GitHub Actions workflow for automated build + test on PR
-4. **Organize root files:** Move docs and test scripts to proper directories
-5. **Env sync:** Add missing keys to `.env.example` and `.env.local`
+### Low Priority
+- [ ] Review `gemini-scheduled-triage.yml` hourly cron frequency (may be noisy)
+- [ ] Add `ZOOM_ACCOUNT_ID` to backend `.env.example`
+- [ ] Add `PTBIZ_BACKEND_URL` to frontend `.env.example`
 
 ---
 
 ## Rollback Instructions
 
 ```bash
-# If rescue changes need to be reverted:
-git diff ptbiztools-next/src/hooks/useMem0.ts | git apply -R
-git diff ptbiztools-next/src/components/Mem0Example.tsx | git apply -R
-git diff ptbiztools-next/src/styles/login.css | git apply -R
+# Revert rescue phase 2 (file moves):
+git revert 9ec1372
 
-# Or discard all unstaged changes:
-git checkout -- ptbiztools-next/src/hooks/useMem0.ts
-git checkout -- ptbiztools-next/src/components/Mem0Example.tsx
-git checkout -- ptbiztools-next/src/styles/login.css
+# Revert rescue phase 1 (gitignore + docs):
+git revert 61c6aca
 
-# Delete rescue branch (if still exists):
-git branch -D rescue/20260315
-```
-
----
-
-## UI Enhancements (2026-03-15)
-
-### Summary
-- Ran the project UI enhancer flow for `ptbiztools-next` with approval-first asset migration.
-- Backed up originals to: `ptbiztools-next/public/assets/_backup_ui_enhancer_20260315/`
-- Renamed and reorganized 10 non-semantic assets into semantic folders under `public/assets/`.
-- Updated frontend references to use semantic assets and applied dashboard hero visual polish.
-
-### Asset Migration (Before → After)
-
-| Before | After |
-|---|---|
-| `public/clinic-icons/Generated Image March 13, 2026 - 11_02AM.png` | `public/assets/backgrounds/clinic-hero-pattern-a.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 11_02AM (1).png` | `public/assets/backgrounds/clinic-hero-pattern-b.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 11_04AM.png` | `public/assets/hero/clinic-growth-banner-a.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 11_15AM.png` | `public/assets/hero/clinic-network-banner-a.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 11_16PM.png` | `public/assets/hero/clinic-training-banner-a.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 12_26PM.png` | `public/assets/patterns/clinic-kpi-texture-a.png` |
-| `public/clinic-icons/Generated Image March 13, 2026 - 10_57AM.png` | `public/assets/patterns/clinic-analytics-strip-a.png` |
-| `public/clinic-icons/ChatGPT Image Mar 13, 2026, 01_21_17 PM.png` | `public/assets/backgrounds/clinic-feature-card-bg-a.png` |
-| `public/clinic-icons/ChatGPT Image Mar 13, 2026, 02_40_11 PM.png` | `public/assets/backgrounds/clinic-feature-card-bg-b.png` |
-| `public/clinic-icons/ChatGPT Image Mar 13, 2026, 04_39_02 PM.png` | `public/assets/illustrations/clinic-dashboard-highlight-a.png` |
-
-### Code Updates
-- `ptbiztools-next/src/constants/clinic-svgs.ts`
-  - Added semantic keys for the newly organized assets.
-- `ptbiztools-next/src/components/login/LoginBackgroundCarousel.tsx`
-  - Switched carousel backgrounds to semantic `public/assets/...` paths.
-- `ptbiztools-next/src/components/dashboard/DashboardHero.tsx`
-  - Added semantic illustration overlay and stronger visual treatment (glass/gradient layering, refined hero styling).
-
-### Validation
-- `npm run lint` ✅ (0 errors, warnings only)
-- `npm run build` ✅
-- `npm run test -- --run` ✅ (7/7 tests passing)
-
-## Health Score Delta
-- **Before:** 78/100
-- **After:** 84/100
-- **Delta:** +6 (improved asset semantics, visual consistency, and frontend validation confidence)
-
----
-
-## MCP Servers (2026-03-15)
-
-The project now has extensive MCP (Model Context Protocol) server integration for enhanced AI capabilities:
-
-### Connected MCP Servers
-
-| Server | Status | Purpose |
-|--------|--------|---------|
-| **21st.dev Magic** | ✅ Active | UI component generation and inspiration |
-| **Playwright** | ✅ Active | Browser automation and testing |
-| **Firecrawl** | ✅ Active | Web scraping and crawling |
-| **GitHub** | ✅ Active | Repository management and PRs |
-| **Prisma** | ✅ Active | Database management and migrations |
-| **Mem0** | ✅ Active | Memory/persistence for AI context |
-| **Sequential Thinking** | ✅ Active | Structured problem-solving |
-| **Context7** | ✅ Active | Documentation queries |
-| **Slack** | ✅ Active | Team notifications |
-| **Apify** | ✅ Active | Web scraping actors |
-| **Browser Tools** | ✅ Active | Browser debugging and audits |
-| **Filesystem** | ✅ Active | File operations |
-| **Local Git** | ✅ Active | Git operations |
-
-### MCP-Powered Workflows
-
-1. **UI Enhancement**: 21st.dev Magic + frontend-design-pro skill for premium component design
-2. **Testing**: Playwright MCP for automated browser testing and screenshots
-3. **Documentation**: Context7 for querying up-to-date library documentation
-4. **Database**: Prisma MCP for schema management and migrations
-5. **Memory**: Mem0 MCP for persistent AI context across sessions
-6. **Git**: Local Git MCP for branch management and commits
-
-### Recent MCP Achievements
-
-- **Login Page Fix**: Used Sequential Thinking + 21st.dev Magic to diagnose and fix broken login page
-- **Build Verification**: Playwright MCP confirmed production build health
-- **Component Inspiration**: 21st.dev Magic provided glass morphism card designs
-- **Database Health**: Prisma MCP verified migration status
-
----
-
-## Latest Updates (2026-03-15)
-
-### Login Page Complete Rewrite
-- **Issue**: Login page had hybrid refactor bug with undefined component references
-- **Solution**: Complete JSX rewrite using clean Tailwind components
-- **Features**: Glass morphism card, AnimatePresence state transitions, trust badge footer
-- **Build**: ✅ PASSING (BUILD_ID: b56dvD99TI6W_pnrLojLo)
-
-### Production Status
-- **Frontend**: https://www.ptbizcoach.com (Vercel)
-- **Backend**: https://ptbiztools-backend-production.up.railway.app (Railway)
-- **Health**: Backend 25/25 tests ✅ | Frontend 7/7 tests ✅ | 0 lint errors
+# Or reset to pre-rescue state:
+git reset --hard 1ebbcaf
+git push origin main --force
