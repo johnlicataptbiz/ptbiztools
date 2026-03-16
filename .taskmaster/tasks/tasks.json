@@ -1,0 +1,312 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Analyze and Document DiscoveryCallGrader Monolith",
+        "description": "Map out the current 1081-line monolithic component by identifying state variables, hooks, API calls, and UI sections. Identify and document 'random UI boxes' from failed AI agent attempts.",
+        "details": "Perform a thorough code walkthrough of DiscoveryCallGrader.tsx. Create a mapping document detailing state dependencies, API flows, and UI sections (upload area, progress/diagnostics, results display, scoring). Mark sections that are related to failed agent UI attempts for removal. Use inline comments and pseudocode to describe the flow and functionality.",
+        "testStrategy": "Conduct code review sessions, verify the mapping document with unit tests covering API dependencies and state transitions. Ensure that all UI sections are correctly mapped and all deprecated UI elements are flagged for removal.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Perform Full Code Walkthrough",
+            "description": "Thoroughly read the DiscoveryCallGrader.tsx file to understand its overall structure and flow.",
+            "dependencies": [],
+            "details": "Open the file at ptbiztools-next/src/components/discovery/DiscoveryCallGrader.tsx and carefully inspect all 1081 lines to note state variables, hooks, API calls, and UI sections. Note any anomalies or patterns that require further investigation.",
+            "status": "pending",
+            "testStrategy": "Verify walkthrough notes in a peer review session to ensure all parts of the file are examined.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Map State Variables and Hooks",
+            "description": "Identify and document every state variable and React hook within the component.",
+            "dependencies": [
+              1
+            ],
+            "details": "List all state variables and hooks (like useState, useEffect) including their initialization and update patterns. Record their interdependencies and roles in component functionality.",
+            "status": "pending",
+            "testStrategy": "Cross-check the mapping with the component's behavior by correlating state changes during runtime and through unit tests.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Document API Calls and UI Sections",
+            "description": "Map all API calls and identify key UI sections such as upload, progress, results, and scoring tabs.",
+            "dependencies": [
+              2
+            ],
+            "details": "Extract details of API calls (gradeDannySalesCallV2, extractTranscriptFromFile) and map how they integrate with the UI sections. Detail each section's role and dependencies with the underlying API calls.",
+            "status": "pending",
+            "testStrategy": "Simulate API responses and perform integration tests to verify that UI elements correctly reflect API data and state changes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Identify and Flag Failed AI Agent UI Elements",
+            "description": "Review the code to locate 'random UI boxes' that resulted from failed AI agent attempts and mark them for removal.",
+            "dependencies": [
+              3
+            ],
+            "details": "Carefully analyze code sections that look out-of-place or redundant, add inline comments and pseudocode annotations to explain why these UI elements are termed as failed attempts, and flag them for future removal.",
+            "status": "pending",
+            "testStrategy": "Have a code review session with team members to confirm that flagged elements are indeed dead code and verify they do not impact core functionality.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Compile and Review the Mapping Document",
+            "description": "Consolidate all findings, inline comments, and pseudocode into a comprehensive mapping document.",
+            "dependencies": [
+              4
+            ],
+            "details": "Combine the documentation of state variables, hooks, API calls, UI sections, and flagged dead code into a single mapping document. Ensure the document is detailed, with clear annotations and flow descriptions for each component aspect.",
+            "status": "pending",
+            "testStrategy": "Conduct a stakeholder review session to validate the mapping document and run reproducible unit tests to ensure all component paths are accurately documented.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-03-16T08:48:01.763Z"
+      },
+      {
+        "id": "2",
+        "title": "Extract Shared Types and Constants",
+        "description": "Refactor the code by moving inline definitions of types and configuration constants into separate modules.",
+        "details": "Create a 'types.ts' file to define grading-related types, API response formats, and score types. Create a 'constants.ts' file to house configuration values like PHASES, RED_FLAGS and scoring weights. Replace inline definitions in DiscoveryCallGrader.tsx with imports from these files.",
+        "testStrategy": "Write unit tests to import and validate the shared types and constant values. Perform integration tests to ensure the updated modules are correctly interpreted by the main component without type errors.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-03-16T09:53:41.770Z"
+      },
+      {
+        "id": "3",
+        "title": "Extract and Implement Custom Hooks",
+        "description": "Decompose embedded logic by extracting custom hooks for grading, file upload, and results processing.",
+        "details": "Develop three custom hooks: 'useGrading' to manage the state machine (idle -> uploading -> grading -> complete -> error), 'useFileUpload' to handle file selection, validation, and transcript extraction, and 'useGradingResults' to compute scores and phase breakdowns. Include inline pseudocode for state transitions and error handling.",
+        "testStrategy": "Write hook-specific unit tests using React Testing Library or equivalent. Simulate various states (valid upload, error, grading in progress) to ensure hooks behave correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-03-16T09:53:41.776Z"
+      },
+      {
+        "id": "4",
+        "title": "Decompose DiscoveryCallGrader into Sub-Components",
+        "description": "Refactor the monolithic component into smaller, maintainable sub-components.",
+        "details": "Break down the UI into the following sub-components: FileUploadPanel.tsx (with drag-and-drop and validation), GradingProgress.tsx (live progress and diagnostics), PhaseCard.tsx (expandable scoring card), RedFlagsPanel.tsx (red flag checkboxes), ScoreSummary.tsx (visual score breakdown), GradingTabs.tsx (tab-based navigation), FeedbackView.tsx (detailed feedback), and SummaryView.tsx (PDF export capability). Ensure each component receives necessary props for state and event handling.",
+        "testStrategy": "Test each sub-component individually using snapshot tests and behavior tests. Validate that on integration, the overall UI flow remains intact and all functionalities (upload, progress, scoring, PDF export) operate as expected.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-03-16T09:53:41.786Z"
+      },
+      {
+        "id": "5",
+        "title": "Refactor and Reassemble DiscoveryCallGrader",
+        "description": "Clean up DiscoveryCallGrader.tsx by removing dead code, reassembling it as a thin orchestrator, and ensuring consistency with the design system.",
+        "details": "Reconstruct DiscoveryCallGrader.tsx to be a minimal orchestrator (target ~100-150 lines) that imports and composes the sub-components created in Task 4. Remove outdated UI elements (failed agent UI boxes), dead code, unused state variables, and ensure consistent styling using Tailwind CSS and the project's custom CSS. Include pseudocode outlining the component composition.",
+        "testStrategy": "Perform integration testing to verify that file upload, grading process, results display, and PDF export features work as expected with a simplified component. Use visual regression tests to ensure UI consistency.",
+        "priority": "high",
+        "dependencies": [
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-03-16T09:53:41.787Z"
+      },
+      {
+        "id": "6",
+        "title": "Integrate Danny's UI Components with Production Backend",
+        "description": "Merge Danny's polished UI components with the production architecture to combine best UI practices with robust backend functionality.",
+        "details": "Implement Danny's tabbed interface (Grading, Feedback, Summary), phase cards, red flags panel, and manual scoring sliders. Ensure integration with production endpoints like 'gradeDannySalesCallV2', 'extractTranscriptFromFile', 'logAction', and 'generatePDF'. Follow pseudocode to replace Danny's direct API calls with backend integration calls.",
+        "testStrategy": "End-to-end testing to verify that the merged interface properly calls the backend API endpoints. Manually test tab navigation, state persistence, and visual functionality of phase cards and manual scoring features.",
+        "priority": "high",
+        "dependencies": [
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review Danny's UI Components and Documentation",
+            "description": "Conduct a thorough review of Danny's UI components and the PLAN_DANNY_INTEGRATION.md documentation.",
+            "dependencies": [],
+            "details": "Examine the existing JSX components including tabbed interface, phase cards, red flags panel, and manual scoring sliders. Document UI structure and identify areas needing integration with backend endpoints.",
+            "status": "pending",
+            "testStrategy": "Perform code walkthrough and verify documentation alignment with UI elements.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Refactor API Calls to Use Production Endpoints",
+            "description": "Replace Danny's direct API calls with backend integration calls following provided pseudocode.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify internal API calls in the UI code to call endpoints such as gradeDannySalesCallV2, extractTranscriptFromFile, logAction, and generatePDF. Ensure that the calls match the production backend specifications as defined in ptbiztools-backend/src/routes/dannyTools.ts.",
+            "status": "pending",
+            "testStrategy": "Simulate backend responses to confirm that calls are routed correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Integrate UI Elements with Backend Functionality",
+            "description": "Integrate the tabbed interface, phase cards, red flags panel, and manual scoring sliders with production backend workflows.",
+            "dependencies": [
+              2
+            ],
+            "details": "Connect UI components so that each user action triggers the corresponding backend API. Ensure that the tab navigation (Grading, Feedback, Summary) and interactive elements update appropriately after receiving backend responses.",
+            "status": "pending",
+            "testStrategy": "Test each individual UI element with mock backend responses to validate state changes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Update Data Flow and State Management",
+            "description": "Ensure consistent data flow and state synchronization between UI and backend responses.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement state management adjustments to handle asynchronous data from backend calls. Adjust UI logic to maintain state persistence across the tabbed interface and related components.",
+            "status": "pending",
+            "testStrategy": "Use unit and integration tests to verify that state updates follow backend responses without UI glitches.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Perform End-to-End Integration Testing",
+            "description": "Execute test strategy to verify full integration of UI with production backend components.",
+            "dependencies": [
+              4
+            ],
+            "details": "Conduct complete end-to-end testing to check if all UI interactions correctly trigger backend calls and display expected outputs. Validate navigation, API call sequences, and visual behaviors of phase cards and sliders.",
+            "status": "pending",
+            "testStrategy": "Run automated and manual tests simulating user interactions and error scenarios to ensure robust integration.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "7",
+        "title": "Resolve Danny's Critical API and PDF Issues",
+        "description": "Fix identified critical issues in Danny's UI implementation regarding direct API usage and synchronous PDF encoding.",
+        "details": "Modify the Danny's UI code to remove direct Anthropic API calls in favor of backend integration. Refactor PDF encoding to use asynchronous methods: implement FileReader.readAsDataURL and use Blob with URL.createObjectURL for report downloads. Implement proper try/catch error handling to provide user feedback.",
+        "testStrategy": "Simulate error conditions and test the functionality transition from browser-based API calls to backend API calls. Verify PDF generation and download functionality with files larger than 2MB, ensuring no browser freezing or synchronous blocking.",
+        "priority": "high",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Replace Direct API Calls with Backend Integration",
+            "description": "Identify and remove direct Anthropic API calls in Danny's UI, routing them to the backend endpoint.",
+            "dependencies": [],
+            "details": "Search the UI code for direct Anthropic API calls and refactor the logic to call the backend gradeDannySalesCallV2 endpoint. Update request parameters and confirm proper authentication handling.",
+            "status": "pending",
+            "testStrategy": "Simulate API calls from the UI and verify that requests are routed to the backend endpoint correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Refactor Synchronous PDF Encoding to Asynchronous",
+            "description": "Switch PDF encoding from synchronous btoa() to asynchronous methods.",
+            "dependencies": [],
+            "details": "Replace the synchronous btoa() function with asynchronous methods: implement FileReader.readAsDataURL and use Blob with URL.createObjectURL. Ensure the new implementation handles large files without freezing the browser.",
+            "status": "pending",
+            "testStrategy": "Test PDF generation with files larger than 2MB to verify that the asynchronous process works without blocking the UI.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Robust Error Handling",
+            "description": "Add try/catch blocks around API calls and PDF encoding logic for better user feedback.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Wrap both the API integration code and the asynchronous PDF operations in proper try/catch blocks. Display user-friendly error messages when exceptions occur to inform users of any issues.",
+            "status": "pending",
+            "testStrategy": "Trigger error conditions on API failures and PDF generation to confirm that errors are caught and displayed appropriately.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Conduct Integration Testing and Verification",
+            "description": "Perform thorough integration testing for the updated API and PDF functionalities.",
+            "dependencies": [
+              3
+            ],
+            "details": "Develop and run both automated and manual tests to simulate various error conditions and load scenarios. Ensure that backend API calls, asynchronous PDF generation, and error handling all work seamlessly together without causing browser freezing or security issues.",
+            "status": "pending",
+            "testStrategy": "Use a combination of simulated API errors, large file uploads, and manual browser tests to validate end-to-end functionality.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "8",
+        "title": "Standardize UI/UX Across All Tools",
+        "description": "Audit and enforce UI/UX consistency across the 4 primary tools by aligning with the P&L Calculator design reference.",
+        "details": "Document the existing UI patterns of each tool (Discovery Call Grader, Financial Audit, Compensation Calculator, P&L Calculator). Integrate tool badges/logos from the 'tool-badges.ts' into tool headers. Clean up sub-page inconsistencies, standardize component patterns for loading states, error displays, and form inputs. Follow pseudocode to use consistent card/panel layouts across all tools.",
+        "testStrategy": "Compile a checklist from the P&L Calculator reference and perform UI audits for each tool. Use visual regression tools and user testing to confirm consistency in badges, headers, and overall layout.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Convert Danny Components to TypeScript",
+        "description": "Refactor Danny's Financial Audit and Compensation Calculator components from .jsx to .tsx with proper TypeScript definitions.",
+        "details": "Rename 'DannyFinancialAudit.jsx' and 'DannyCompensationCalculator.jsx' to .tsx. Add and enforce proper prop types, state types, and API response types. Update imports and adjust any type errors that arise during conversion. Include inline pseudocode to document the type structure and interface definitions.",
+        "testStrategy": "Run the TypeScript compiler to ensure zero type errors. Conduct unit tests for each converted component to verify that behavior remains consistent and that type contracts are honored.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Consolidate CSS and Perform ESLint Cleanup",
+        "description": "Merge CSS files for Danny's tools and ensure code quality via ESLint, resolving conflicts and warnings.",
+        "details": "Merge 'danny-tools.css' and 'danny-theme.css' by removing duplicate or conflicting rules. Organize styles logically into a single consolidated CSS file. Run ESLint cleanup to reduce warnings below the CI threshold (--max-warnings 10). Include inline comments and pseudocode for the style layering approach while ensuring no visual regressions occur.",
+        "testStrategy": "Perform manual visual tests and automated regression tests to ensure styling consistency post-consolidation. Run ESLint to confirm that warnings and errors are within acceptable limits.",
+        "priority": "low",
+        "dependencies": [
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-03-16T09:53:41.787Z",
+      "taskCount": 10,
+      "completedCount": 5,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

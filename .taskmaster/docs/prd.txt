@@ -1,0 +1,178 @@
+# PT Biz Tools — UI Refactoring & Integration PRD
+
+## Project Overview
+PT Biz Tools is a Next.js + Express/Prisma SaaS platform for physical therapy business coaching. The frontend (ptbiztools-next) contains multiple tool pages including a Discovery Call Grader, Danny's Financial Audit, Compensation Calculator, and clinic analytics. The project recently underwent a rescue/cleanup phase and now needs focused UI refactoring work.
+
+## Tech Stack
+- Frontend: Next.js (App Router), React, TypeScript, Tailwind CSS + custom CSS
+- Backend: Express.js, Prisma ORM, PostgreSQL (Railway)
+- AI Integration: Anthropic Claude API (backend)
+- Deployment: Vercel (frontend), Railway (backend)
+
+---
+
+## Task 1: Rewrite DiscoveryCallGrader.tsx — Monolith Decomposition
+
+### Problem
+`ptbiztools-next/src/components/discovery/DiscoveryCallGrader.tsx` is a 1081-line monolith (42KB). It contains random UI boxes from failed AI agent attempts, mixed concerns (state management, API calls, UI rendering, file handling, PDF generation), and needs complete decomposition into clean, maintainable components.
+
+### Requirements
+
+#### 1.1 Analyze Current Monolith Structure
+- Map all state variables, hooks, and their dependencies
+- Identify distinct UI sections (upload area, progress/diagnostics, results display, scoring)
+- Catalog all API calls and data flows
+- Document which sections are "random UI boxes from failed agent attempts" that need removal
+
+#### 1.2 Extract Shared Types and Constants
+- Create `types.ts` for grading types, API response types, score types
+- Create `constants.ts` for PHASES, RED_FLAGS, scoring weights, and other config
+- Move from inline definitions to importable modules
+
+#### 1.3 Extract Custom Hooks
+- `useGrading.ts` — grading state machine (idle → uploading → grading → complete → error)
+- `useFileUpload.ts` — file selection, validation, transcript extraction
+- `useGradingResults.ts` — results state, score calculations, phase breakdowns
+
+#### 1.4 Decompose into Sub-Components
+- `FileUploadPanel.tsx` — drag-and-drop file upload with validation
+- `GradingProgress.tsx` — live progress UI with staging and diagnostics
+- `PhaseCard.tsx` — expandable phase scoring card with rubric (great/mistakes)
+- `RedFlagsPanel.tsx` — red flag checkboxes with deductions
+- `ScoreSummary.tsx` — visual score breakdown with tier display
+- `GradingTabs.tsx` — tab navigation (Grading | Feedback | Summary)
+- `FeedbackView.tsx` — detailed feedback display
+- `SummaryView.tsx` — overall summary with PDF export
+
+#### 1.5 Clean Up Bad UI
+- Remove all "random UI boxes" from failed agent attempts
+- Remove any dead code, unused state variables, commented-out sections
+- Ensure consistent styling with the project's design system
+
+#### 1.6 Reassemble Main Component
+- `DiscoveryCallGrader.tsx` should become a thin orchestrator (~100-150 lines)
+- Import and compose sub-components
+- Maintain all existing functionality (upload, grade, display results, PDF export)
+
+### Success Criteria
+- DiscoveryCallGrader.tsx reduced from 1081 lines to ~150 lines
+- All sub-components individually testable
+- No functionality regression — upload, grading, results, PDF all still work
+- Clean removal of failed agent UI artifacts
+- Consistent with project design system
+
+---
+
+## Task 2: Danny's Modal Integration (Merge Danny's UI into Production Architecture)
+
+### Problem
+Danny (a team member) built a version of the Discovery Call Grader with excellent UI (tabbed interface, phase cards, red flags, manual scoring) but bad architecture (direct Anthropic API calls from browser, synchronous PDF encoding, data URIs). The production version has good architecture (backend API, proper file handling, session tracking) but different/inferior UI. These need to be merged: Danny's UI + Production's backend.
+
+### Reference Document
+See `ptbiztools-next/PLAN_DANNY_INTEGRATION.md` for full analysis.
+
+### Requirements
+
+#### 2.1 Keep Production Backend Integration
+- Continue using `gradeDannySalesCallV2` API endpoint
+- Keep file upload via `extractTranscriptFromFile`
+- Keep session logging via `logAction`
+- Keep PDF generation via `generatePDF` utility
+
+#### 2.2 Adopt Danny's UI Components
+- Implement tabbed interface: Grading | Feedback | Summary tabs
+- Implement phase cards with expandable rubric showing great points and mistakes
+- Implement red flags section with checkbox list and score deductions
+- Implement summary view with visual score breakdown
+- Implement manual scoring sliders for override capability
+
+#### 2.3 Fix Danny's Critical Errors
+- Replace direct Anthropic API calls with backend API integration
+- Fix PDF encoding: use FileReader.readAsDataURL instead of synchronous loop
+- Fix report download: use Blob + URL.createObjectURL instead of data URIs
+- Add proper error handling with try/catch and user feedback
+
+#### 2.4 Merge Styling
+- Convert Danny's inline styles to CSS classes
+- Match existing design system (grader-page, tool-page patterns)
+- Ensure responsive layout works on all screen sizes
+- Integrate with existing danny-tools.css and danny-theme.css
+
+#### 2.5 Integration Testing
+- Verify backend API grading still works end-to-end
+- Verify file upload handles PDF, TXT, and DOCX formats
+- Verify PDF report generation and download works
+- Verify tab navigation and state persistence
+- Verify phase card expand/collapse functionality
+- Verify red flag checkbox scoring deductions
+
+### Success Criteria
+- Danny's tabbed UI is live in production
+- All grading goes through backend API (no browser-side Anthropic calls)
+- PDF generation works without browser freezing
+- Report download works for files > 2MB
+- All existing functionality preserved
+- Responsive on desktop and tablet
+
+---
+
+## Task 3: UI/UX Standardization Across All 4 Tools
+
+### Problem
+The 4 main tools (P&L Calculator, Discovery Call Grader, Financial Audit, Compensation Calculator) have inconsistent UI patterns. P&L Calculator is the reference "built-in modal" look that all tools should match.
+
+### Requirements
+
+#### 3.1 Audit Current Tool UIs
+- Document current UI patterns for each tool
+- Identify deviations from the P&L Calculator reference
+- Catalog tool badges/logos from `tool-badges.ts` (TOOL_BADGES constant)
+
+#### 3.2 Standardize Tool Page Headers
+- Integrate tool badges/logos into all tool page headers
+- Consistent header layout: badge + title + description
+- Match P&L Calculator's "built-in modal" container style
+
+#### 3.3 Clean Up Inner Sub-Pages
+- Aggressively clean up horrible UI additions in tool sub-pages
+- Remove inconsistent styling, random boxes, misaligned elements
+- Apply consistent card/panel patterns across all tools
+
+#### 3.4 Standardize Component Patterns
+- Consistent loading states across all tools
+- Consistent error display patterns
+- Consistent form input styling
+- Consistent results/output display
+
+### Success Criteria
+- All 4 tools visually consistent with P&L Calculator reference
+- Tool badges integrated in all headers
+- No remaining "horrible UI additions"
+- Consistent user experience across all tools
+
+---
+
+## Task 4: Code Quality — TypeScript Conversions & CSS Consolidation
+
+### Requirements
+
+#### 4.1 Convert Danny Components to TypeScript
+- Convert `DannyFinancialAudit.jsx` → `.tsx` with proper types
+- Convert `DannyCompensationCalculator.jsx` → `.tsx` with proper types
+- Add proper prop types, state types, and API response types
+
+#### 4.2 Consolidate CSS
+- Merge `danny-tools.css` (460 lines) and `danny-theme.css` (680 lines)
+- Remove duplicate/conflicting rules
+- Organize into logical sections
+- Ensure no visual regressions after consolidation
+
+#### 4.3 ESLint Cleanup
+- Fix warnings to stay under CI threshold (--max-warnings 10)
+- Address any type errors from TSX conversions
+
+### Success Criteria
+- Zero .jsx files remaining in danny components
+- Single consolidated CSS file for danny tools
+- ESLint passes with < 10 warnings
+- No visual regressions

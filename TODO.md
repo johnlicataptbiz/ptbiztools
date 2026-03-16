@@ -15,7 +15,7 @@
 
 ### CI/CD
 - [x] ~~Fix `deploy-frontend.yml`~~ — replaced `vercel/action-deploy@v1` → `amondnet/vercel-action@v25`
-- [ ] Verify deploy-frontend.yml works on next push to main (needs `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets)
+- [x] ~~Verify deploy-frontend.yml works~~ — all 3 secrets set, workflow_dispatch run #23132511157 succeeded (1m45s)
 
 ---
 
