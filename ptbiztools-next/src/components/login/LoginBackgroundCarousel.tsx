@@ -14,25 +14,25 @@ interface CarouselSlide {
 const CLINIC_SLIDES: CarouselSlide[] = [
   {
     id: '1',
-    imageUrl: '/clinic-icons/clinic_performance_banner.png',
+    imageUrl: '/assets/hero/clinic-growth-banner-a.png',
     title: "Performance Driven",
     subtitle: "Data-backed coaching for PT clinic success"
   },
   {
     id: '2',
-    imageUrl: '/clinic-icons/coaching_blueprint_grid.png',
+    imageUrl: '/assets/backgrounds/clinic-hero-pattern-a.png',
     title: "Blueprint for Growth",
     subtitle: "Proven systems to scale your practice"
   },
   {
     id: '3',
-    imageUrl: '/clinic-icons/growth_arrow_banner.png',
+    imageUrl: '/assets/hero/clinic-network-banner-a.png',
     title: "Accelerate Revenue",
     subtitle: "Strategies that deliver measurable results"
   },
   {
     id: '4',
-    imageUrl: '/clinic-icons/network_arrow_banner.png',
+    imageUrl: '/assets/hero/clinic-training-banner-a.png',
     title: "Connected Community",
     subtitle: "Join 1,000+ successful clinic owners"
   }

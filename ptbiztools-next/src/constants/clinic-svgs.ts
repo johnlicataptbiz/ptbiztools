@@ -56,6 +56,18 @@ export const CLINIC_SVGS = {
   analyticsStripPng: '/clinic-icons/analytics_strip.png',
   analyticsArrowPng: '/clinic-icons/analytics_arrow_pattern.png',
   nodeNetworkPng: '/clinic-icons/node_network_pattern.png',
+
+  // UI enhancer semantic assets
+  clinicHeroPatternA: '/assets/backgrounds/clinic-hero-pattern-a.png',
+  clinicHeroPatternB: '/assets/backgrounds/clinic-hero-pattern-b.png',
+  clinicFeatureCardBgA: '/assets/backgrounds/clinic-feature-card-bg-a.png',
+  clinicFeatureCardBgB: '/assets/backgrounds/clinic-feature-card-bg-b.png',
+  clinicGrowthBannerA: '/assets/hero/clinic-growth-banner-a.png',
+  clinicNetworkBannerA: '/assets/hero/clinic-network-banner-a.png',
+  clinicTrainingBannerA: '/assets/hero/clinic-training-banner-a.png',
+  clinicKpiTextureA: '/assets/patterns/clinic-kpi-texture-a.png',
+  clinicAnalyticsStripA: '/assets/patterns/clinic-analytics-strip-a.png',
+  clinicDashboardHighlightA: '/assets/illustrations/clinic-dashboard-highlight-a.png',
 } as const;
 
 export type ClinicSvgName = keyof typeof CLINIC_SVGS;
