@@ -106,7 +106,13 @@ function extractTextContent(data: unknown) {
 
 function parseAnthropicJson(text: string) {
   const cleaned = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(cleaned)
+  try {
+    return JSON.parse(cleaned)
+  } catch (cause) {
+    throw new Error(
+      `Failed to parse model JSON response: ${cause instanceof Error ? cause.message : String(cause)}`,
+    )
+  }
 }
 
 async function callAnthropic(payload: {
@@ -344,7 +350,7 @@ dannyToolsRouter.post('/sales-grade-v2', requireAuth, async (req: SessionRequest
     console.error('Danny sales grade v2 model request failed:', error)
     res.status(502).json({
       error: 'Model provider failure',
-      reasons: [(error as Error).message || 'Anthropic request failed'],
+      reasons: [error instanceof Error ? error.message : 'Anthropic request failed'],
     })
     return
   }
@@ -433,6 +439,6 @@ dannyToolsRouter.post('/pl-extract', requireAuth, upload.single('file'), async (
     res.json({ extracted: normalized, model: ANTHROPIC_MODEL })
   } catch (error) {
     console.error('Danny P&L extract failed:', error)
-    res.status(500).json({ error: (error as Error).message || 'Failed to extract P&L fields' })
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to extract P&L fields' })
   }
 })

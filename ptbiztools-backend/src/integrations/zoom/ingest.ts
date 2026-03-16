@@ -131,6 +131,10 @@ export async function runZoomIngestJob(jobId: string): Promise<{ analysisId?: st
 
     const transcriptText = await transcriptResponse.text()
 
+    if (!transcriptText || transcriptText.trim().length === 0) {
+      throw new Error('Downloaded Zoom transcript is empty')
+    }
+
     const gradeResponse = await fetch(`${getInternalAppUrl()}/api/danny-tools/sales-grade-v2`, {
       method: 'POST',
       headers: {

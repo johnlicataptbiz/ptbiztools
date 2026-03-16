@@ -166,11 +166,13 @@ export async function runQueuedZoomIngestJobs(options: ZoomRunQueuedOptions = {}
         analysisId: ingestResult.analysisId,
       })
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown ingest error'
+      console.error('[zoom/jobs] Job failed:', job.id, message)
       result.failed += 1
       result.jobs.push({
         jobId: job.id,
         status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown ingest error',
+        error: message,
       })
     }
   }

@@ -451,14 +451,32 @@ analyticsRouter.get('/coaching-analyses/zoom', requireAuth, async (req: SessionR
       : 0;
 
     const filters: Prisma.CoachingAnalysisWhereInput = {
-      ...(req.query.from
-        ? { createdAt: { gte: new Date(String(req.query.from)) } }
-        : {}),
-      ...(req.query.to
-        ? { createdAt: { lte: new Date(String(req.query.to)) } }
-        : {}),
       zoomRecordings: { some: {} },
     };
+
+    const dateRange: { gte?: Date; lte?: Date } = {};
+
+    if (req.query.from) {
+      const fromDate = new Date(String(req.query.from));
+      if (Number.isNaN(fromDate.getTime())) {
+        res.status(400).json({ error: 'Invalid from date format' });
+        return;
+      }
+      dateRange.gte = fromDate;
+    }
+
+    if (req.query.to) {
+      const toDate = new Date(String(req.query.to));
+      if (Number.isNaN(toDate.getTime())) {
+        res.status(400).json({ error: 'Invalid to date format' });
+        return;
+      }
+      dateRange.lte = toDate;
+    }
+
+    if (dateRange.gte !== undefined || dateRange.lte !== undefined) {
+      filters.createdAt = dateRange;
+    }
 
     const userFilter = isAdminRole(req.currentUserRole)
       ? undefined

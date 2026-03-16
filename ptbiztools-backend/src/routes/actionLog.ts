@@ -113,10 +113,12 @@ actionLogRouter.get('/', async (req, res) => {
       ...(isAdminRole(sessionUser.role) ? {} : { userId: sessionUser.id }),
     };
 
+    const rawLimit = parseInt(limit as string, 10);
+    const rawOffset = parseInt(offset as string, 10);
     const logs = await prisma.actionLog.findMany({
       where: whereBase,
-      take: parseInt(limit as string),
-      skip: parseInt(offset as string),
+      take: Number.isFinite(rawLimit) ? Math.max(rawLimit, 1) : 50,
+      skip: Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0,
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
