@@ -22,3 +22,12 @@ comfyui-mcp-server/
 
 .gemini/
 gha-creds-*.json
+
+# Local editor config
+.vscode/
+
+# UI enhancer backup
+ptbiztools-next/public/assets/_backup_ui_enhancer_20260315/
+
+# Local video captures
+videos/
