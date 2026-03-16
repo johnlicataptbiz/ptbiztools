@@ -1,0 +1,23 @@
+{
+  "name": "firecrawl-cli",
+  "description": "Execute Firecrawl CLI commands for web crawling and scraping",
+  "handler": "./firecrawl-cli-skill.ts",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "command": {
+        "type": "string",
+        "description": "The Firecrawl CLI command to run (init, crawl, scrape, etc.)"
+      },
+      "url": {
+        "type": "string",
+        "description": "URL to crawl or scrape"
+      },
+      "options": {
+        "type": "string",
+        "description": "Additional options for the Firecrawl CLI command"
+      }
+    },
+    "required": ["command"]
+  }
+}

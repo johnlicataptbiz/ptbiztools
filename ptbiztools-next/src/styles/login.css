@@ -884,6 +884,9 @@
 
 @media (max-width: 480px) {
   .login-hero-spacer {
+    height: clamp(60px, 12vh, 100px);
+  }
+}
 
 /* ── Legacy profile grid styles (deprecated — kept for safety) ──────────── */
 

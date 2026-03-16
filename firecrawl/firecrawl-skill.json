@@ -1,0 +1,39 @@
+{
+  "name": "firecrawl",
+  "description": "Execute various Firecrawl CLI commands for web crawling and scraping",
+  "handler": "./firecrawl-skill.ts",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "command": {
+        "type": "string",
+        "description": "The Firecrawl CLI command to run (crawl, scrape, map, search, agent, browser)",
+        "enum": ["crawl", "scrape", "map", "search", "agent", "browser", "download"]
+      },
+      "url": {
+        "type": "string",
+        "description": "URL to process with the command"
+      },
+      "options": {
+        "anyOf": [
+          {
+            "type": "string",
+            "description": "Raw options string to append to the command"
+          },
+          {
+            "type": "object",
+            "description": "Object containing option flags and values",
+            "additionalProperties": {
+              "anyOf": [
+                {"type": "string"},
+                {"type": "number"},
+                {"type": "boolean"}
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "required": ["command"]
+  }
+}

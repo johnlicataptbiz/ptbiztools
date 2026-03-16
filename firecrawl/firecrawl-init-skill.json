@@ -1,0 +1,14 @@
+{
+  "name": "firecrawl-init",
+  "description": "Initialize Firecrawl CLI with all features and browser support",
+  "handler": "./firecrawl-init-skill.ts",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "directory": {
+        "type": "string",
+        "description": "Directory where to initialize Firecrawl CLI (defaults to current directory)"
+      }
+    }
+  }
+}

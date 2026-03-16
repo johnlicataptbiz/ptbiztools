@@ -19,3 +19,6 @@ dist/
 comfyui-mcp-server/
 "<parameter name="path">/Users/jl/Library*"
 *.code-workspace
+
+.gemini/
+gha-creds-*.json

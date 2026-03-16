@@ -1,47 +1,31 @@
-# Dashboard and Sub-pages Redesign Progress
+# Rescue Implementation TODO
 
-## Plan Overview
-Dashboard hero enhancement, stat cards, tool cards, activity feed, app shell polish, tool page hero, grader page polish using extracted branded assets.
+## Phase 1: Fix 2 Failing Tests (DannyCloserCallGrader.test.tsx)
+- [ ] Fix "renders clinic icons" test (line 83) — set localStorage before render
+- [ ] Fix "word count gate" test (line 118) — target textarea by placeholder
+- [ ] Remove unused `rerender` destructuring
 
-## Tasks [7/7 complete]
+## Phase 2: Fix Webhook Route TODO (route.js)
+- [ ] Differentiate invalid token vs server errors
 
-### 1. [x] Dashboard Hero Banner Enhancement (dashboard.css)
-- Add hero_background.png texture on .dashboard-header
-- Add wave_background_band.png decorative strip
-- Add five_tier_banner.png right-side accent
-- Gradient overlay + branded accent colors
+## Phase 3: Fix Lint Warnings (25 → ~5)
+- [ ] dashboard/page.tsx: remove unused ClinicSvgName, CLINIC_SVGS
+- [ ] Mem0Example.tsx: prefix err with _err (×2)
+- [ ] DannyCloserCallGrader.tsx: remove unused eslint-disable, CLINIC_SVGS, title, subtitle
+- [ ] HistoryView.tsx: remove unused PassFail import
+- [ ] PassFail.tsx: remove unused isPass, isUnknown
+- [ ] ToolGrid.tsx: remove unused BarChart3, ScrollText, ClinicIcon, ClinicSvgName
+- [ ] DiscoveryCallGrader.tsx: remove unused Download import
+- [ ] plPdfGenerator.ts: remove unused loadImageDataUrl, safeText; prefix _bizPhase
 
-### 2. [x] Dashboard Stat Cards (dashboard.css)
-- Branded icon backgrounds (growth_bubbles, target_arrow, clipboard, stacked_tiles)
-- Branded hover glow
-- graph_divider.png section separator
+## Phase 4: Add CI/CD Pipeline
+- [ ] Create .github/workflows/ci.yml
 
-### 3. [x] Dashboard Tool Cards (dashboard.css)
-- coaching_node_network.png texture
-- Branded accent borders
-- Hover glow effect
+## Phase 5: Sync Env Files
+- [ ] Add ZOOM_ACCOUNT_ID to backend .env.example
 
-### 4. [x] Activity Feed (dashboard.css)
-- arrow_strip.png header decoration
-- Branded card treatment
+## Phase 6: Prune Stale Branch
+- [ ] Delete local blackboxai/deploy-104-untracked
 
-### 5. [x] App Shell Sidebar Polish (app-shell.css)
-- Increase pattern opacity (0.04 to 0.06)
-- wave_background_band.png divider
-- Active nav link glow
-
-### 6. [x] Tool Page Hero Enhancement (tool-page.css)
-- Increase growth_graph_pattern.png opacity (0.04 to 0.08)
-- Increase wave_background_band.png opacity (0.18 to 0.25)
-- Add coaching_node_network.png left-side accent
-- Badge glow ring
-
-### 7. [x] Grader Page Polish (discovery-call-grader.css)
-- node_bar.png section dividers
-- Phase card active state accent
-- Score bar gradient background
-
-## Next Steps After Completion
-- Visual verification in browser
-- Responsive testing
-- User feedback
+## Phase 7: Update PROJECT_CONTEXT.md
+- [ ] Update with rescue results and health score
