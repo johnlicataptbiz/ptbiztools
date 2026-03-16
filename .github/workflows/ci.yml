@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (tsc + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ptbiztools-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: ptbiztools-backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run build
+      - run: npm test
+
+  frontend:
+    name: Frontend (tsc + lint + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ptbiztools-next
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: ptbiztools-next/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint src/ --max-warnings 10
+      - run: npm test -- --run
