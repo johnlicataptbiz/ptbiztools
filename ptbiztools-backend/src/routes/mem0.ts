@@ -105,9 +105,11 @@ async function executeMem0Command(
     mem0Process.on('close', (code) => {
       if (resolved) return;
       clearTimeout(timeout);
+      resolved = true;
       if (code !== 0) {
-        resolved = true;
         reject(new Error(`Mem0 process exited with code ${code}`));
+      } else {
+        reject(new Error('Mem0 process exited without sending a valid response'));
       }
     });
   });
