@@ -131,7 +131,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setMenuOpen(false)}
             data-tour={TourAnchors.shell.logo}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="app-shell-logo-image" src={SITE_LOGO_URL} alt="PT Biz Tools" />
             <span className="app-shell-logo-copy">PTBizCoach</span>
           </Link>
@@ -172,7 +171,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="app-shell-user-card rounded-xl border border-border bg-white p-3">
             <div className="flex items-center gap-3">
               {user.imageUrl && !avatarDidError ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className={`h-11 w-11 rounded-full object-cover ${isJack ? "object-[50%_8%]" : ""}`}
                   src={user.imageUrl}

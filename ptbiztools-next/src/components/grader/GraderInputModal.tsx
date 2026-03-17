@@ -179,7 +179,6 @@ export function GraderInputModal({
             </button>
             
             <div className="grade-modal-badge-container">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={badgeSrc} 
                 alt={badgeAlt} 

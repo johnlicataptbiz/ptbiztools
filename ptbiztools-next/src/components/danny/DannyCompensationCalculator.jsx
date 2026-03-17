@@ -170,11 +170,8 @@ export default function App() {
         <div style={pageShellStyle}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
-              <div>
-
-              </div>
+              <div />
             </div>
             <button onClick={closeInputModal} style={{ background: "transparent", border: "1px solid " + B.bdr, borderRadius: 8, color: B.grayDk, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontFamily: "'Barlow Condensed',sans-serif" }}>← Back</button>
           </div>
@@ -270,9 +267,8 @@ export default function App() {
     <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
       <style>{printStyles}</style>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="grade-modal-badge" src={TOOL_BADGES.comp} alt="Compensation Calculator badge" />
             <div>
               <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: B.grayDk, fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" }}>

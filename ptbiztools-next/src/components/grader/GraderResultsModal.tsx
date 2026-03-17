@@ -91,7 +91,6 @@ export function GraderResultsModal({
                 <X size={20} />
               </button>
               <div className="sales-modal-title-row">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={badgeSrc} alt={badgeAlt} className="grade-modal-badge sales-modal-badge" />
                 <ClinicIcon name="growth" size={24} className="clinic-icon-hover" />
               </div>

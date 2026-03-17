@@ -598,7 +598,6 @@ export default function DashboardPage() {
                 <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
                   <div className="tool-icon">
                     {tool.badgeUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tool.badgeUrl}
                         alt={tool.title}
@@ -868,7 +867,6 @@ export default function DashboardPage() {
                   <div key={item.id} className="activity-item">
                     <div className="activity-user-avatar">
                       {item.userImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={item.userImageUrl}
                           alt={item.userName || "User"}

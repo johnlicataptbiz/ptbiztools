@@ -76,7 +76,6 @@ export function CorexDialog({
               {title && (
                 <div className="corex-dialog-header">
                   <div className="corex-dialog-brand">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={SITE_LOGO_URL} alt="PT Biz" className="corex-dialog-brand-logo" />
                   </div>
                   <h2 id="corex-dialog-title" className="corex-dialog-title">{title}</h2>

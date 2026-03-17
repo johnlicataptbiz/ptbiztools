@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable react/no-unescaped-entities, @next/next/no-page-custom-font, @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities, @typescript-eslint/no-unused-vars */
 import { useState, useRef, useCallback } from "react";
 import { extractDannyPLFromPdf, logAction, savePdfExport } from "@/lib/ptbiz-api";
 import { PTBIZ_LOGO_DARK_BG_URL } from "@/constants/branding";
@@ -139,7 +139,6 @@ function Logo({ big }) {
   const h = big ? 30 : 22;
   return (
     <div style={{ display:"flex", alignItems:"center" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={PTBIZ_LOGO_DARK_BG_URL} alt="PT Biz" style={{ height:h, width:"auto", objectFit:"contain" }} />
     </div>
   );
@@ -632,9 +631,8 @@ export default function DannyFinancialAudit() {
     return (
       <div style={{ width: "100%", minHeight: "100vh", background: B.dark, padding: "24px 0 64px" }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
               <ClinicIcon name="analyticsStrip" size={28} className="clinic-icon-hover" />
             </div>
@@ -748,8 +746,7 @@ export default function DannyFinancialAudit() {
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid " + B.bdr }} className="no-print">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
+              <img className="grade-modal-badge" src={TOOL_BADGES.pl} alt="P&L Calculator badge" />
             <div>
 
             </div>
