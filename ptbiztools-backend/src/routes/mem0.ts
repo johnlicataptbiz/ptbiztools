@@ -106,7 +106,7 @@ async function executeMem0Command(
       const chunks = data
         .toString()
         .split('\n')
-        .map((chunk) => chunk.trim())
+        .map((chunk: string) => chunk.trim())
         .filter(Boolean);
 
       for (const chunk of chunks) {
