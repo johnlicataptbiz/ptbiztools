@@ -57,6 +57,16 @@ const nextConfig: NextConfig = {
         destination: "/pl-calculator",
         permanent: true,
       },
+      {
+        source: "/tools/pnl-calculator",
+        destination: "/pl-calculator",
+        permanent: true,
+      },
+      {
+        source: "/tools/pl-calculator",
+        destination: "/pl-calculator",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
