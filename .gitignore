@@ -64,6 +64,7 @@ worktree-*/
 
 # UI enhancer backup
 ptbiztools-next/public/assets/_backup_ui_enhancer_20260315/
+ui-backup-*.tar.gz
 
 # Local video captures
 videos/
