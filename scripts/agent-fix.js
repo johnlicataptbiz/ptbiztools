@@ -13,6 +13,7 @@ if (!inputPath) {
 
 const data = JSON.parse(fs.readFileSync(inputPath, 'utf8'))
 const lines = []
+const unresolvedIds = []
 
 lines.push('# Agent Fix Pass')
 lines.push('')
@@ -21,6 +22,7 @@ const collectThreads = () => {
   const items = []
   for (const thread of data.reviewThreads || []) {
     const unresolved = thread.isResolved === false || thread.isOutdated === false
+    if (unresolved && thread.id) unresolvedIds.push(thread.id)
     const summary = (thread.comments || [])
       .map((c) => c.bodyText || '')
       .join(' ')
@@ -48,4 +50,5 @@ lines.push('')
 lines.push('> Stub mode: replace scripts/agent-fix.js with real fix logic that maps comments to code changes.')
 
 fs.writeFileSync('agent-summary.md', lines.join('\n'), 'utf8')
+fs.writeFileSync('unresolved_threads.txt', unresolvedIds.join('\n'), 'utf8')
 console.log(lines.join('\n'))

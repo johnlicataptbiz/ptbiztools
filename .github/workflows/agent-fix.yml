@@ -91,10 +91,25 @@ jobs:
         run: |
           node scripts/agent-fix.js agent-comments.json > agent-summary.md
 
-      - name: Optional tests
-        if: env.RUN_TESTS == 'true'
+      - name: Run configured tests (from .github/agent-config.json)
         run: |
-          echo "RUN_TESTS=true — add project-specific test commands here."
+          if [ "${RUN_TESTS}" != "true" ]; then
+            echo "RUN_TESTS=false, skipping tests."
+            exit 0
+          fi
+          if [ ! -f .github/agent-config.json ]; then
+            echo "No .github/agent-config.json found; skipping tests."
+            exit 0
+          fi
+          cmds=$(jq -r '.testCommands[]?' .github/agent-config.json)
+          if [ -z "$cmds" ]; then
+            echo "No testCommands configured; skipping tests."
+            exit 0
+          fi
+          while IFS= read -r cmd; do
+            echo "Running test command: $cmd"
+            bash -lc "$cmd"
+          done <<< "$cmds"
 
       - name: Commit and push changes if any
         run: |
@@ -110,3 +125,14 @@ jobs:
       - name: Post summary comment
         run: |
           gh pr comment "$PR_NUMBER" --body-file agent-summary.md
+
+      - name: Resolve threads when no changes were needed
+        if: success()
+        run: |
+          if git diff --quiet && [ -s unresolved_threads.txt ]; then
+            while IFS= read -r tid; do
+              echo "Resolving thread $tid"
+              gh api graphql -f query='mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){thread{id}} }' -f id="$tid"
+            done < unresolved_threads.txt
+            gh pr comment "$PR_NUMBER" --body "Agent pass: no code changes required; unresolved threads marked as resolved."
+          fi
