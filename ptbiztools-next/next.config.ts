@@ -67,6 +67,7 @@ const nextConfig: NextConfig = {
       { source: "/api/pl-imports/:path*", destination: `${backendApiBase}/pl-imports/:path*` },
       { source: "/api/transcripts/:path*", destination: `${backendApiBase}/transcripts/:path*` },
       { source: "/api/danny-tools/:path*", destination: `${backendApiBase}/danny-tools/:path*` },
+      { source: "/api/mem0/:path*", destination: `${backendApiBase}/mem0/:path*` },
       { source: "/api/zoom/:path*", destination: `${backendApiBase}/zoom/:path*` },
       { source: "/health", destination: backendApiBase.replace(/\/api$/i, "/health") },
     ];

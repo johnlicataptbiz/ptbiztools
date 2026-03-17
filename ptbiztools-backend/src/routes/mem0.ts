@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
 interface MCPRequest {
   jsonrpc: string;
@@ -26,18 +26,47 @@ async function executeMem0Command(
   arguments_: any,
   userId?: string
 ): Promise<any> {
+  const mem0ApiKey = process.env.MEM0_API_KEY?.trim();
+  const defaultUserId = process.env.MEM0_DEFAULT_USER_ID?.trim() || 'mem0-mcp';
+  const mem0Command = process.env.MEM0_MCP_COMMAND?.trim() || 'mem0-mcp-server';
+  const mem0Args = (process.env.MEM0_MCP_ARGS || '')
+    .split(' ')
+    .map((arg) => arg.trim())
+    .filter(Boolean);
+
+  if (!mem0ApiKey) {
+    throw new Error('MEM0_API_KEY is not configured on the backend.');
+  }
+
   return new Promise((resolve, reject) => {
-    const mem0Process = spawn('mem0-mcp-server', [], {
+    const mem0Process = spawn(mem0Command, mem0Args, {
       env: {
         ...process.env,
-        MEM0_API_KEY: 'm0-d9UBw839tmNCpej40X3wurtLJR2zRS4wHVad1FnK',
-        MEM0_DEFAULT_USER_ID: userId || 'mem0-mcp'
+        MEM0_API_KEY: mem0ApiKey,
+        MEM0_DEFAULT_USER_ID: userId || defaultUserId,
       }
     });
 
+    const initializeMessage = {
+      jsonrpc: '2.0',
+      id: 0,
+      method: 'initialize',
+      params: {
+        protocolVersion: '2025-03-26',
+        capabilities: {},
+        clientInfo: { name: 'ptbiztools-backend', version: '1.0.0' }
+      }
+    };
+
+    const initializedNotification = {
+      jsonrpc: '2.0',
+      method: 'notifications/initialized'
+    };
+
+    const callId = Date.now();
     const request: MCPRequest = {
       jsonrpc: '2.0',
-      id: Date.now(),
+      id: callId,
       method: 'tools/call',
       params: {
         name: toolName,
@@ -47,45 +76,80 @@ async function executeMem0Command(
 
     let responseData = '';
     let timeout: NodeJS.Timeout;
+    let settled = false;
+
+    const finish = (err?: Error, result?: unknown) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+      if (!mem0Process.killed) {
+        mem0Process.kill();
+      }
+    };
 
     // Set timeout
     timeout = setTimeout(() => {
-      mem0Process.kill();
-      reject(new Error('Mem0 server timeout'));
+      finish(new Error('Mem0 server timeout'));
     }, 30000); // 30 second timeout
 
+    // MCP requires initialization before tool calls; send init + notification first.
+    mem0Process.stdin.write(JSON.stringify(initializeMessage) + '\n');
+    mem0Process.stdin.write(JSON.stringify(initializedNotification) + '\n');
     mem0Process.stdin.write(JSON.stringify(request) + '\n');
 
     mem0Process.stdout.on('data', (data) => {
-      responseData += data.toString();
-      
-      try {
-        const response: MCPResponse = JSON.parse(responseData);
-        clearTimeout(timeout);
-        
-        if (response.error) {
-          reject(new Error(response.error.message || 'Mem0 error'));
-        } else {
-          resolve(response.result);
+      const chunks = data
+        .toString()
+        .split('\n')
+        .map((chunk) => chunk.trim())
+        .filter(Boolean);
+
+      for (const chunk of chunks) {
+        try {
+          const response: MCPResponse = JSON.parse(chunk);
+
+          // Ignore initialization responses; resolve only the tool call id
+          if (response.id !== callId) {
+            continue;
+          }
+
+          if (response.error) {
+            finish(new Error(response.error.message || 'Mem0 error'));
+          } else {
+            finish(undefined, response.result);
+          }
+          return;
+        } catch {
+          // Ignore non-JSON stdout lines (e.g., info logs)
         }
-        
-        mem0Process.kill();
-      } catch (e) {
-        // Response might be incomplete, wait for more data
       }
     });
 
     mem0Process.stderr.on('data', (data) => {
-      clearTimeout(timeout);
-      console.error('Mem0 stderr:', data.toString());
-      reject(new Error(`Mem0 error: ${data.toString()}`));
+      // Treat stderr as informational unless process exits non-zero
+      console.warn('Mem0 stderr:', data.toString().trim());
+    });
+
+    mem0Process.on('error', (error) => {
+      finish(
+        new Error(
+          `Mem0 command failed (${mem0Command}). Install Mem0 MCP server or set MEM0_MCP_COMMAND/MEM0_MCP_ARGS.`
+        )
+      );
     });
 
     mem0Process.on('close', (code) => {
-      clearTimeout(timeout);
-      if (code !== 0 && !responseData) {
-        reject(new Error(`Mem0 process exited with code ${code}`));
+      if (settled) return;
+      if (code !== 0) {
+        finish(new Error(`Mem0 process exited with code ${code}`));
+        return;
       }
+      finish(undefined, null);
     });
   });
 }
@@ -96,25 +160,36 @@ async function executeMem0Command(
  */
 export async function addMemory(req: Request, res: Response): Promise<void> {
   try {
-    const { text, tags, userId, metadata } = req.body;
+    const { text, messages, userId, agentId, appId, runId, metadata, enableGraph, tags } = req.body;
 
-    if (!text) {
-      res.status(400).json({ error: 'Text is required' });
+    if (!text && (!messages || messages.length === 0)) {
+      res.status(400).json({ error: 'Text or messages is required' });
       return;
     }
 
-    const result = await executeMem0Command('add_memory', {
-      text,
-      tags: tags || [],
-      metadata,
-      user_id: userId
-    }, userId);
+    // The MCP schema requires `text` even when messages are present; map tags into metadata for compatibility.
+    const mergedMetadata = metadata || (tags ? { tags } : undefined);
+
+    const result = await executeMem0Command(
+      'add_memory',
+      {
+        text,
+        messages,
+        user_id: userId,
+        agent_id: agentId,
+        app_id: appId,
+        run_id: runId,
+        metadata: mergedMetadata,
+        enable_graph: enableGraph
+      },
+      userId
+    );
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error adding memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to add memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to add memory'
     });
   }
 }
@@ -125,7 +200,7 @@ export async function addMemory(req: Request, res: Response): Promise<void> {
  */
 export async function searchMemories(req: Request, res: Response): Promise<void> {
   try {
-    const { query, filters, limit, userId } = req.body;
+    const { query, filters, limit, enableGraph } = req.body;
 
     if (!query) {
       res.status(400).json({ error: 'Query is required' });
@@ -135,14 +210,15 @@ export async function searchMemories(req: Request, res: Response): Promise<void>
     const result = await executeMem0Command('search_memories', {
       query,
       filters,
-      limit: limit || 5
-    }, userId);
+      limit: limit || 5,
+      enable_graph: enableGraph
+    });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error searching memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to search memories' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to search memories'
     });
   }
 }
@@ -153,19 +229,20 @@ export async function searchMemories(req: Request, res: Response): Promise<void>
  */
 export async function getMemories(req: Request, res: Response): Promise<void> {
   try {
-    const { filters, page, pageSize, userId } = req.query;
+    const { filters, page, pageSize, enableGraph } = req.query;
 
     const result = await executeMem0Command('get_memories', {
       filters: filters ? JSON.parse(filters as string) : undefined,
       page: page ? parseInt(page as string) : 1,
-      page_size: pageSize ? parseInt(pageSize as string) : 10
-    }, userId as string);
+      page_size: pageSize ? parseInt(pageSize as string) : 10,
+      enable_graph: enableGraph === 'true' ? true : enableGraph === 'false' ? false : undefined
+    });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error getting memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to get memories' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to get memories'
     });
   }
 }
@@ -190,8 +267,8 @@ export async function getMemory(req: Request, res: Response): Promise<void> {
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error getting memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to get memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to get memory'
     });
   }
 }
@@ -217,8 +294,8 @@ export async function updateMemory(req: Request, res: Response): Promise<void> {
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error updating memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to update memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to update memory'
     });
   }
 }
@@ -243,8 +320,8 @@ export async function deleteMemory(req: Request, res: Response): Promise<void> {
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error deleting memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to delete memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to delete memory'
     });
   }
 }
@@ -267,8 +344,8 @@ export async function deleteAllMemories(req: Request, res: Response): Promise<vo
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error deleting all memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to delete all memories' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to delete all memories'
     });
   }
 }
@@ -277,15 +354,26 @@ export async function deleteAllMemories(req: Request, res: Response): Promise<vo
  * GET /api/mem0/list-entities
  * List all entities (users/agents/apps/runs)
  */
-export async function listEntities(req: Request, res: Response): Promise<void> {
+export async function listEntities(_req: Request, res: Response): Promise<void> {
   try {
     const result = await executeMem0Command('list_entities', {});
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error listing entities:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to list entities' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to list entities'
     });
   }
 }
+
+export const mem0Router = Router();
+
+mem0Router.post('/add-memory', addMemory);
+mem0Router.post('/search-memories', searchMemories);
+mem0Router.get('/get-memories', getMemories);
+mem0Router.get('/get-memory/:memoryId', getMemory);
+mem0Router.put('/update-memory', updateMemory);
+mem0Router.delete('/delete-memory/:memoryId', deleteMemory);
+mem0Router.delete('/delete-all-memories', deleteAllMemories);
+mem0Router.get('/list-entities', listEntities);
