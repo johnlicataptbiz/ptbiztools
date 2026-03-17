@@ -23,7 +23,7 @@ async function mem0Fetch<T>(
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${MEM0_API_KEY}`,
+      Authorization: `Token ${MEM0_API_KEY}`,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
