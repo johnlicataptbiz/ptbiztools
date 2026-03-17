@@ -93,6 +93,10 @@ jobs:
 
       - name: Run configured tests (from .github/agent-config.json)
         run: |
+          # Default scheduled runs to RUN_TESTS=true if input not provided
+          if [ -z "${RUN_TESTS}" ]; then
+            RUN_TESTS="true"
+          fi
           if [ "${RUN_TESTS}" != "true" ]; then
             echo "RUN_TESTS=false, skipping tests."
             exit 0
@@ -123,6 +127,7 @@ jobs:
           git push origin HEAD
 
       - name: Post summary comment
+        if: ${{ always() }}
         run: |
           gh pr comment "$PR_NUMBER" --body-file agent-summary.md
 
@@ -135,4 +140,6 @@ jobs:
               gh api graphql -f query='mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){thread{id}} }' -f id="$tid"
             done < unresolved_threads.txt
             gh pr comment "$PR_NUMBER" --body "Agent pass: no code changes required; unresolved threads marked as resolved."
+          else
+            echo "Not resolving threads (either changes exist or unresolved_threads.txt missing/empty)."
           fi
