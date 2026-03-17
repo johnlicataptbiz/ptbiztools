@@ -199,7 +199,7 @@ export function GraderResultsModal({
                         <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
                           {phase.evidence.slice(0, 3).map((quote, quoteIndex) => (
                             <div key={`${phase.name}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
-                              "{quote}"
+                              &ldquo;{quote}&rdquo;
                             </div>
                           ))}
                         </div>
@@ -221,12 +221,12 @@ export function GraderResultsModal({
                           <div style={{ fontSize: "12px", color: textSecondary, marginTop: "2px" }}>{behavior.note}</div>
                           {Array.isArray(behavior.evidence) && behavior.evidence.length > 0 && (
                             <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                              {behavior.evidence.slice(0, 2).map((quote, quoteIndex) => (
-                                <div key={`${behavior.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
-                                  "{quote}"
-                                </div>
-                              ))}
-                            </div>
+                            {behavior.evidence.slice(0, 2).map((quote, quoteIndex) => (
+                              <div key={`${behavior.id}-${quoteIndex}`} style={{ fontSize: "11px", color: textMuted, borderLeft: "2px solid rgba(88,166,255,0.25)", paddingLeft: "8px" }}>
+                                &ldquo;{quote}&rdquo;
+                              </div>
+                            ))}
+                          </div>
                           )}
                         </div>
                       </div>
