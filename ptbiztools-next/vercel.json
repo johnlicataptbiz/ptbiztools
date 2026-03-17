@@ -5,6 +5,6 @@
   "devCommand": "npm run dev",
   "buildCommand": "node scripts/generate-changelog.mjs && next build",
   "env": {
-    "PTBIZ_BACKEND_URL": "@ptbiz_backend_url"
+    "PTBIZ_BACKEND_URL": "https://ptbiztools-backend-production.up.railway.app"
   }
 }
