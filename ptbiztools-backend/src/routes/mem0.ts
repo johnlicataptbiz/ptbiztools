@@ -1,116 +1,39 @@
-import { spawn } from 'child_process';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
-interface MCPRequest {
-  jsonrpc: string;
-  id: number;
-  method: string;
-  params: {
-    name: string;
-    arguments: any;
-  };
-}
+const MEM0_BASE_URL = process.env.MEM0_BASE_URL?.trim() || 'https://api.mem0.ai';
+const MEM0_API_KEY = process.env.MEM0_API_KEY?.trim();
 
-interface MCPResponse {
-  jsonrpc: string;
-  id: number;
-  result?: any;
-  error?: any;
-}
+async function mem0Fetch<T>(
+  path: string,
+  options: { method?: string; body?: any; query?: Record<string, string | number | undefined> } = {}
+): Promise<T> {
+  if (!MEM0_API_KEY) {
+    throw new Error('MEM0_API_KEY is not configured on the backend.');
+  }
 
-/**
- * Execute a Mem0 MCP server command
- */
-async function executeMem0Command(
-  toolName: string,
-  arguments_: any,
-  userId?: string
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const apiKey = process.env.MEM0_API_KEY;
-    if (!apiKey) {
-      reject(new Error('MEM0_API_KEY is not configured on the backend.'));
-      return;
-    }
-
-    const mem0Process = spawn('mem0-mcp-server', [], {
-      env: {
-        ...process.env,
-        MEM0_API_KEY: apiKey,
-        MEM0_DEFAULT_USER_ID: userId || 'mem0-mcp'
-      }
+  const { method = 'GET', body, query } = options;
+  const url = new URL(path, MEM0_BASE_URL);
+  if (query) {
+    Object.entries(query).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
     });
+  }
 
-    const request: MCPRequest = {
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method: 'tools/call',
-      params: {
-        name: toolName,
-        arguments: arguments_
-      }
-    };
-
-    let responseData = '';
-    let resolved = false;
-    let timeout: NodeJS.Timeout;
-
-    // Set timeout
-    timeout = setTimeout(() => {
-      if (resolved) return;
-      resolved = true;
-      mem0Process.kill();
-      reject(new Error('Mem0 server timeout'));
-    }, 30000); // 30 second timeout
-
-    mem0Process.stdin.write(JSON.stringify(request) + '\n');
-
-    mem0Process.stdout.on('data', (data) => {
-      if (resolved) return;
-      responseData += data.toString();
-      
-      try {
-        const response: MCPResponse = JSON.parse(responseData);
-        resolved = true;
-        clearTimeout(timeout);
-        
-        if (response.error) {
-          reject(new Error(response.error.message || 'Mem0 error'));
-        } else {
-          resolve(response.result);
-        }
-        
-        mem0Process.kill();
-      } catch (e) {
-        // Response might be incomplete, wait for more data
-      }
-    });
-
-    mem0Process.stderr.on('data', (data) => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(timeout);
-      console.error('Mem0 stderr:', data.toString());
-      reject(new Error(`Mem0 error: ${data.toString()}`));
-    });
-
-    mem0Process.on('error', (error) => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(timeout);
-      console.error('Mem0 process error:', error);
-      reject(new Error(`Mem0 process error: ${error.message}`));
-    });
-
-    mem0Process.on('close', (code) => {
-      if (resolved) return;
-      clearTimeout(timeout);
-      if (code !== 0) {
-        resolved = true;
-        reject(new Error(`Mem0 process exited with code ${code}`));
-      }
-    });
+  const response = await fetch(url.toString(), {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${MEM0_API_KEY}`
+    },
+    body: body ? JSON.stringify(body) : undefined
   });
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = (data as any)?.message || response.statusText;
+    throw new Error(`Mem0 error: ${message}`);
+  }
+  return data as T;
 }
 
 /**
@@ -119,25 +42,29 @@ async function executeMem0Command(
  */
 export async function addMemory(req: Request, res: Response): Promise<void> {
   try {
-    const { text, tags, userId, metadata } = req.body;
+    const { text, messages, userId, metadata, tags } = req.body;
 
-    if (!text) {
-      res.status(400).json({ error: 'Text is required' });
+    if (!text && (!messages || messages.length === 0)) {
+      res.status(400).json({ error: 'Text or messages is required' });
       return;
     }
 
-    const result = await executeMem0Command('add_memory', {
-      text,
-      tags: tags || [],
-      metadata,
-      user_id: userId
-    }, userId);
+    const payload = {
+      messages: messages || [{ role: 'user', content: text }],
+      user_id: userId,
+      metadata: metadata || (tags ? { tags } : undefined)
+    };
+
+    const result = await mem0Fetch<any>('/v1/memories/', {
+      method: 'POST',
+      body: payload
+    });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error adding memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to add memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to add memory'
     });
   }
 }
@@ -148,47 +75,44 @@ export async function addMemory(req: Request, res: Response): Promise<void> {
  */
 export async function searchMemories(req: Request, res: Response): Promise<void> {
   try {
-    const { query, filters, limit, userId } = req.body;
+    const { query, userId, limit } = req.body;
 
     if (!query) {
       res.status(400).json({ error: 'Query is required' });
       return;
     }
 
-    const result = await executeMem0Command('search_memories', {
-      query,
-      filters,
-      limit: limit || 5
-    }, userId);
+    const result = await mem0Fetch<any>('/v2/memories/search/', {
+      method: 'POST',
+      body: { query, user_id: userId, limit: limit || 5 }
+    });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error searching memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to search memories' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to search memories'
     });
   }
 }
 
 /**
  * GET /api/mem0/get-memories
- * Get memories with filters and pagination
+ * Get memories for a user
  */
 export async function getMemories(req: Request, res: Response): Promise<void> {
   try {
-    const { filters, page, pageSize, userId } = req.query;
+    const { userId } = req.query;
 
-    const result = await executeMem0Command('get_memories', {
-      filters: filters ? JSON.parse(filters as string) : undefined,
-      page: page ? parseInt(page as string) : 1,
-      page_size: pageSize ? parseInt(pageSize as string) : 10
-    }, userId as string);
+    const result = await mem0Fetch<any>('/v1/memories/', {
+      query: { user_id: userId as string | undefined }
+    });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error getting memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to get memories' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to get memories'
     });
   }
 }
@@ -206,15 +130,13 @@ export async function getMemory(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await executeMem0Command('get_memory', {
-      memory_id: memoryId
-    });
+    const result = await mem0Fetch<any>(`/v1/memories/${memoryId}/`);
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error getting memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to get memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to get memory'
     });
   }
 }
@@ -232,16 +154,16 @@ export async function updateMemory(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await executeMem0Command('update_memory', {
-      memory_id: memoryId,
-      text
+    const result = await mem0Fetch<any>(`/v1/memories/${memoryId}/`, {
+      method: 'PUT',
+      body: { data: text }
     });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error updating memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to update memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to update memory'
     });
   }
 }
@@ -259,15 +181,15 @@ export async function deleteMemory(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await executeMem0Command('delete_memory', {
-      memory_id: memoryId
+    const result = await mem0Fetch<any>(`/v1/memories/${memoryId}/`, {
+      method: 'DELETE'
     });
 
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error deleting memory:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to delete memory' 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to delete memory'
     });
   }
 }
@@ -277,38 +199,24 @@ export async function deleteMemory(req: Request, res: Response): Promise<void> {
  * Delete all memories for a user/agent/app/run
  */
 export async function deleteAllMemories(req: Request, res: Response): Promise<void> {
-  try {
-    const { userId, agentId, appId, runId } = req.body;
-
-    const result = await executeMem0Command('delete_all_memories', {
-      user_id: userId,
-      agent_id: agentId,
-      app_id: appId,
-      run_id: runId
-    });
-
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error('Error deleting all memories:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to delete all memories' 
-    });
-  }
+  res.status(501).json({ error: 'Bulk delete is not supported by Mem0 HTTP API.' });
 }
 
 /**
  * GET /api/mem0/list-entities
- * List all entities (users/agents/apps/runs)
+ * List entities (users/apps) — not supported by Mem0 HTTP API yet
  */
-export async function listEntities(req: Request, res: Response): Promise<void> {
-  try {
-    const result = await executeMem0Command('list_entities', {});
-
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error('Error listing entities:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to list entities' 
-    });
-  }
+export async function listEntities(_req: Request, res: Response): Promise<void> {
+  res.status(501).json({ error: 'Listing entities is not supported by Mem0 HTTP API yet.' });
 }
+
+export const mem0Router = Router();
+
+mem0Router.post('/add-memory', addMemory);
+mem0Router.post('/search-memories', searchMemories);
+mem0Router.get('/get-memories', getMemories);
+mem0Router.get('/get-memory/:memoryId', getMemory);
+mem0Router.put('/update-memory', updateMemory);
+mem0Router.delete('/delete-memory/:memoryId', deleteMemory);
+mem0Router.delete('/delete-all-memories', deleteAllMemories);
+mem0Router.get('/list-entities', listEntities);
