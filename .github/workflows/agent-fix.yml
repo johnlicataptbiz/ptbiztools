@@ -1,0 +1,69 @@
+name: Agent Fix Pass
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to process
+        required: true
+        type: string
+      branch:
+        description: Branch to push fixes to (defaults to PR head)
+        required: false
+        type: string
+      run_tests:
+        description: Run tests after applying fixes
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  agent-fix:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ inputs.pr_number }}
+      BRANCH: ${{ inputs.branch }}
+      RUN_TESTS: ${{ inputs.run_tests }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH || format('refs/pull/{0}/head', env.PR_NUMBER) }}
+
+      - name: Fetch PR comments and threads
+        run: |
+          gh pr view "$PR_NUMBER" --json comments,reviewThreads > agent-comments.json
+
+      - name: Install Node (for tooling only)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run agent fixer (stub)
+        run: |
+          node scripts/agent-fix.js agent-comments.json > agent-summary.md
+
+      - name: Optional tests
+        if: env.RUN_TESTS == 'true'
+        run: |
+          echo "RUN_TESTS=true — add project-specific test commands here."
+
+      - name: Commit and push changes if any
+        run: |
+          if git diff --quiet; then
+            echo "No code changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "agent: apply fixes from review comments"
+          git push origin HEAD
+
+      - name: Post summary comment
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file agent-summary.md

@@ -1,0 +1,11 @@
+{
+  "label": "needs-agent-fix",
+  "testCommands": [
+    "cd ptbiztools-next && npm test -- --run",
+    "cd ptbiztools-backend && npm test -- --run"
+  ],
+  "includePaths": [
+    "ptbiztools-next/",
+    "ptbiztools-backend/"
+  ]
+}
