@@ -21,14 +21,19 @@ const collectThreads = () => {
   const items = []
   for (const thread of data.reviewThreads || []) {
     const unresolved = thread.isResolved === false || thread.isOutdated === false
-    const summary = thread.comments?.map(c => c.bodyText || '').join(' ').slice(0, 160)
+    const summary = (thread.comments || [])
+      .map((c) => c.bodyText || '')
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200)
     items.push({ unresolved, summary })
   }
   return items
 }
 
 const threads = collectThreads()
-const unresolved = threads.filter(t => t.unresolved)
+const unresolved = threads.filter((t) => t.unresolved)
 
 if (unresolved.length === 0) {
   lines.push('- No unresolved review threads detected.')
@@ -40,7 +45,7 @@ if (unresolved.length === 0) {
 }
 
 lines.push('')
-lines.push('> This is a stub. Replace scripts/agent-fix.js with real fix logic that maps comments to code changes.')
+lines.push('> Stub mode: replace scripts/agent-fix.js with real fix logic that maps comments to code changes.')
 
 fs.writeFileSync('agent-summary.md', lines.join('\n'), 'utf8')
 console.log(lines.join('\n'))

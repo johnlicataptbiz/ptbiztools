@@ -5,7 +5,7 @@ on:
     inputs:
       pr_number:
         description: Pull request number to process
-        required: true
+        required: false
         type: string
       branch:
         description: Branch to push fixes to (defaults to PR head)
@@ -16,24 +16,67 @@ on:
         required: false
         default: false
         type: boolean
+  schedule:
+    - cron: "0 * * * *" # hourly
+
+concurrency:
+  group: agent-fix-pass
+  cancel-in-progress: false
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  agent-fix:
+  discover-and-run:
     runs-on: ubuntu-latest
     env:
-      PR_NUMBER: ${{ inputs.pr_number }}
-      BRANCH: ${{ inputs.branch }}
-      RUN_TESTS: ${{ inputs.run_tests }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RUN_TESTS: ${{ inputs.run_tests }}
     steps:
-      - name: Checkout
+      - name: Select PRs
+        id: select
+        run: |
+          # If manual input provided, use it; else list label-filtered PRs.
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            echo "pr_list=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          prs=$(gh pr list --state open --label "needs-agent-fix" --json number,isDraft,headRefName --limit 5 \
+            | jq -r '.[] | select(.isDraft==false) | .number' | tr '\n' ' ' | sed 's/ *$//')
+          echo "pr_list=${prs}" >> "$GITHUB_OUTPUT"
+      - name: Fail if nothing to do
+        if: steps.select.outputs.pr_list == ''
+        run: |
+          echo "No open PRs with label needs-agent-fix (or none provided)."
+          exit 0
+      - name: Iterate PRs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prs = "${{ steps.select.outputs.pr_list }}".trim().split(/\s+/).filter(Boolean);
+            core.setOutput('matrix', JSON.stringify(prs));
+      - name: Set matrix
+        run: echo "matrix=${{ steps.iterate.outputs.matrix }}"
+
+  agent-fix:
+    needs: discover-and-run
+    if: needs.discover-and-run.outputs.matrix != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pr: ${{ fromJson(needs.discover-and-run.outputs.matrix) }}
+    env:
+      PR_NUMBER: ${{ matrix.pr }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RUN_TESTS: ${{ inputs.run_tests }}
+    steps:
+      - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.BRANCH || format('refs/pull/{0}/head', env.PR_NUMBER) }}
+          ref: refs/pull/${{ env.PR_NUMBER }}/head
 
       - name: Fetch PR comments and threads
         run: |
