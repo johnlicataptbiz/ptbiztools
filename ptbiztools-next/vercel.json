@@ -6,6 +6,6 @@
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "env": {
-    "PTBIZ_BACKEND_URL": "@ptbiz_backend_url"
+    "PTBIZ_BACKEND_URL": "https://ptbiztools-backend-production.up.railway.app/api"
   }
 }
