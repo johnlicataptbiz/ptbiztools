@@ -10,19 +10,20 @@ interface ClinicBackgroundProps {
 }
 
 const PATTERN_SIZES = {
-  sm: '60px',
-  md: '120px',
-  lg: '200px',
+  sm: '180%',
+  md: '220%',
+  lg: '260%',
 };
 
-export function ClinicBackground({ pattern, className = '', opacity = 0.08, size = 'md' }: ClinicBackgroundProps) {
+export function ClinicBackground({ pattern, className = '', opacity = 0.03, size = 'md' }: ClinicBackgroundProps) {
   const src = CLINIC_SVGS[pattern];
   return (
     <div 
       className={className}
       style={{
         backgroundImage: `url(${src})`,
-        backgroundRepeat: 'repeat',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         backgroundSize: PATTERN_SIZES[size],
         opacity,
         position: 'absolute',
@@ -33,4 +34,3 @@ export function ClinicBackground({ pattern, className = '', opacity = 0.08, size
     />
   );
 }
-

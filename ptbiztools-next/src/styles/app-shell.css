@@ -14,33 +14,12 @@
 
 /* Subtle pattern texture overlay on sidebar */
 .app-shell-sidebar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('/clinic-icons/node_network_pattern.svg');
-  background-size: 140px;
-  background-repeat: repeat;
-  opacity: 0.06;
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 /* Bottom decorative linked-node backdrop */
 .app-shell-sidebar-decoration {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 180px;
-  background-image: url('/clinic-icons/linked_node_backdrop.png');
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  opacity: 0.06;
-  pointer-events: none;
-  z-index: 0;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+  display: none;
 }
 
 /* Ensure sidebar children are above the pattern */
