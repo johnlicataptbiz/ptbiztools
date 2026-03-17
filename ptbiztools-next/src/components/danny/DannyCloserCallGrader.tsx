@@ -300,7 +300,7 @@ export default function SalesCallGrader() {
   };
 
   const getFullTranscript = () => {
-    const all = [...chunks, transcript.trim()].filter(Boolean).join("\\n\\n");
+    const all = [...chunks, transcript.trim()].filter(Boolean).join("\n\n");
     return all;
   };
 
@@ -735,7 +735,7 @@ export default function SalesCallGrader() {
             {chunks.length > 0 && (
               <div style={{ marginBottom: "10px", padding: "10px 14px", background: "rgba(88,166,255,0.08)", border: `1px solid rgba(88,166,255,0.2)`, borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: "12px", color: accent }}>
-                  {chunks.length} {chunks.length === 1 ? "part" : "parts"} saved — {chunks.join(" ").split(/\\s+/).length.toLocaleString()} words so far
+                  {chunks.length} {chunks.length === 1 ? "part" : "parts"} saved — {chunks.join(" ").trim().split(/\s+/).filter(Boolean).length.toLocaleString()} words so far
                 </span>
                 <button onClick={clearTranscript} style={{ ...btnBase, padding: "3px 10px", fontSize: "11px", background: "transparent", color: textSecondary, border: `1px solid ${border}` }}>Clear All</button>
               </div>

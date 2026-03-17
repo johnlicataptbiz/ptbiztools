@@ -7,6 +7,7 @@ import { analyticsRouter } from './routes/analytics.js';
 import { plImportRouter } from './routes/plImport.js';
 import transcriptRouter from './routes/transcript.js';
 import { dannyToolsRouter } from './routes/dannyTools.js';
+import { mem0Router } from './routes/mem0.js';
 import { zoomRouter } from './routes/zoom.js';
 import zoomConnectRouter from './routes/zoomConnect.js';
 import { prisma } from './services/prisma.js';
@@ -57,6 +58,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/pl-imports', plImportRouter);
 app.use('/api/transcripts', transcriptRouter);
 app.use('/api/danny-tools', dannyToolsRouter);
+app.use('/api/mem0', mem0Router);
 app.use('/api/zoom', zoomRouter);
 app.use('/api/zoom', zoomConnectRouter);
 

@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Search,
   User,
-  Lock,
   Eye,
   EyeOff,
   ArrowLeft,

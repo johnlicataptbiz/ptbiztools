@@ -27,6 +27,12 @@ interface SessionRequest extends Request {
 
 export const zoomRouter = Router()
 
+function getInternalAppUrl(): string {
+  const url = process.env.INTERNAL_APP_URL
+  if (!url) throw new Error('Missing INTERNAL_APP_URL')
+  return url.replace(/\/$/, '')
+}
+
 function readZoomAccessTokenClaims(accessToken: string): ZoomAccessTokenClaims | null {
   const parts = accessToken.split('.')
   if (parts.length < 2) return null
@@ -179,7 +185,7 @@ zoomRouter.get('/oauth/callback', async (req: Request, res: Response) => {
       },
     })
 
-    return res.redirect('/dashboard?zoom=connected')
+    return res.redirect(`${getInternalAppUrl()}/dashboard?zoom=connected`)
   } catch (error) {
     const rawReason = error instanceof Error ? error.message : 'Unknown error'
     const safeReason = /accessToken|refreshToken|prisma|upsert/i.test(rawReason)
