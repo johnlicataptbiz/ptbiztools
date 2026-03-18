@@ -347,6 +347,8 @@
   text-align: left;
   isolation: isolate;
   text-decoration: none;
+  display: flex;
+  flex-direction: column;
 }
 
 .tool-card::before {
