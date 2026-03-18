@@ -3,14 +3,21 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useState, useMemo, type ComponentType, type CSSProperties } from "react";
+import {
+  useState,
+  useMemo,
+  type ComponentType,
+  type CSSProperties,
+} from "react";
 import {
   Activity,
   BarChart3,
   Calculator,
+  ChevronRight,
   ClipboardList,
   Clock,
   FileText,
+  History,
   LogIn,
   Medal,
   Phone,
@@ -24,7 +31,6 @@ import { getEffectiveRole } from "@/lib/auth/roles";
 import { TourAnchors } from "@/lib/tour/anchors";
 import { TOOL_BADGES } from "@/constants/tool-badges";
 import { ChangelogModal } from "@/components/changelog/ChangelogModal";
-import { History } from "lucide-react";
 import {
   getActionLogs,
   getActionStats,
@@ -73,7 +79,11 @@ interface ToolCard {
   title: string;
   description: string;
   href: string;
-  icon: ComponentType<{ size?: number; className?: string; style?: CSSProperties }>;
+  icon: ComponentType<{
+    size?: number;
+    className?: string;
+    style?: CSSProperties;
+  }>;
   badgeUrl?: string;
   color: string;
   adminsAndAdvisorsOnly?: boolean;
@@ -94,13 +104,18 @@ const trackedTranscriptActions = new Set([
   "TRANSCRIPT_PASTED",
 ]);
 
-const trackedPdfActions = new Set(["pdf_generated", "PDF_GENERATED", "pl_pdf_generated"]);
+const trackedPdfActions = new Set([
+  "pdf_generated",
+  "PDF_GENERATED",
+  "pl_pdf_generated",
+]);
 const trackedLoginActions = new Set(["login_success", "LOGIN_SUCCESS"]);
 
 const TOOL_CARDS: ToolCard[] = [
   {
     title: "Discovery Call Grader",
-    description: "Grade and analyze discovery call transcripts with immediate coaching feedback.",
+    description:
+      "Grade and analyze discovery call transcripts with immediate coaching feedback.",
     href: "/discovery-call-grader",
     icon: Phone,
     badgeUrl: TOOL_BADGES.discovery,
@@ -108,7 +123,8 @@ const TOOL_CARDS: ToolCard[] = [
   },
   {
     title: "P&L Calculator",
-    description: "Analyze clinic financial performance with benchmarks and action steps.",
+    description:
+      "Analyze clinic financial performance with benchmarks and action steps.",
     href: "/pl-calculator",
     icon: TrendingUp,
     badgeUrl: TOOL_BADGES.pl,
@@ -116,7 +132,8 @@ const TOOL_CARDS: ToolCard[] = [
   },
   {
     title: "Comp Calculator",
-    description: "Model compensation structures and targets with PT Biz assumptions.",
+    description:
+      "Model compensation structures and targets with PT Biz assumptions.",
     href: "/compensation-calculator",
     icon: Calculator,
     badgeUrl: TOOL_BADGES.comp,
@@ -124,7 +141,8 @@ const TOOL_CARDS: ToolCard[] = [
   },
   {
     title: "Sales Grader",
-    description: "Run the deterministic sales discovery grading system for closer calls.",
+    description:
+      "Run the deterministic sales discovery grading system for closer calls.",
     href: "/sales-discovery-grader",
     icon: PhoneCall,
     badgeUrl: TOOL_BADGES.sales,
@@ -133,7 +151,8 @@ const TOOL_CARDS: ToolCard[] = [
   },
   {
     title: "Analyses",
-    description: "Review saved grading records, P&L audits, and generated exports.",
+    description:
+      "Review saved grading records, P&L audits, and generated exports.",
     href: "/analyses",
     icon: ScrollText,
     color: "#5b7fa6",
@@ -168,9 +187,15 @@ async function fetchCoachStats(): Promise<CoachStats> {
 
   const logs = result.logs || [];
 
-  const transcripts = logs.filter((log) => trackedTranscriptActions.has(log.actionType)).length;
-  const pdfs = logs.filter((log) => trackedPdfActions.has(log.actionType)).length;
-  const grades = logs.filter((log) => trackedGradeActions.has(log.actionType)).length;
+  const transcripts = logs.filter((log) =>
+    trackedTranscriptActions.has(log.actionType),
+  ).length;
+  const pdfs = logs.filter((log) =>
+    trackedPdfActions.has(log.actionType),
+  ).length;
+  const grades = logs.filter((log) =>
+    trackedGradeActions.has(log.actionType),
+  ).length;
   const actionBreakdown = Array.from(
     logs.reduce((acc, log) => {
       const key = (log.actionType || "activity").trim() || "activity";
@@ -187,13 +212,18 @@ async function fetchCoachStats(): Promise<CoachStats> {
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split("T")[0] || "";
 
-    const dayLogs = logs.filter((log) => (log.createdAt || "").startsWith(dateStr));
+    const dayLogs = logs.filter((log) =>
+      (log.createdAt || "").startsWith(dateStr),
+    );
 
     chartData.push({
       date: date.toLocaleDateString("en-US", { weekday: "short" }),
-      graded: dayLogs.filter((log) => trackedGradeActions.has(log.actionType)).length,
-      pdfs: dayLogs.filter((log) => trackedPdfActions.has(log.actionType)).length,
-      logins: dayLogs.filter((log) => trackedLoginActions.has(log.actionType)).length,
+      graded: dayLogs.filter((log) => trackedGradeActions.has(log.actionType))
+        .length,
+      pdfs: dayLogs.filter((log) => trackedPdfActions.has(log.actionType))
+        .length,
+      logins: dayLogs.filter((log) => trackedLoginActions.has(log.actionType))
+        .length,
     });
   }
 
@@ -215,7 +245,10 @@ async function fetchCoachStats(): Promise<CoachStats> {
 }
 
 async function fetchAdminUsageData(): Promise<HomeAdminUsageData> {
-  const [usageResult, actionResult] = await Promise.all([getAdminUsageSummary(30), getActionStats()]);
+  const [usageResult, actionResult] = await Promise.all([
+    getAdminUsageSummary(30),
+    getActionStats(),
+  ]);
 
   if (usageResult.error) {
     throw new Error(usageResult.error);
@@ -268,6 +301,20 @@ function getInitials(name?: string) {
     .toUpperCase();
 }
 
+function getActivityItemClass(type: string): string {
+  if (trackedLoginActions.has(type) || type === "login_success")
+    return "activity-item--login";
+  if (trackedGradeActions.has(type) || type === "coaching_analysis_saved")
+    return "activity-item--grade";
+  if (
+    trackedPdfActions.has(type) ||
+    type === "pdf_export_saved" ||
+    type === "pdf_generated"
+  )
+    return "activity-item--pdf";
+  return "activity-item--default";
+}
+
 export default function DashboardPage() {
   const { user } = useSession();
   const [changelogOpen, setChangelogOpen] = useState(false);
@@ -297,8 +344,21 @@ export default function DashboardPage() {
 
   const greeting = useMemo(() => {
     const firstName = user?.name.split(" ")[0] || "Coach";
-    return isAdmin ? `Welcome back, ${firstName}` : `Coach Dashboard, ${firstName}`;
+    return isAdmin
+      ? `Welcome back, ${firstName}`
+      : `Coach Dashboard, ${firstName}`;
   }, [isAdmin, user?.name]);
+
+  const heroSubtitle = useMemo(() => {
+    const today = new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+    return isAdmin
+      ? `Admin overview · ${today}`
+      : `Your performance snapshot · ${today}`;
+  }, [isAdmin]);
 
   const adminChartData = useMemo<DailyChartPoint[]>(() => {
     return (adminUsage?.byDay || []).map((day) => ({
@@ -310,7 +370,9 @@ export default function DashboardPage() {
   }, [adminUsage?.byDay]);
 
   const toolCards = useMemo(() => {
-    return TOOL_CARDS.filter((tool) => !tool.adminsAndAdvisorsOnly || isAdmin || isAdvisor);
+    return TOOL_CARDS.filter(
+      (tool) => !tool.adminsAndAdvisorsOnly || isAdmin || isAdvisor,
+    );
   }, [isAdmin, isAdvisor]);
 
   const adminActivityFeed = useMemo<ActivityFeedItem[]>(() => {
@@ -353,7 +415,10 @@ export default function DashboardPage() {
     }));
 
     return [...loginEvents, ...coachingEvents, ...pdfEvents, ...actionEvents]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, 20);
   }, [adminUsage]);
 
@@ -363,81 +428,131 @@ export default function DashboardPage() {
     const maxPoints = isAdmin ? 10 : 7;
     return raw.slice(-maxPoints);
   }, [adminChartData, coachStats.chartData, isAdmin]);
-  const isLoading = isAdmin ? adminUsageQuery.isLoading : coachStatsQuery.isLoading;
+  const isLoading = isAdmin
+    ? adminUsageQuery.isLoading
+    : coachStatsQuery.isLoading;
 
   const topActionTotal = useMemo(() => {
     if (isAdmin) {
-      return (actionStats?.stats || []).slice(0, 8).reduce((sum, row) => sum + coerceCount(row?._count?.actionType), 0);
+      return (actionStats?.stats || [])
+        .slice(0, 8)
+        .reduce((sum, row) => sum + coerceCount(row?._count?.actionType), 0);
     }
-    return coachActionStats.slice(0, 8).reduce((sum, row) => sum + coerceCount(row.count), 0);
+    return coachActionStats
+      .slice(0, 8)
+      .reduce((sum, row) => sum + coerceCount(row.count), 0);
   }, [actionStats?.stats, coachActionStats, isAdmin]);
 
   const chartMax = useMemo(() => {
-    const values = chartData.flatMap((row) => [row.graded, row.pdfs, row.logins]);
+    const values = chartData.flatMap((row) => [
+      row.graded,
+      row.pdfs,
+      row.logins,
+    ]);
     return Math.max(1, ...values);
   }, [chartData]);
 
   return (
     <div className="home">
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="dashboard">
-        <motion.section variants={itemVariants} className="dashboard-v2-hero dashboard-header">
-          <div className="dashboard-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
-            <button 
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="dashboard"
+      >
+        <motion.section
+          variants={itemVariants}
+          className="dashboard-v2-hero dashboard-header"
+        >
+          <div
+            className="dashboard-header-content"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <div>
+              <h1 style={{ margin: 0, fontSize: "24px" }}>{greeting}</h1>
+              <p className="dashboard-hero-subtitle">{heroSubtitle}</p>
+            </div>
+            <button
               className="changelog-trigger-btn"
               onClick={() => setChangelogOpen(true)}
               title="View changelog"
-              style={{ marginLeft: "auto" }}
             >
-              <History size={18} />
+              <History size={16} />
+              What&apos;s New
             </button>
           </div>
         </motion.section>
 
         <motion.section variants={itemVariants} className="stats-grid">
           <article className="stat-card">
-            <div className="stat-icon" style={{ background: "rgba(233, 69, 96, 0.15)" }}>
-              <Medal size={22} style={{ color: "var(--accent)" }} />
+            <div className="stat-icon stat-icon--accent">
+              <Medal size={22} />
             </div>
             <div className="stat-content">
               <span className="stat-value">
-                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.coachingAnalyses ?? 0) : coachStats.totalGrades}
+                {isLoading
+                  ? "..."
+                  : isAdmin
+                    ? (adminUsage?.totals.coachingAnalyses ?? 0)
+                    : coachStats.totalGrades}
               </span>
               <span className="stat-label">Coaching Analyses</span>
             </div>
           </article>
 
           <article className="stat-card">
-            <div className="stat-icon" style={{ background: "rgba(45, 138, 78, 0.15)" }}>
-              <FileText size={22} style={{ color: "var(--success)" }} />
+            <div className="stat-icon stat-icon--success">
+              <FileText size={22} />
             </div>
             <div className="stat-content">
               <span className="stat-value">
-                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.pdfExports ?? 0) : coachStats.totalPdfs}
+                {isLoading
+                  ? "..."
+                  : isAdmin
+                    ? (adminUsage?.totals.pdfExports ?? 0)
+                    : coachStats.totalPdfs}
               </span>
               <span className="stat-label">PDF Exports</span>
             </div>
           </article>
 
           <article className="stat-card">
-            <div className="stat-icon" style={{ background: "rgba(15, 52, 96, 0.25)" }}>
-              {isAdmin ? <LogIn size={22} style={{ color: "var(--info)" }} /> : <ClipboardList size={22} style={{ color: "var(--info)" }} />}
+            <div className="stat-icon stat-icon--info">
+              {isAdmin ? <LogIn size={22} /> : <ClipboardList size={22} />}
             </div>
             <div className="stat-content">
               <span className="stat-value">
-                {isLoading ? "..." : isAdmin ? (adminUsage?.totals.successfulLogins ?? 0) : coachStats.totalTranscripts}
+                {isLoading
+                  ? "..."
+                  : isAdmin
+                    ? (adminUsage?.totals.successfulLogins ?? 0)
+                    : coachStats.totalTranscripts}
               </span>
-              <span className="stat-label">{isAdmin ? "Successful Logins" : "Transcripts Uploaded"}</span>
+              <span className="stat-label">
+                {isAdmin ? "Successful Logins" : "Transcripts Uploaded"}
+              </span>
             </div>
           </article>
 
           <article className="stat-card">
-            <div className="stat-icon" style={{ background: "rgba(196, 127, 23, 0.15)" }}>
-              <Users size={22} style={{ color: "var(--warning)" }} />
+            <div className="stat-icon stat-icon--warning">
+              <Users size={22} />
             </div>
             <div className="stat-content">
-              <span className="stat-value">{isLoading ? "..." : isAdmin ? (adminUsage?.totals.activeUsers ?? 0) : activityFeed.length}</span>
-              <span className="stat-label">{isAdmin ? "Active Users" : "Recent Activities"}</span>
+              <span className="stat-value">
+                {isLoading
+                  ? "..."
+                  : isAdmin
+                    ? (adminUsage?.totals.activeUsers ?? 0)
+                    : activityFeed.length}
+              </span>
+              <span className="stat-label">
+                {isAdmin ? "Active Users" : "Recent Activities"}
+              </span>
             </div>
           </article>
         </motion.section>
@@ -445,22 +560,33 @@ export default function DashboardPage() {
         <motion.section variants={itemVariants} className="chart-section">
           <div className="chart-card">
             <div className="chart-header">
-                <div className="chart-title">
-                  <BarChart3 size={20} />
-                  <h3>Activity Overview</h3>
-                </div>
-                <span className="chart-window-label">{isAdmin ? "Last 10 days" : "Last 7 days"}</span>
-                <div className="chart-legend">
+              <div className="chart-title">
+                <BarChart3 size={20} />
+                <h3>Activity Overview</h3>
+              </div>
+              <span className="chart-window-label">
+                {isAdmin ? "Last 10 days" : "Last 7 days"}
+              </span>
+              <div className="chart-legend">
                 <span className="legend-item">
-                  <span className="legend-dot" style={{ background: "var(--accent)" }} />
+                  <span
+                    className="legend-dot"
+                    style={{ background: "var(--accent)" }}
+                  />
                   Analyses
                 </span>
                 <span className="legend-item">
-                  <span className="legend-dot" style={{ background: "var(--success)" }} />
+                  <span
+                    className="legend-dot"
+                    style={{ background: "var(--success)" }}
+                  />
                   PDF Exports
                 </span>
                 <span className="legend-item">
-                  <span className="legend-dot" style={{ background: "var(--warning)" }} />
+                  <span
+                    className="legend-dot"
+                    style={{ background: "var(--warning)" }}
+                  />
                   Logins
                 </span>
               </div>
@@ -476,11 +602,22 @@ export default function DashboardPage() {
                   <div key={row.date} className="overview-row">
                     <span className="overview-date">{row.date}</span>
                     <div className="overview-bars">
-                      <div className="overview-bar overview-bar-analyses" style={{ width: `${(row.graded / chartMax) * 100}%` }} />
-                      <div className="overview-bar overview-bar-pdfs" style={{ width: `${(row.pdfs / chartMax) * 100}%` }} />
-                      <div className="overview-bar overview-bar-logins" style={{ width: `${(row.logins / chartMax) * 100}%` }} />
+                      <div
+                        className="overview-bar overview-bar-analyses"
+                        style={{ width: `${(row.graded / chartMax) * 100}%` }}
+                      />
+                      <div
+                        className="overview-bar overview-bar-pdfs"
+                        style={{ width: `${(row.pdfs / chartMax) * 100}%` }}
+                      />
+                      <div
+                        className="overview-bar overview-bar-logins"
+                        style={{ width: `${(row.logins / chartMax) * 100}%` }}
+                      />
                     </div>
-                    <span className="overview-total">{row.graded + row.pdfs + row.logins}</span>
+                    <span className="overview-total">
+                      {row.graded + row.pdfs + row.logins}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -488,14 +625,25 @@ export default function DashboardPage() {
           </div>
         </motion.section>
 
-        <motion.section variants={itemVariants} className="tools-section" data-tour={TourAnchors.dashboard.tools}>
+        <motion.section
+          variants={itemVariants}
+          className="tools-section"
+          data-tour={TourAnchors.dashboard.tools}
+        >
           <h2>{isAdmin ? "Tools" : "Your Tools"}</h2>
           <div className="tools-grid">
             {toolCards.map((tool) => {
               const Icon = tool.icon;
               return (
-                <Link key={tool.href} href={tool.href} className="tool-card tool-card-live">
-                  <div className="tool-icon" style={{ background: `${tool.color}20` }}>
+                <Link
+                  key={tool.href}
+                  href={tool.href}
+                  className="tool-card tool-card-live"
+                >
+                  <div
+                    className="tool-icon"
+                    style={{ background: `${tool.color}20` }}
+                  >
                     {tool.badgeUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -503,18 +651,30 @@ export default function DashboardPage() {
                         alt={`${tool.title} icon`}
                         className="tool-badge"
                         onError={(event) => {
-                          (event.currentTarget as HTMLImageElement).style.display = "none";
-                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                          (
+                            event.currentTarget as HTMLImageElement
+                          ).style.display = "none";
+                          const fallback = event.currentTarget
+                            .nextElementSibling as HTMLElement | null;
                           if (fallback) fallback.style.display = "inline-flex";
                         }}
                       />
                     ) : null}
-                    <span className="tool-icon-fallback" style={{ display: tool.badgeUrl ? "none" : "inline-flex" }}>
+                    <span
+                      className="tool-icon-fallback"
+                      style={{
+                        display: tool.badgeUrl ? "none" : "inline-flex",
+                      }}
+                    >
                       <Icon size={28} style={{ color: tool.color }} />
                     </span>
                   </div>
                   <div className="tool-content">
                     <h3>{tool.title}</h3>
+                    <p>{tool.description}</p>
+                  </div>
+                  <div className="tool-card-arrow">
+                    <ChevronRight size={16} />
                   </div>
                 </Link>
               );
@@ -546,7 +706,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
-                  {(!adminUsage?.topUsers || adminUsage.topUsers.length === 0) && (
+                  {(!adminUsage?.topUsers ||
+                    adminUsage.topUsers.length === 0) && (
                     <div className="activity-empty">
                       <p>No usage records yet.</p>
                     </div>
@@ -620,7 +781,11 @@ export default function DashboardPage() {
           </motion.section>
         )}
 
-        <motion.section variants={itemVariants} className="activity-section" data-tour={TourAnchors.dashboard.activity}>
+        <motion.section
+          variants={itemVariants}
+          className="activity-section"
+          data-tour={TourAnchors.dashboard.activity}
+        >
           <h2>{isAdmin ? "Recent App Activity" : "Your Team Activity Feed"}</h2>
           <div className="activity-list">
             {isLoading ? (
@@ -634,7 +799,10 @@ export default function DashboardPage() {
               activityFeed.map((item) => {
                 const initials = getInitials(item.userName);
                 return (
-                  <div key={item.id} className="activity-item">
+                  <div
+                    key={item.id}
+                    className={`activity-item ${getActivityItemClass(item.actionType)}`}
+                  >
                     <div className="activity-user-avatar">
                       {item.userImageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -643,14 +811,22 @@ export default function DashboardPage() {
                           alt={item.userName || "User"}
                           className="activity-avatar-img"
                           onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                            const sibling = e.currentTarget.nextSibling as HTMLElement | null;
+                            (
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
+                            const sibling = e.currentTarget
+                              .nextSibling as HTMLElement | null;
                             if (sibling) sibling.style.display = "flex";
                           }}
                         />
                       ) : null}
-                      <div className="activity-avatar-fallback" style={{ display: item.userImageUrl ? "none" : "flex" }}>
-                        {item.userName ? initials : getActionIcon(item.actionType)}
+                      <div
+                        className="activity-avatar-fallback"
+                        style={{ display: item.userImageUrl ? "none" : "flex" }}
+                      >
+                        {item.userName
+                          ? initials
+                          : getActionIcon(item.actionType)}
                       </div>
                     </div>
                     <div className="activity-content">
@@ -667,8 +843,11 @@ export default function DashboardPage() {
           </div>
         </motion.section>
       </motion.div>
-      
-      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
+
+      <ChangelogModal
+        isOpen={changelogOpen}
+        onClose={() => setChangelogOpen(false)}
+      />
     </div>
   );
 }
