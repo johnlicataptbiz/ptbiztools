@@ -18,7 +18,7 @@
     "@workflow/ai": "^4.0.1-beta.54",
     "ai": "^6.0.107",
     "framer-motion": "^12.34.4",
-    "jspdf": "^4.2.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.576.0",
     "next": "16.1.6",
     "react": "19.2.3",
